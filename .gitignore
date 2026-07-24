@@ -1,0 +1,15 @@
+# Credentials - never commit
+creds.txt
+*.env
+.env*
+
+# Dependencies
+node_modules/
+
+# Logs and screenshots
+*.log
+error-screenshot.png
+
+# OS files
+.DS_Store
+Thumbs.db
