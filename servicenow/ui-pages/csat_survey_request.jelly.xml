@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+<j2:set var="jvar_notitle" value="true"/>
+<g:evaluate var="jvar_g_ck" jelly="true">gs.getSessionToken();</g:evaluate>
+<script type="text/javascript">window.g_ck = '${jvar_g_ck}';</script>
+<style>
+body{font-family:Arial,sans-serif;margin:24px;color:#1f2937;background:#f8fafc}
+.container{max-width:960px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:24px}
+h1{margin-top:0}.field{margin-bottom:16px}label{display:block;font-weight:600;margin-bottom:6px}
+select,textarea{width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:4px;box-sizing:border-box}
+textarea{min-height:80px}.users-panel{border:1px solid #e5e7eb;border-radius:4px;padding:12px;max-height:240px;overflow:auto;background:#f9fafb}
+.user-row{display:flex;align-items:center;gap:8px;padding:4px 0}.actions{margin-top:24px;display:flex;gap:12px}
+button{background:#0b5cab;color:#fff;border:none;padding:10px 16px;border-radius:4px;cursor:pointer}
+button.secondary{background:#64748b}.message{margin-top:16px;padding:12px;border-radius:4px;display:none}
+.message.success{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.message.error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.hint{color:#64748b;font-size:12px}
+.inline-group label{font-weight:normal;display:inline-flex;align-items:center;gap:6px;margin-right:16px}
+</style>
+<div class="container">
+<h1>CSAT Survey Request</h1>
+<p class="hint">Select a company, choose recipients and survey template, then schedule delivery.</p>
+<div class="field"><label for="company">Company / Account</label>
+<select id="company"><option value="">-- Select company --</option></select></div>
+<div class="field"><label>Recipients</label><div class="inline-group">
+<label><input type="radio" name="recipient_mode" value="all_users" checked="checked"/> All users in company</label>
+<label><input type="radio" name="recipient_mode" value="selected_users"/> Selected users only</label>
+</div></div>
+<div class="field"><label>Users in selected company</label><div id="usersPanel" class="users-panel"><div class="hint">Select a company to load users.</div></div></div>
+<div class="field"><label for="metric_type">Survey Template</label>
+<select id="metric_type"><option value="">-- Select survey template --</option></select></div>
+<div class="field"><label for="schedule_frequency">Schedule</label><select id="schedule_frequency">
+<option value="immediate">Send immediately</option><option value="every_30_days">Every 30 days</option><option value="every_60_days">Every 60 days</option>
+</select></div>
+<div class="field"><label for="notes">Notes</label><textarea id="notes" placeholder="Optional notes for audit/reporting"></textarea></div>
+<div class="actions"><button type="button" id="submitBtn">Create Survey Request</button><button type="button" class="secondary" id="resetBtn">Reset</button></div>
+<div id="message" class="message"></div></div>
+<script type="text/javascript" src="CSAT Survey Request Client.jsdbx"></script>
+</j:jelly>
