@@ -4,7 +4,8 @@
   "description": "ServiceNow AI browser automation with Cursor MCP",
   "scripts": {
     "test:connection": "node scripts/test-connection.js",
-    "verify:login": "node scripts/verify-login-page.js"
+    "verify:login": "node scripts/verify-login-page.js",
+    "test:login": "node scripts/login-test.js"
   },
   "repository": {
     "type": "git",

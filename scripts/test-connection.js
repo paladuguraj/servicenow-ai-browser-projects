@@ -39,7 +39,7 @@ async function main() {
   }
 
   const auth = Buffer.from(`${username}:${password}`).toString('base64');
-  const api = await fetch(`${instanceUrl}/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name,name`, {
+  const api = await fetch(`${instanceUrl}/api/now/table/sys_user?sysparm_query=user_name=${encodeURIComponent(username)}&sysparm_fields=user_name,name,active`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Basic ${auth}`,
