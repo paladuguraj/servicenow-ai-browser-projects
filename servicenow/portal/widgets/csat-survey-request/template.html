@@ -1,0 +1,86 @@
+<div class="panel panel-default csat-survey-request">
+  <div class="panel-heading">
+    <h2 class="panel-title">CSAT Survey Request</h2>
+    <p class="text-muted m-t-xs m-b-none">Schedule native ServiceNow surveys for a company account.</p>
+  </div>
+  <div class="panel-body">
+    <div class="alert alert-{{c.data.messageType}}" ng-if="c.data.message">
+      {{c.data.message}}
+    </div>
+
+    <form name="csatForm" novalidate="">
+      <div class="form-group">
+        <label for="csat-company">Company / Account</label>
+        <select id="csat-company" class="form-control" ng-model="c.form.company" ng-change="c.loadUsers()" required="">
+          <option value="">-- Select company --</option>
+          <option ng-repeat="company in c.data.companies track by company.sys_id" value="{{company.sys_id}}">{{company.name}}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Recipients</label>
+        <div class="radio">
+          <label>
+            <input type="radio" ng-model="c.form.recipient_mode" value="all_users"/>
+            All users in company
+          </label>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" ng-model="c.form.recipient_mode" value="selected_users"/>
+            Selected users only
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="c.form.company">
+        <label>Users in selected company</label>
+        <div class="well well-sm csat-users-panel" ng-if="c.data.users.length">
+          <div class="checkbox" ng-repeat="user in c.data.users track by user.sys_id">
+            <label>
+              <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user.sys_id)" ng-disabled="c.form.recipient_mode !== 'selected_users'"/>
+              {{user.name}} ({{user.email || user.user_name}})
+            </label>
+          </div>
+        </div>
+        <p class="text-muted" ng-if="!c.data.users.length">No active users found for this company.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="csat-template">Survey Template</label>
+        <select id="csat-template" class="form-control" ng-model="c.form.metric_type" required="">
+          <option value="">-- Select survey template --</option>
+          <option ng-repeat="template in c.data.templates track by template.sys_id" value="{{template.sys_id}}">{{template.name}}</option>
+        </select>
+        <p class="help-block" ng-if="c.form.metric_type">Uses native ServiceNow assessment surveys (<code>asmt_metric_type</code>).</p>
+      </div>
+
+      <div class="form-group">
+        <label for="csat-schedule">Schedule</label>
+        <select id="csat-schedule" class="form-control" ng-model="c.form.schedule_frequency">
+          <option ng-repeat="opt in c.data.scheduleOptions track by opt.value" value="{{opt.value}}">{{opt.label}}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="csat-notes">Notes</label>
+        <textarea id="csat-notes" class="form-control" rows="3" ng-model="c.form.notes" placeholder="Optional notes for audit/reporting"></textarea>
+      </div>
+
+      <div class="btn-toolbar">
+        <button type="button" class="btn btn-primary" ng-click="c.submit()" ng-disabled="c.submitting">
+          <span ng-if="!c.submitting">Create Survey Request</span>
+          <span ng-if="c.submitting">Submitting...</span>
+        </button>
+        <button type="button" class="btn btn-default" ng-click="c.reset()">Reset</button>
+      </div>
+    </form>
+
+    <hr/>
+    <div class="csat-links">
+      <a href="?id=list&amp;table=u_x_csat_survey_request" class="btn btn-link">View survey requests</a>
+      <a href="?id=list&amp;table=u_x_csat_survey_execution" class="btn btn-link">View execution log</a>
+      <a href="?id=my_surveys" class="btn btn-link">My surveys</a>
+    </div>
+  </div>
+</div>

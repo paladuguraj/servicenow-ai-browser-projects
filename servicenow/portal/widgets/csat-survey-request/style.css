@@ -1,0 +1,9 @@
+.csat-survey-request .csat-users-panel {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 0;
+}
+
+.csat-survey-request .csat-links .btn-link {
+  padding-left: 0;
+}
