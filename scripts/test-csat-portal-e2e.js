@@ -51,14 +51,26 @@ async function main() {
   const userRows = await page.locator('.csat-users-panel .checkbox').count();
   console.log(`Users loaded: ${userRows}`);
 
+  // Always target a single named recipient. Leaving this on "all users" would
+  // email every active employee of the company on each test run.
+  await page.check('input[type="radio"][value="selected_users"]');
+  await page.locator('.csat-users-panel input[type="checkbox"]').first().check();
+  console.log('Recipient mode: selected_users (1 recipient)');
+
   await page.selectOption('#csat-template', { label: 'Customer Satisfaction Survey' });
   await page.selectOption('#csat-schedule', 'immediate');
   await page.fill('#csat-notes', 'Service Portal end-to-end test');
   const startedAt = Date.now();
   await page.click('button:has-text("Create Survey Request")');
-  await page.waitForSelector('.alert-success, .alert-danger, .alert-warning', { timeout: 180000 });
 
-  const alertText = await page.locator('.alert-success, .alert-danger, .alert-warning').first().textContent();
+  await page.waitForSelector('.csat-confirm', { timeout: 15000 });
+  const confirmText = await page.locator('.csat-confirm p').textContent();
+  console.log(`Confirmation: ${confirmText.replace(/\s+/g, ' ').trim()}`);
+
+  await page.click('.csat-confirm button.btn-primary');
+  await page.waitForSelector('.alert-success, .alert-danger', { timeout: 120000 });
+
+  const alertText = await page.locator('.alert-success, .alert-danger').first().textContent();
   console.log(`Submit took: ${Math.round((Date.now() - startedAt) / 1000)}s`);
   console.log(`Result: ${alertText.trim()}`);
 

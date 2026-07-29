@@ -44,9 +44,16 @@ api.controller = function($scope, spUtil) {
         });
     };
 
-    c.submit = function() {
+    c.recipientCount = function() {
+        if (c.form.recipient_mode === 'selected_users')
+            return c.getSelectedUserIds().length;
+        return (c.data.users || []).length;
+    };
+
+    c.requestSend = function() {
         c.data.message = '';
         c.data.messageType = '';
+        c.pendingConfirmation = false;
 
         if (!c.form.company || !c.form.metric_type) {
             c.data.message = 'Company and survey template are required.';
@@ -54,13 +61,33 @@ api.controller = function($scope, spUtil) {
             return;
         }
 
-        var selected = c.getSelectedUserIds();
-        if (c.form.recipient_mode === 'selected_users' && !selected.length) {
+        if (c.form.recipient_mode === 'selected_users' && !c.getSelectedUserIds().length) {
             c.data.message = 'Select at least one user.';
             c.data.messageType = 'danger';
             return;
         }
 
+        if (!c.recipientCount()) {
+            c.data.message = 'No active users with an email address were found for this company, so there is nobody to survey.';
+            c.data.messageType = 'warning';
+            return;
+        }
+
+        // Sending to a whole company emails everyone at once, so make the
+        // blast size explicit before anything leaves the instance.
+        c.pendingConfirmation = true;
+    };
+
+    c.cancelConfirmation = function() {
+        c.pendingConfirmation = false;
+    };
+
+    c.submit = function() {
+        c.pendingConfirmation = false;
+        c.data.message = '';
+        c.data.messageType = '';
+
+        var selected = c.getSelectedUserIds();
         c.submitting = true;
         c.server.get({
             action: 'createRequest',
@@ -125,6 +152,15 @@ api.controller = function($scope, spUtil) {
         return 'success';
     };
 
+    c.companyName = function() {
+        var companies = c.data.companies || [];
+        for (var i = 0; i < companies.length; i++) {
+            if (companies[i].sys_id === c.form.company)
+                return companies[i].name;
+        }
+        return 'the selected company';
+    };
+
     c.scheduleLabel = function(value) {
         if (value === 'every_30_days') return 'every 30 days';
         if (value === 'every_60_days') return 'every 60 days';
@@ -143,5 +179,6 @@ api.controller = function($scope, spUtil) {
         c.data.users = [];
         c.data.message = '';
         c.data.messageType = '';
+        c.pendingConfirmation = false;
     };
 };
