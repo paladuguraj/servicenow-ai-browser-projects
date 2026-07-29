@@ -1,0 +1,23 @@
+{
+  "name": "servicenow-ai-browser-projects",
+  "version": "1.0.0",
+  "description": "ServiceNow AI browser automation with Cursor MCP",
+  "scripts": {
+    "test:connection": "node scripts/test-connection.js",
+    "verify:login": "node scripts/verify-login-page.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paladuguraj/servicenow-ai-browser-projects.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paladuguraj/servicenow-ai-browser-projects/issues"
+  },
+  "homepage": "https://github.com/paladuguraj/servicenow-ai-browser-projects#readme",
+  "dependencies": {
+    "playwright": "^1.62.0"
+  }
+}
