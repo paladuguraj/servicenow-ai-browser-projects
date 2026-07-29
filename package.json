@@ -5,7 +5,8 @@
   "scripts": {
     "test:connection": "node scripts/test-connection.js",
     "verify:login": "node scripts/verify-login-page.js",
-    "test:login": "node scripts/login-test.js"
+    "test:login": "node scripts/login-test.js",
+    "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/setup-csat-rest-api.js && node scripts/build-ui-page-simple.js"
   },
   "repository": {
     "type": "git",

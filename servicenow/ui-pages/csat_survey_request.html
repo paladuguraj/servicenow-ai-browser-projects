@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSAT Survey Request</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; background: #f8fafc; }
+    .container { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; }
+    h1 { margin-top: 0; font-size: 24px; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    select, textarea, input[type="text"] { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+    textarea { min-height: 80px; }
+    .users-panel { border: 1px solid #e5e7eb; border-radius: 4px; padding: 12px; max-height: 240px; overflow: auto; background: #f9fafb; }
+    .user-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+    .actions { margin-top: 24px; display: flex; gap: 12px; }
+    button { background: #0b5cab; color: #fff; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; }
+    button.secondary { background: #64748b; }
+    .message { margin-top: 16px; padding: 12px; border-radius: 4px; display: none; }
+    .message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .hint { color: #64748b; font-size: 12px; margin-top: 4px; }
+    .inline-group label { font-weight: normal; display: inline-flex; align-items: center; gap: 6px; margin-right: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CSAT Survey Request</h1>
+    <p class="hint">Select a company, choose recipients and survey template, then schedule delivery.</p>
+
+    <div class="field">
+      <label for="company">Company / Account</label>
+      <select id="company"><option value="">-- Select company --</option></select>
+    </div>
+
+    <div class="field">
+      <label>Recipients</label>
+      <div class="inline-group">
+        <label><input type="radio" name="recipient_mode" value="all_users" checked> All users in company</label>
+        <label><input type="radio" name="recipient_mode" value="selected_users"> Selected users only</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Users in selected company</label>
+      <div id="usersPanel" class="users-panel">
+        <div class="hint">Select a company to load users.</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="metric_type">Survey Template</label>
+      <select id="metric_type"><option value="">-- Select survey template --</option></select>
+    </div>
+
+    <div class="field">
+      <label for="schedule_frequency">Schedule</label>
+      <select id="schedule_frequency">
+        <option value="immediate">Send immediately</option>
+        <option value="every_30_days">Every 30 days</option>
+        <option value="every_60_days">Every 60 days</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Optional notes for audit/reporting"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="submitBtn">Create Survey Request</button>
+      <button type="button" class="secondary" id="resetBtn">Reset</button>
+    </div>
+
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    const apiBase = '/api/x_csat/survey';
+
+    async function apiGet(path) {
+      const res = await fetch(apiBase + path, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Request failed');
+      return data.result;
+    }
+
+    async function apiPost(path, body) {
+      const res = await fetch(apiBase + path, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Request failed');
+      return data.result;
+    }
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = 'message ' + type;
+      el.style.display = 'block';
+    }
+
+    function renderUsers(users) {
+      const panel = document.getElementById('usersPanel');
+      if (!users.length) {
+        panel.innerHTML = '<div class="hint">No active users found for this company.</div>';
+        return;
+      }
+      panel.innerHTML = users.map(u => `
+        <div class="user-row">
+          <input type="checkbox" class="user-checkbox" value="${u.sys_id}" id="user_${u.sys_id}">
+          <label for="user_${u.sys_id}">${u.name} (${u.email || u.user_name})</label>
+        </div>
+      `).join('');
+      updateUserSelectionState();
+    }
+
+    function updateUserSelectionState() {
+      const selectedOnly = document.querySelector('input[name="recipient_mode"]:checked').value === 'selected_users';
+      document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.disabled = !selectedOnly;
+        if (!selectedOnly) cb.checked = false;
+      });
+    }
+
+    async function init() {
+      const [companies, templates] = await Promise.all([
+        apiGet('/companies'),
+        apiGet('/templates')
+      ]);
+
+      const companySelect = document.getElementById('company');
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.sys_id;
+        opt.textContent = c.name;
+        companySelect.appendChild(opt);
+      });
+
+      const templateSelect = document.getElementById('metric_type');
+      templates.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.sys_id;
+        opt.textContent = t.name;
+        templateSelect.appendChild(opt);
+      });
+    }
+
+    document.getElementById('company').addEventListener('change', async (e) => {
+      const companyId = e.target.value;
+      if (!companyId) {
+        document.getElementById('usersPanel').innerHTML = '<div class="hint">Select a company to load users.</div>';
+        return;
+      }
+      const users = await apiGet('/users?company_id=' + encodeURIComponent(companyId));
+      renderUsers(users);
+    });
+
+    document.querySelectorAll('input[name="recipient_mode"]').forEach(r => {
+      r.addEventListener('change', updateUserSelectionState);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => location.reload());
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const company = document.getElementById('company').value;
+      const metric_type = document.getElementById('metric_type').value;
+      const recipient_mode = document.querySelector('input[name="recipient_mode"]:checked').value;
+      const schedule_frequency = document.getElementById('schedule_frequency').value;
+      const notes = document.getElementById('notes').value;
+      const selected_users = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+
+      if (!company || !metric_type) {
+        showMessage('Company and survey template are required.', 'error');
+        return;
+      }
+      if (recipient_mode === 'selected_users' && !selected_users.length) {
+        showMessage('Select at least one user when using selected users mode.', 'error');
+        return;
+      }
+
+      try {
+        const result = await apiPost('/requests', {
+          company,
+          metric_type,
+          recipient_mode,
+          schedule_frequency,
+          notes,
+          selected_users,
+          submit: true
+        });
+        showMessage(`Survey request ${result.number || result.sys_id} created. State: ${result.state}`, 'success');
+      } catch (err) {
+        showMessage('Failed to create survey request.', 'error');
+      }
+    });
+
+    init().catch(() => showMessage('Failed to load page data.', 'error'));
+  </script>
+</body>
+</html>
