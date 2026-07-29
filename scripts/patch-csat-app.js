@@ -84,6 +84,24 @@ async function main() {
   });
   console.log('Updated CSATSurveyAjax');
 
+  const notificationInclude = (await snGet('sys_script_include', 'sysparm_query=name=CSATSurveyNotification&sysparm_fields=sys_id'))[0];
+  if (notificationInclude) {
+    await snPatch('sys_script_include', notificationInclude.sys_id, {
+      script: readArtifact('script-includes/CSATSurveyNotification.js'),
+      active: true,
+    });
+    console.log('Updated CSATSurveyNotification');
+  }
+
+  const submitBr = (await snGet('sys_script', 'sysparm_query=name=CSAT Survey - Notify on Submission&sysparm_fields=sys_id'))[0];
+  if (submitBr) {
+    await snPatch('sys_script', submitBr.sys_id, {
+      script: readArtifact('business-rules/notify-on-survey-submitted.js'),
+      active: true,
+    });
+    console.log('Updated submission notification business rule');
+  }
+
   const uiPage = (await snGet('sys_ui_page', 'sysparm_query=name=csat_survey_request&sysparm_fields=sys_id'))[0];
   await snPatch('sys_ui_page', uiPage.sys_id, {
     html: readArtifact('ui-pages/csat_survey_request.jelly.xml'),

@@ -331,6 +331,7 @@ async function main() {
 
   await ensureScriptInclude('CSATSurveyAjax', readArtifact('script-includes/CSATSurveyAjax.js'));
   await ensureScriptInclude('CSATSurveyService', readArtifact('script-includes/CSATSurveyService.js'));
+  await ensureScriptInclude('CSATSurveyNotification', readArtifact('script-includes/CSATSurveyNotification.js'));
   await ensureBusinessRule(
     'CSAT Survey Request - Process on Submit',
     'u_x_csat_survey_request',

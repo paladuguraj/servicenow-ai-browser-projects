@@ -6,7 +6,7 @@
     "test:connection": "node scripts/test-connection.js",
     "verify:login": "node scripts/verify-login-page.js",
     "test:login": "node scripts/login-test.js",
-    "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/deploy-csat-portal.js",
+    "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/deploy-csat-portal.js && node scripts/deploy-csat-notifications.js",
     "deploy:csat:portal": "node scripts/deploy-csat-portal.js",
     "test:csat": "node scripts/test-csat-portal-e2e.js",
     "test:csat:portal": "node scripts/test-csat-portal-e2e.js",

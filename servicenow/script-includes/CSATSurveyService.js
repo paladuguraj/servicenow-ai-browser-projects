@@ -244,6 +244,7 @@ CSATSurveyService.prototype = {
                 instanceGr.setValue('trigger_id', requestGr.getUniqueValue());
                 instanceGr.setValue('trigger_table', this.REQUEST_TABLE);
                 instanceGr.update();
+                new CSATSurveyNotification().notifyAssigned(instanceGr);
             }
 
             return this._finalizeExecution(execId, 'success', 'Survey sent', instanceId);
