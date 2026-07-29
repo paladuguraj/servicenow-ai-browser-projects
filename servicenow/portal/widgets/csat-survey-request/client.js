@@ -83,14 +83,52 @@ api.controller = function($scope, spUtil) {
                 c.data.messageType = 'danger';
                 return;
             }
-            c.data.message = 'Survey request ' + (result.number || result.sys_id) + ' created. State: ' + result.state;
-            c.data.messageType = 'success';
+            c.data.message = c.describeResult(result);
+            c.data.messageType = c.resultSeverity(result);
             spUtil.addInfoMessage(c.data.message);
         }, function() {
             c.submitting = false;
             c.data.message = 'Failed to create survey request.';
             c.data.messageType = 'danger';
         });
+    };
+
+    c.describeResult = function(result) {
+        var label = 'Survey request ' + (result.number || result.sys_id);
+        var stats = result.executions || {};
+
+        if (result.schedule_frequency !== 'immediate') {
+            return label + ' scheduled (' + c.scheduleLabel(result.schedule_frequency) +
+                '). First run: ' + (result.next_run || 'shortly') + '.';
+        }
+
+        if (!stats.total)
+            return label + ' created, but no surveys were sent: the selected company has no active users with an email address.';
+
+        if (stats.success && !stats.failed && !stats.skipped)
+            return label + ': ' + stats.success + ' survey ' + (stats.success === 1 ? 'invitation' : 'invitations') + ' sent.';
+
+        var parts = [];
+        if (stats.success) parts.push(stats.success + ' sent');
+        if (stats.failed) parts.push(stats.failed + ' failed');
+        if (stats.skipped) parts.push(stats.skipped + ' skipped');
+        var summary = label + ': ' + parts.join(', ') + '.';
+        if (stats.first_error) summary += ' First issue: ' + stats.first_error;
+        return summary;
+    };
+
+    c.resultSeverity = function(result) {
+        var stats = result.executions || {};
+        if (result.schedule_frequency !== 'immediate') return 'success';
+        if (!stats.total) return 'warning';
+        if (stats.failed) return stats.success ? 'warning' : 'danger';
+        return 'success';
+    };
+
+    c.scheduleLabel = function(value) {
+        if (value === 'every_30_days') return 'every 30 days';
+        if (value === 'every_60_days') return 'every 60 days';
+        return 'immediate';
     };
 
     c.reset = function() {

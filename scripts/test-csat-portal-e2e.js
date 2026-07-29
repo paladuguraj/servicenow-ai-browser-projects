@@ -45,23 +45,22 @@ async function main() {
   console.log(`Companies loaded: ${companyCount - 1}`);
   console.log(`Templates loaded: ${templateCount - 1}`);
 
-  if (companyCount > 1) {
-    await page.selectOption('#csat-company', { index: 1 });
-    await page.waitForTimeout(2000);
-    const userRows = await page.locator('.csat-users-panel .checkbox').count();
-    console.log(`Users loaded: ${userRows}`);
-  }
+  // Pick a company that actually has users so the submit path is exercised.
+  await page.selectOption('#csat-company', { label: 'ACME North America' });
+  await page.waitForTimeout(3000);
+  const userRows = await page.locator('.csat-users-panel .checkbox').count();
+  console.log(`Users loaded: ${userRows}`);
 
-  if (templateCount > 1) {
-    await page.selectOption('#csat-template', { index: 1 });
-  }
+  await page.selectOption('#csat-template', { label: 'Customer Satisfaction Survey' });
   await page.selectOption('#csat-schedule', 'immediate');
   await page.fill('#csat-notes', 'Service Portal end-to-end test');
+  const startedAt = Date.now();
   await page.click('button:has-text("Create Survey Request")');
-  await page.waitForSelector('.alert-success, .alert-danger', { timeout: 15000 });
+  await page.waitForSelector('.alert-success, .alert-danger, .alert-warning', { timeout: 180000 });
 
-  const alertText = await page.locator('.alert-success, .alert-danger').first().textContent();
-  console.log(`Result: ${alertText}`);
+  const alertText = await page.locator('.alert-success, .alert-danger, .alert-warning').first().textContent();
+  console.log(`Submit took: ${Math.round((Date.now() - startedAt) / 1000)}s`);
+  console.log(`Result: ${alertText.trim()}`);
 
   await browser.close();
 }

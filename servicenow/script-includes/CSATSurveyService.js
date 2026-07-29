@@ -179,7 +179,7 @@ CSATSurveyService.prototype = {
 
         for (var i = 0; i < recipients.length; i++) {
             var userId = recipients[i];
-            var result = this._sendSurveyToUser(requestGr, metricTypeId, userId, requestId);
+            var result = this._sendSurveyToUser(requestGr, metricTypeId, userId);
             if (result.status === 'success')
                 executed++;
             else if (result.status === 'skipped')
@@ -212,7 +212,7 @@ CSATSurveyService.prototype = {
         return { executed: executed, skipped: skipped, failed: failed };
     },
 
-    _sendSurveyToUser: function(requestGr, metricTypeId, userId, sourceRecordId) {
+    _sendSurveyToUser: function(requestGr, metricTypeId, userId) {
         var F = this.F;
         var execGr = new GlideRecord(this.EXECUTION_TABLE);
         execGr.initialize();
@@ -233,7 +233,10 @@ CSATSurveyService.prototype = {
                 return this._finalizeExecution(execId, 'skipped', 'Recipient has no email address');
             }
 
-            var result = new SNC.AssessmentCreation().createAssessments(metricTypeId, sourceRecordId, userId);
+            // An empty source record is required: survey question conditions are
+            // evaluated against the metric type's own table, so passing the CSAT
+            // request sys_id here makes the platform return 'noquestions'.
+            var result = new SNC.AssessmentCreation().createAssessments(metricTypeId, '', userId);
             if (!result || result === 'noquestions') {
                 return this._finalizeExecution(execId, 'failed', 'Survey could not be generated: ' + result);
             }
@@ -283,6 +286,24 @@ CSATSurveyService.prototype = {
         return processed;
     },
 
+    getExecutionStats: function(requestId) {
+        var F = this.F;
+        var stats = { total: 0, success: 0, failed: 0, skipped: 0, pending: 0, first_error: '' };
+
+        var execGr = new GlideRecord(this.EXECUTION_TABLE);
+        execGr.addQuery(F.survey_request, requestId);
+        execGr.query();
+        while (execGr.next()) {
+            var status = execGr.getValue(F.status);
+            stats.total++;
+            if (stats.hasOwnProperty(status))
+                stats[status]++;
+            if (status !== 'success' && !stats.first_error)
+                stats.first_error = execGr.getValue(F.message) || '';
+        }
+        return stats;
+    },
+
     getRequestSummary: function(requestId) {
         var F = this.F;
         var requestGr = new GlideRecord(this.REQUEST_TABLE);
@@ -298,7 +319,8 @@ CSATSurveyService.prototype = {
             recipient_mode: requestGr.getValue(F.recipient_mode),
             schedule_frequency: requestGr.getValue(F.schedule_frequency),
             next_run: requestGr.getValue(F.next_run),
-            last_run: requestGr.getValue(F.last_run)
+            last_run: requestGr.getValue(F.last_run),
+            executions: this.getExecutionStats(requestId)
         };
     },
 

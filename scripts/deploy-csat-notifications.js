@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
- * Deploy CSAT survey email notifications (script include + submission business rule).
- * Assignment emails use native ServiceNow events (assign.send_survey / record.send_survey).
+ * Deploy CSAT survey email notifications.
+ *
+ * Assignment emails use the platform "Survey Invitation" notification driven by
+ * the native assign.send_survey event. Submission emails use a custom event plus
+ * two notification records (respondent thank-you, requestor alert).
  */
 const fs = require('fs');
 const path = require('path');
@@ -62,6 +65,21 @@ function readArtifact(filename) {
   return fs.readFileSync(path.join(__dirname, '..', 'servicenow', filename), 'utf8');
 }
 
+async function ensureProperty(name, value, description) {
+  const existing = await snGet('sys_properties', `sysparm_query=name=${name}&sysparm_fields=sys_id,value`);
+  if (existing.length) {
+    if (existing[0].value === value) {
+      console.log(`Property already set: ${name}=${value}`);
+      return;
+    }
+    await snPatch('sys_properties', existing[0].sys_id, { value });
+    console.log(`Updated property: ${name}=${value} (was ${existing[0].value})`);
+    return;
+  }
+  await snPost('sys_properties', { name, value, type: 'boolean', description });
+  console.log(`Created property: ${name}=${value}`);
+}
+
 async function ensureScriptInclude(name, script) {
   const existing = await snGet('sys_script_include', `sysparm_query=name=${name}&sysparm_fields=sys_id`);
   if (existing.length) {
@@ -82,6 +100,52 @@ async function ensureScriptInclude(name, script) {
   return created.sys_id;
 }
 
+async function ensureEvent(name, table, description) {
+  const existing = await snGet('sysevent_register', `sysparm_query=event_name=${name}&sysparm_fields=sys_id`);
+  const payload = { event_name: name, table, description };
+  if (existing.length) {
+    await snPatch('sysevent_register', existing[0].sys_id, payload);
+    console.log(`Updated event: ${name}`);
+    return;
+  }
+  await snPost('sysevent_register', payload);
+  console.log(`Created event: ${name}`);
+}
+
+async function ensureNotification(config) {
+  const existing = await snGet(
+    'sysevent_email_action',
+    `sysparm_query=name=${encodeURIComponent(config.name)}&sysparm_fields=sys_id`
+  );
+  const payload = {
+    name: config.name,
+    collection: 'asmt_assessment_instance',
+    event_name: config.event_name,
+    // Custom gs.eventQueue notifications are only picked up by the legacy
+    // event generator; the default 'engine' type ignores them.
+    generation_type: 'event',
+    action_insert: false,
+    action_update: false,
+    active: true,
+    subject: config.subject,
+    message_html: config.message_html,
+    recipient_fields: config.recipient_fields || '',
+    event_parm_1: config.event_parm_1 === true,
+    event_parm_2: config.event_parm_2 === true,
+    include_attachments: false,
+    force_delivery: true,
+    send_self: true,
+    type: 'email',
+  };
+  if (existing.length) {
+    await snPatch('sysevent_email_action', existing[0].sys_id, payload);
+    console.log(`Updated notification: ${config.name}`);
+    return;
+  }
+  await snPost('sysevent_email_action', payload);
+  console.log(`Created notification: ${config.name}`);
+}
+
 async function ensureBusinessRule() {
   const name = 'CSAT Survey - Notify on Submission';
   const existing = await snGet('sys_script', `sysparm_query=name=${encodeURIComponent(name)}&sysparm_fields=sys_id`);
@@ -91,8 +155,7 @@ async function ensureBusinessRule() {
     when: 'after',
     action_insert: false,
     action_update: true,
-    filter_condition:
-      'trigger_table=u_x_csat_survey_request^trigger_idISNOTEMPTY^metric_type.evaluation_method=survey^stateCHANGESTOcomplete^EQ',
+    filter_condition: 'trigger_table=u_x_csat_survey_request^stateCHANGESTOcomplete^EQ',
     advanced: true,
     active: true,
     order: 100,
@@ -109,11 +172,49 @@ async function ensureBusinessRule() {
 
 async function main() {
   console.log('Deploying CSAT survey email notifications...\n');
+
+  await ensureProperty('glide.email.smtp.active', 'true', 'Enable outbound email delivery');
+
   await ensureScriptInclude('CSATSurveyNotification', readArtifact('script-includes/CSATSurveyNotification.js'));
+
+  await ensureEvent(
+    'csat.survey.submitted',
+    'asmt_assessment_instance',
+    'Fired when a CSAT survey linked to a survey request is completed. parm1=requestor, parm2=respondent.'
+  );
+
+  await ensureNotification({
+    name: 'CSAT Survey Submitted - Thank You',
+    event_name: 'csat.survey.submitted',
+    recipient_fields: 'user',
+    subject: 'Thank you for completing ${metric_type}',
+    message_html: [
+      '<p>Hi ${user},</p>',
+      '<p>Thank you for completing the <strong>${metric_type}</strong> survey.</p>',
+      '<p>Your feedback helps us improve the services we deliver to you.</p>',
+    ].join('\n'),
+  });
+
+  await ensureNotification({
+    name: 'CSAT Survey Submitted - Requestor',
+    event_name: 'csat.survey.submitted',
+    event_parm_1: true,
+    subject: 'CSAT survey response received: ${metric_type}',
+    message_html: [
+      '<p>Hello,</p>',
+      '<p>A response was submitted for the <strong>${metric_type}</strong> survey.</p>',
+      '<p><strong>Respondent:</strong> ${user}<br/>',
+      '<strong>Completed:</strong> ${taken_on}<br/>',
+      '<strong>State:</strong> ${state}</p>',
+      '<p>Review responses in the CSAT portal execution log for full audit details.</p>',
+    ].join('\n'),
+  });
+
   await ensureBusinessRule();
+
   console.log('\nNotification deployment complete.');
-  console.log('- Assignment: native assign.send_survey / record.send_survey events');
-  console.log('- Submission: thank-you to respondent + notice to requestor');
+  console.log('- Assigned:   platform Survey Invitation email (assign.send_survey)');
+  console.log('- Submitted:  thank-you to respondent + alert to requestor');
 }
 
 main().catch((err) => {
