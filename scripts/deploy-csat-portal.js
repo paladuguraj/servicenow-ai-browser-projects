@@ -34,9 +34,10 @@ const PORTAL_TITLE = 'CSAT Survey Portal';
 const WIDGET_ID = 'csat-survey-request';
 const HOME_PAGE_ID = 'csat_home';
 
-// Reuse Service Portal theme/login from default SP portal on PDI
-const SP_THEME = '281507c44317d210ca4c1f425db8f2fd';
-const SP_LOGIN_PAGE = '36c61807cb31120000f8d856634c9ca9';
+// Theme and login page are inherited from the stock Service Portal ('/sp').
+// Resolved at deploy time because these sys_ids differ between instances.
+let spTheme = '';
+let spLoginPage = '';
 
 async function snGet(table, params = '') {
   const res = await fetch(`${base}/api/now/table/${table}?${params}`, { headers });
@@ -219,14 +220,32 @@ async function ensureMenu(portalSysId, homePageSysId) {
   }
 }
 
+async function resolvePortalDefaults() {
+  const stock = (await snGet('sp_portal', 'sysparm_query=url_suffix=sp&sysparm_fields=theme,login_page'))[0];
+  if (stock) {
+    spTheme = stock.theme ? stock.theme.value : '';
+    spLoginPage = stock.login_page ? stock.login_page.value : '';
+  }
+
+  if (!spTheme) {
+    const theme = (await snGet('sp_theme', 'sysparm_query=name=Coral^ORnameSTARTSWITHStock&sysparm_limit=1&sysparm_fields=sys_id'))[0];
+    spTheme = theme ? theme.sys_id : '';
+  }
+
+  if (!spTheme)
+    throw new Error('No Service Portal theme found on this instance; is the Service Portal plugin active?');
+
+  console.log(`Theme: ${spTheme}${spLoginPage ? `, login page: ${spLoginPage}` : ' (no login page inherited)'}`);
+}
+
 async function ensurePortal(homePageSysId) {
   const existing = await snGet('sp_portal', `sysparm_query=url_suffix=${PORTAL_SUFFIX}&sysparm_fields=sys_id`);
   const payload = {
     title: PORTAL_TITLE,
     url_suffix: PORTAL_SUFFIX,
     homepage: homePageSysId,
-    theme: SP_THEME,
-    login_page: SP_LOGIN_PAGE,
+    theme: spTheme,
+    login_page: spLoginPage,
     active: true,
     enable_favorites: false,
     default: false,
@@ -246,6 +265,7 @@ async function ensurePortal(homePageSysId) {
 async function main() {
   console.log('Deploying CSAT Service Portal...\n');
 
+  await resolvePortalDefaults();
   const widgetSysId = await ensureWidget();
   const homePageSysId = await ensurePage(HOME_PAGE_ID, 'CSAT Survey Request');
   await placeWidgetOnPage(homePageSysId, widgetSysId, 'CSAT Survey Request');
