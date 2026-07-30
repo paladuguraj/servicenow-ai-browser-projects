@@ -3,31 +3,8 @@
  * Deploy CSAT Survey Request Service Portal (sp_portal, widget, pages, menu).
  * Reuses backend tables and CSATSurveyService from deploy-csat-app.js.
  */
-const fs = require('fs');
-const path = require('path');
 
-function loadDotEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-
-loadDotEnv();
-
-const base = process.env.SN_INSTANCE_URL.replace(/\/$/, '');
-const headers = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Authorization: `Basic ${Buffer.from(`${process.env.SN_USERNAME}:${process.env.SN_PASSWORD}`).toString('base64')}`,
-};
+const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const PORTAL_SUFFIX = 'csat';
 const PORTAL_TITLE = 'CSAT Survey Portal';
@@ -39,40 +16,8 @@ const HOME_PAGE_ID = 'csat_home';
 let spTheme = '';
 let spLoginPage = '';
 
-async function snGet(table, params = '') {
-  const res = await fetch(`${base}/api/now/table/${table}?${params}`, { headers });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`GET ${table}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPost(table, data) {
-  const res = await fetch(`${base}/api/now/table/${table}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok && res.status !== 201) throw new Error(`POST ${table}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPatch(table, sysId, data) {
-  const res = await fetch(`${base}/api/now/table/${table}/${sysId}`, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`PATCH ${table}/${sysId}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
 function readWidgetFile(name) {
-  return fs.readFileSync(
-    path.join(__dirname, '..', 'servicenow', 'portal', 'widgets', 'csat-survey-request', name),
-    'utf8'
-  );
+  return readArtifact(`portal/widgets/csat-survey-request/${name}`);
 }
 
 async function ensureWidget() {
@@ -263,7 +208,7 @@ async function ensurePortal(homePageSysId) {
 }
 
 async function main() {
-  console.log('Deploying CSAT Service Portal...\n');
+  announceTarget('Deploy CSAT Service Portal');
 
   await resolvePortalDefaults();
   const widgetSysId = await ensureWidget();

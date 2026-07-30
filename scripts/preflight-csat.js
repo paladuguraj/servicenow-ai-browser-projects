@@ -107,12 +107,17 @@ async function checkSurveyPlatform() {
   });
 
   await safe('Surveys', async () => {
-    const invite = await snGet('sysevent_email_action', 'sysparm_query=name=Survey Invitation^active=true&sysparm_fields=sys_id');
-    record(
-      invite.length ? 'OK' : 'BLOCKER',
-      'Surveys',
-      invite.length ? '"Survey Invitation" notification present' : '"Survey Invitation" notification missing; assignment emails will not send'
+    // Instances rename or replace the stock invitation, so match on the event
+    // rather than a specific record name.
+    const invites = await snGet(
+      'sysevent_email_action',
+      'sysparm_query=event_nameINassign.send_survey,record.send_survey^active=true&sysparm_fields=name,event_name'
     );
+    if (!invites.length) {
+      record('BLOCKER', 'Surveys', 'No active notification on assign.send_survey or record.send_survey; assignment emails will not send');
+      return;
+    }
+    record('OK', 'Surveys', `Assignment notification active: ${invites.map((i) => `${i.name} (${i.event_name})`).join(', ')}`);
   });
 }
 
@@ -125,7 +130,7 @@ async function checkEmail() {
       'Email',
       value === 'true'
         ? 'Outbound email enabled'
-        : `glide.email.smtp.active=${value}; the deploy sets it to true, but the instance still needs a working SMTP profile`
+        : `glide.email.smtp.active=${value}; notifications will be logged to sys_email but not delivered. Deploy leaves this alone unless run with --enable-email`
     );
   });
 

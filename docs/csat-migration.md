@@ -9,8 +9,11 @@ so re-running is safe.
 
 ## 1. Point at the target instance
 
+Keep one credentials file per instance and select it with `ENV_FILE`:
+
 ```bash
-cp env.example .env
+cp env.example .env.target
+ENV_FILE=.env.target npm run preflight:csat
 ```
 
 ```
@@ -21,6 +24,12 @@ SN_PASSWORD=<password>
 
 The account needs `admin` (it writes to `sys_db_object`, `sys_dictionary`,
 `sp_*`, `sysevent_*` and `sys_properties`).
+
+Every deploy script prints the instance it is about to write to. Check that
+line before letting it run — without `ENV_FILE` the scripts fall back to `.env`.
+
+An integration (non-interactive) user can deploy over REST but cannot sign in
+to the UI or Service Portal, so browser verification needs a normal account.
 
 ## 2. Check the target can host it
 
@@ -38,23 +47,57 @@ Blockers must be fixed first; warnings are informational.
 | Companies and users with email | Otherwise a request has no recipients |
 | Outbound email | The deploy enables `glide.email.smtp.active`, but SMTP still needs configuring |
 
-## 3. Deploy
+## 3. Capture the work in an update set
 
 ```bash
-npm run deploy:csat
+ENV_FILE=.env.target npm run updateset:begin "CSAT Survey Portal"
+```
+
+This creates the set and makes it current for the deploying user, which is what
+causes REST writes to be captured.
+
+## 4. Deploy
+
+```bash
+ENV_FILE=.env.target npm run deploy:csat
 ```
 
 Runs, in order:
 
-1. `deploy-csat-app.js` — tables, columns, choices, script includes, business rule, scheduled job
+1. `deploy-csat-app.js` — application menu, tables, columns, choices, script includes, business rule, scheduled job
 2. `patch-csat-app.js` — re-pushes server-side scripts
 3. `deploy-csat-portal.js` — widget, page, layout, portal, menu
-4. `deploy-csat-notifications.js` — event, notifications, submission rule, SMTP property
+4. `deploy-csat-notifications.js` — event, notifications, submission rule
 
-## 4. Verify
+Outbound email is left untouched. Once you are ready to actually deliver mail:
 
 ```bash
-npm run test:csat
+ENV_FILE=.env.target node scripts/deploy-csat-notifications.js --enable-email
+```
+
+## 5. Close the update set
+
+```bash
+ENV_FILE=.env.target npm run updateset:status     # review what was captured
+ENV_FILE=.env.target npm run updateset:complete   # mark complete + print export URL
+```
+
+If anything landed outside the set — creating a scoped app, for example, makes
+ServiceNow switch the current set — pull it back in:
+
+```bash
+ENV_FILE=.env.target npm run updateset:adopt "CSAT Survey Portal"
+```
+
+Everything is deployed to the **global** scope deliberately. A scoped
+application gets its own Default update set that cannot be merged with a global
+one, which would split the deployment across two sets, and it would also
+prefix every table name with the scope.
+
+## 6. Verify
+
+```bash
+ENV_FILE=.env.target npm run test:csat
 ```
 
 Drives the portal in a browser and verifies assignment plus submission email for
@@ -75,23 +118,16 @@ These are instance data or configuration, not application artifacts:
   path differs (for example `/api/2114022/csat_survey_api`). Scripts read it from
   the API definition rather than hardcoding it.
 
-## Scope note
+## Promoting via the exported update set
 
-Tables were created through the Table API and therefore live in the **global**
-scope with a `u_` prefix (`u_x_csat_survey_request`). They are not a scoped
-application, so an update set — not an application repository — is the
-alternative distribution route if you prefer that over running the scripts.
+Once a deployment has been captured, later instances can be done with the XML
+instead of the scripts:
 
-## Alternative: update set
+1. Export from the source: **System Update Sets > Local Update Sets >
+   CSAT Survey Portal > Export to XML**
+2. On the target: **Retrieved Update Sets > Import Update Set from XML**
+3. Preview, then Commit
 
-If the target instance is firewalled from your machine, capture the artifacts
-into an update set on the source instance instead:
-
-1. Create an update set and make it current
-2. Add each artifact via **Unload / Add to Update Set** — see the artifact list
-   in the pull request description
-3. Export to XML, then import and commit on the target
-
-Tables created via the Table API are not retroactively captured, so add
-`sys_db_object` and `sys_dictionary` records explicitly. Running the scripts is
-the more reliable path.
+The scheduled job (`sysauto_script`) is data rather than metadata and is not
+captured in update sets, so re-create it on the target by running
+`deploy-csat-app.js`, or add the record manually.

@@ -1,99 +1,35 @@
 #!/usr/bin/env node
 /**
- * Deploy CSAT Survey Request application to ServiceNow PDI.
+ * Deploy the CSAT Survey Request backend: tables, server logic and menus.
+ *
+ * Everything is created in the global scope on purpose. A scoped application
+ * would force its own Default update set (splitting the deployment across two
+ * sets that cannot be merged) and this is deliberately not a separate app.
  */
-const fs = require('fs');
-const path = require('path');
 
-function loadDotEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
+const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
-loadDotEnv();
+const GLOBAL_SCOPE = 'global';
+const APP_MENU_TITLE = 'CSAT Survey';
 
-const SCOPE = 'x_csat_survey';
-const base = process.env.SN_INSTANCE_URL.replace(/\/$/, '');
-const auth = Buffer.from(`${process.env.SN_USERNAME}:${process.env.SN_PASSWORD}`).toString('base64');
-const headers = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Authorization: `Basic ${auth}`,
-};
-
-let scopeSysId = null;
-
-async function snGet(table, params = '') {
-  const res = await fetch(`${base}/api/now/table/${table}?${params}`, { headers });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`GET ${table} ${res.status}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPost(table, data) {
-  const res = await fetch(`${base}/api/now/table/${table}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok && res.status !== 201) throw new Error(`POST ${table} ${res.status}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPatch(table, sysId, data) {
-  const res = await fetch(`${base}/api/now/table/${table}/${sysId}`, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`PATCH ${table}/${sysId} ${res.status}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function ensureScope() {
-  const existing = await snGet('sys_scope', `sysparm_query=scope=${SCOPE}&sysparm_fields=sys_id,scope`);
+async function ensureAppMenu() {
+  const existing = await snGet(
+    'sys_app_application',
+    `sysparm_query=title=${encodeURIComponent(APP_MENU_TITLE)}&sysparm_fields=sys_id,title`
+  );
   if (existing.length) {
-    scopeSysId = existing[0].sys_id;
-    console.log(`Scope exists: ${SCOPE} (${scopeSysId})`);
-    return;
-  }
-  const created = await snPost('sys_scope', {
-    scope: SCOPE,
-    sys_name: 'CSAT Survey Request',
-    short_description: 'CSAT survey scheduling and request management',
-  });
-  scopeSysId = created.sys_id;
-  console.log(`Created scope: ${SCOPE} (${scopeSysId})`);
-}
-
-async function ensureApp() {
-  const existing = await snGet('sys_app', `sysparm_query=scope=${SCOPE}&sysparm_fields=sys_id,name`);
-  if (existing.length) {
-    console.log(`App exists: ${existing[0].name}`);
+    console.log(`Application menu exists: ${APP_MENU_TITLE}`);
     return existing[0].sys_id;
   }
-  const app = await snPost('sys_app', {
-    name: 'CSAT Survey Request',
-    scope: SCOPE,
-    short_description: 'Schedule and track CSAT survey requests by company/account',
-    vendor: 'CSAT Survey',
-    version: '1.0.0',
+  const menu = await snPost('sys_app_application', {
+    title: APP_MENU_TITLE,
+    hint: 'CSAT survey requests and execution audit',
     active: true,
-    sys_scope: scopeSysId,
+    order: 100,
+    sys_scope: GLOBAL_SCOPE,
   });
-  console.log(`Created app: ${app.name} (${app.sys_id})`);
-  return app.sys_id;
+  console.log(`Created application menu: ${APP_MENU_TITLE}`);
+  return menu.sys_id;
 }
 
 async function ensureTable(name, label, extra = {}) {
@@ -105,7 +41,7 @@ async function ensureTable(name, label, extra = {}) {
   const table = await snPost('sys_db_object', {
     name,
     label,
-    sys_scope: scopeSysId,
+    sys_scope: GLOBAL_SCOPE,
     create_access: true,
     read_access: true,
     update_access: true,
@@ -137,7 +73,7 @@ async function ensureColumn(table, element, columnType, label, extra = {}) {
     default_value: extra.default_value,
     mandatory: extra.mandatory || false,
     active: true,
-    sys_scope: scopeSysId,
+    sys_scope: GLOBAL_SCOPE,
     ...extra.extraFields,
   });
   console.log(`  + column ${table}.${element} (${columnType})`);
@@ -158,7 +94,7 @@ async function ensureChoice(table, element, value, label, sequence) {
     sequence,
     language: 'en',
     inactive: false,
-    sys_scope: scopeSysId,
+    sys_scope: GLOBAL_SCOPE,
   });
 }
 
@@ -176,7 +112,7 @@ async function ensureScriptInclude(name, script) {
     active: true,
     access: 'public',
     client_callable: false,
-    sys_scope: scopeSysId,
+    sys_scope: GLOBAL_SCOPE,
     description: 'CSAT Survey Request application logic',
   });
   console.log(`Created script include: ${name}`);
@@ -207,7 +143,7 @@ async function ensureBusinessRule(name, table, when, script, order = 100) {
     active: true,
     advanced: true,
     script,
-    sys_scope: scopeSysId,
+    sys_scope: GLOBAL_SCOPE,
     description: 'CSAT Survey Request automation',
   });
   console.log(`Created business rule: ${name}`);
@@ -230,44 +166,24 @@ async function ensureScheduledJob(name, script) {
   return job.sys_id;
 }
 
-async function ensureUiPage(name, html, processingScript) {
-  const existing = await snGet('sys_ui_page', `sysparm_query=name=${name}&sysparm_fields=sys_id`);
-  if (existing.length) {
-    await snPatch('sys_ui_page', existing[0].sys_id, { html, processing_script: processingScript });
-    console.log(`Updated UI page: ${name}`);
-    return existing[0].sys_id;
-  }
-  const page = await snPost('sys_ui_page', {
-    name,
-    title: 'CSAT Survey Request',
-    category: 'general',
-    html,
-    processing_script: processingScript,
-    direct: true,
-    endpoint: name,
-    sys_scope: scopeSysId,
-  });
-  console.log(`Created UI page: ${name}`);
-  return page.sys_id;
-}
-
-async function ensureModule(title, table) {
-  const existing = await snGet('sys_app_module', `sysparm_query=title=${title}&sysparm_fields=sys_id`);
-  if (existing.length) return;
-  await snPost('sys_app_module', {
+async function ensureModule(title, table, appMenuSysId) {
+  const existing = await snGet('sys_app_module', `sysparm_query=title=${encodeURIComponent(title)}&sysparm_fields=sys_id`);
+  const payload = {
     title,
     name: table,
     query: '',
     link_type: 'LIST',
-    application: (await snGet('sys_app', `sysparm_query=scope=${SCOPE}&sysparm_fields=sys_id`))[0].sys_id,
+    application: appMenuSysId,
     active: true,
-    sys_scope: scopeSysId,
-  });
+    sys_scope: GLOBAL_SCOPE,
+  };
+  if (existing.length) {
+    await snPatch('sys_app_module', existing[0].sys_id, payload);
+    console.log(`Updated module: ${title}`);
+    return;
+  }
+  await snPost('sys_app_module', payload);
   console.log(`Created module: ${title}`);
-}
-
-function readArtifact(filename) {
-  return fs.readFileSync(path.join(__dirname, '..', 'servicenow', filename), 'utf8');
 }
 
 async function deployTables() {
@@ -324,9 +240,8 @@ async function deployTables() {
 }
 
 async function main() {
-  console.log('Deploying CSAT Survey Request application...\n');
-  await ensureScope();
-  await ensureApp();
+  announceTarget('Deploy CSAT tables and server logic');
+  const appMenuSysId = await ensureAppMenu();
   await deployTables();
 
   await ensureScriptInclude('CSATSurveyAjax', readArtifact('script-includes/CSATSurveyAjax.js'));
@@ -340,14 +255,11 @@ async function main() {
   );
   await ensureScheduledJob('CSAT Survey Request - Scheduled Runner', readArtifact('scheduled-jobs/runner.js'));
 
-  const html = readArtifact('ui-pages/csat_survey_request.jelly.xml');
-  await ensureUiPage('csat_survey_request', html, '');
-
-  await ensureModule('CSAT Survey Requests', 'u_x_csat_survey_request');
-  await ensureModule('CSAT Survey Executions', 'u_x_csat_survey_execution');
+  await ensureModule('CSAT Survey Requests', 'u_x_csat_survey_request', appMenuSysId);
+  await ensureModule('CSAT Survey Executions', 'u_x_csat_survey_execution', appMenuSysId);
 
   console.log('\nDeployment complete.');
-  console.log(`UI Page: ${base}/csat_survey_request.do`);
+  console.log(`Portal is deployed separately: node scripts/deploy-csat-portal.js`);
 }
 
 main().catch((err) => {

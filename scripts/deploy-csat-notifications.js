@@ -6,78 +6,35 @@
  * the native assign.send_survey event. Submission emails use a custom event plus
  * two notification records (respondent thank-you, requestor alert).
  */
-const fs = require('fs');
-const path = require('path');
 
-function loadDotEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
+const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
-loadDotEnv();
-
-const base = process.env.SN_INSTANCE_URL.replace(/\/$/, '');
-const headers = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Authorization: `Basic ${Buffer.from(`${process.env.SN_USERNAME}:${process.env.SN_PASSWORD}`).toString('base64')}`,
-};
-
-async function snGet(table, params = '') {
-  const res = await fetch(`${base}/api/now/table/${table}?${params}`, { headers });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`GET ${table}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPost(table, data) {
-  const res = await fetch(`${base}/api/now/table/${table}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok && res.status !== 201) throw new Error(`POST ${table}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-async function snPatch(table, sysId, data) {
-  const res = await fetch(`${base}/api/now/table/${table}/${sysId}`, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`PATCH ${table}/${sysId}: ${JSON.stringify(body)}`);
-  return body.result;
-}
-
-function readArtifact(filename) {
-  return fs.readFileSync(path.join(__dirname, '..', 'servicenow', filename), 'utf8');
-}
-
-async function ensureProperty(name, value, description) {
+/**
+ * Turning on outbound email can release everything already sitting in the
+ * queue, so on a shared instance that has to be a deliberate act. Pass
+ * --enable-email to change it; otherwise just report the current setting.
+ */
+async function reviewOutboundEmail() {
+  const name = 'glide.email.smtp.active';
+  const optIn = process.argv.includes('--enable-email');
   const existing = await snGet('sys_properties', `sysparm_query=name=${name}&sysparm_fields=sys_id,value`);
-  if (existing.length) {
-    if (existing[0].value === value) {
-      console.log(`Property already set: ${name}=${value}`);
-      return;
-    }
-    await snPatch('sys_properties', existing[0].sys_id, { value });
-    console.log(`Updated property: ${name}=${value} (was ${existing[0].value})`);
+  const current = existing.length ? existing[0].value : '(unset)';
+
+  if (current === 'true') {
+    console.log(`Outbound email already enabled (${name}=true)`);
     return;
   }
-  await snPost('sys_properties', { name, value, type: 'boolean', description });
-  console.log(`Created property: ${name}=${value}`);
+
+  if (!optIn) {
+    console.log(`Outbound email is DISABLED (${name}=${current}).`);
+    console.log('  Notifications will be recorded in sys_email but not delivered.');
+    console.log('  Re-run with --enable-email to turn it on once you are ready to send.');
+    return;
+  }
+
+  if (existing.length) await snPatch('sys_properties', existing[0].sys_id, { value: 'true' });
+  else await snPost('sys_properties', { name, value: 'true', type: 'boolean', description: 'Enable outbound email delivery' });
+  console.log(`Enabled outbound email (${name}=true, was ${current})`);
 }
 
 async function ensureScriptInclude(name, script) {
@@ -171,9 +128,9 @@ async function ensureBusinessRule() {
 }
 
 async function main() {
-  console.log('Deploying CSAT survey email notifications...\n');
+  announceTarget('Deploy CSAT notifications');
 
-  await ensureProperty('glide.email.smtp.active', 'true', 'Enable outbound email delivery');
+  await reviewOutboundEmail();
 
   await ensureScriptInclude('CSATSurveyNotification', readArtifact('script-includes/CSATSurveyNotification.js'));
 

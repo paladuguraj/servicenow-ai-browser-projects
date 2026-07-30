@@ -4,9 +4,22 @@
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Loads credentials from ENV_FILE when set, otherwise .env, so the same
+ * scripts can target different instances without editing files.
+ * Real environment variables always win.
+ */
 function loadDotEnv() {
-  const envPath = path.join(__dirname, '..', '..', '.env');
-  if (!fs.existsSync(envPath)) return;
+  const root = path.join(__dirname, '..', '..');
+  const envPath = process.env.ENV_FILE
+    ? path.resolve(root, process.env.ENV_FILE)
+    : path.join(root, '.env');
+
+  if (!fs.existsSync(envPath)) {
+    if (process.env.ENV_FILE) throw new Error(`ENV_FILE not found: ${envPath}`);
+    return;
+  }
+
   for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
@@ -19,6 +32,9 @@ function loadDotEnv() {
 }
 
 loadDotEnv();
+
+if (!process.env.SN_INSTANCE_URL || !process.env.SN_USERNAME || !process.env.SN_PASSWORD)
+  throw new Error('Missing SN_INSTANCE_URL / SN_USERNAME / SN_PASSWORD. Set them in .env or point ENV_FILE at another file.');
 
 const base = process.env.SN_INSTANCE_URL.replace(/\/$/, '');
 const headers = {
@@ -69,4 +85,13 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-module.exports = { base, headers, snGet, snPost, snPatch, snDelete, readArtifact, sleep };
+/**
+ * Deploy scripts write to whichever instance .env / ENV_FILE points at, so make
+ * the target unmistakable in the output before anything is changed.
+ */
+function announceTarget(action) {
+  const source = process.env.ENV_FILE || '.env';
+  console.log(`${action} -> ${base} (as ${process.env.SN_USERNAME}, from ${source})\n`);
+}
+
+module.exports = { base, headers, snGet, snPost, snPatch, snDelete, readArtifact, sleep, announceTarget };
