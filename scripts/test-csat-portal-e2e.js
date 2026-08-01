@@ -132,7 +132,12 @@ async function main() {
     const modalText = (await page.locator('.modal-content').innerText()).replace(/\s+/g, ' ').trim();
     console.log(`Dialog: ${modalText}`);
 
-    await page.locator('.modal-content button').first().click();
+    const dialogButtons = (await page.locator('.modal-content button').allTextContents())
+      .map((t) => t.trim())
+      .filter(Boolean);
+    console.log(`Dialog buttons: ${dialogButtons.join(' | ')}`);
+
+    await page.locator('.modal-content button:has-text("Create another survey")').click();
     await page.waitForTimeout(2500);
 
     const companyValue = await page.inputValue('#csat-company');

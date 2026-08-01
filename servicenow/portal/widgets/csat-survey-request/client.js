@@ -1,4 +1,4 @@
-api.controller = function($scope, $timeout, spModal, spUtil) {
+api.controller = function($scope, $timeout, $window, spModal, spUtil) {
     var c = this;
 
     var BLANK_FORM = {
@@ -246,12 +246,29 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
         spModal.open({
             title: 'Survey request submitted',
             message: lines.join(' '),
-            buttons: [{ label: 'Create another survey', primary: true }]
-        }).then(function() {
-            c.startNewRequest();
+            buttons: [
+                { label: 'View this request', value: 'view' },
+                { label: 'Create another survey', value: 'new', primary: true }
+            ]
+        }).then(function(choice) {
+            // Depending on the platform version this resolves with the button's
+            // value or with the button object itself.
+            var value = choice && choice.value !== undefined ? choice.value : choice;
+            if (value === 'view') c.openRequestList(result);
+            else c.startNewRequest();
         }, function() {
             c.startNewRequest();
         });
+    };
+
+    /**
+     * Opens the execution log filtered to the request that was just submitted,
+     * so the recipients and their outcomes are visible immediately.
+     */
+    c.openRequestList = function(result) {
+        var url = '?id=list&table=u_x_csat_survey_execution' +
+                  '&filter=' + encodeURIComponent('u_survey_request=' + result.sys_id);
+        $window.location.href = url;
     };
 
     /* ---------- reset ---------- */
