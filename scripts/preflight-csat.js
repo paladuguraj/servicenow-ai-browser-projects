@@ -93,6 +93,28 @@ async function checkSurveyPlatform() {
   });
 
   await safe('Surveys', async () => {
+    // An unpublished survey returns 'not_available' instead of creating an
+    // instance, so it can never be sent from the portal.
+    const templates = await snGet(
+      'asmt_metric_type',
+      'sysparm_query=active=true^evaluation_method=survey&sysparm_fields=name,publish_state'
+    );
+    const drafts = templates.filter((t) => t.publish_state !== 'published');
+    const published = templates.length - drafts.length;
+
+    if (!templates.length) return;
+    if (!published) {
+      record('BLOCKER', 'Surveys', `All ${templates.length} survey definitions are in Draft; none can be sent until published`);
+      return;
+    }
+    if (drafts.length) {
+      record('WARNING', 'Surveys', `${drafts.length} survey(s) in Draft and unsendable: ${drafts.map((d) => d.name).join(', ')}`);
+      return;
+    }
+    record('OK', 'Surveys', `All ${published} survey definition(s) are published`);
+  });
+
+  await safe('Surveys', async () => {
     const brs = await snGet(
       'sys_script',
       'sysparm_query=collection=asmt_assessment_instance^nameSTARTSWITHDispatch Survey^active=true&sysparm_fields=name'

@@ -92,10 +92,20 @@ CSATSurveyService.prototype = {
                 sys_id: gr.getUniqueValue(),
                 name: name,
                 description: gr.getValue('description') || '',
-                immediate_only: this.isImmediateOnly(name)
+                immediate_only: this.isImmediateOnly(name),
+                // An unpublished survey cannot generate instances, so the
+                // portal has to keep it out of reach rather than fail on send.
+                published: gr.getValue('publish_state') === 'published'
             });
         }
         return templates;
+    },
+
+    isPublished: function(metricTypeId) {
+        var gr = new GlideRecord('asmt_metric_type');
+        if (!gr.get(metricTypeId))
+            return false;
+        return gr.getValue('publish_state') === 'published';
     },
 
     isImmediateOnly: function(templateName) {
@@ -255,6 +265,12 @@ CSATSurveyService.prototype = {
     createSurveyRequest: function(payload) {
         var F = this.F;
         var mode = payload.recipient_mode || 'primary_user';
+
+        if (!this.isPublished(payload.metric_type)) {
+            var tplGr = new GlideRecord('asmt_metric_type');
+            var tplName = tplGr.get(payload.metric_type) ? tplGr.getValue('name') : 'The selected survey';
+            return { error: 'Survey "' + tplName + '" is still in Draft. Publish it in Survey Designer before sending.' };
+        }
 
         // Case-outcome surveys cannot be scheduled, regardless of what the
         // client sent.
@@ -423,24 +439,55 @@ CSATSurveyService.prototype = {
             // An empty source record is required: survey question conditions are
             // evaluated against the metric type's own table, so passing the CSAT
             // request sys_id here makes the platform return 'noquestions'.
-            var result = new SNC.AssessmentCreation().createAssessments(metricTypeId, '', userId);
-            if (!result || result === 'noquestions') {
-                return this._finalizeExecution(execId, 'failed', 'Survey could not be generated: ' + result);
+            var result = String(new SNC.AssessmentCreation().createAssessments(metricTypeId, '', userId) || '');
+            var instanceId = result.split(',')[0];
+
+            // The API signals problems by returning a word rather than a sys_id
+            // ('noquestions', 'not_available', ...), so treat anything that is
+            // not a real, retrievable instance as a failure.
+            if (!/^[0-9a-f]{32}$/.test(instanceId)) {
+                return this._finalizeExecution(execId, 'failed', this._explainCreateFailure(result, metricTypeId));
             }
 
-            var instanceId = result.split(',')[0];
             var instanceGr = new GlideRecord('asmt_assessment_instance');
-            if (instanceGr.get(instanceId)) {
-                instanceGr.setValue('trigger_id', requestGr.getUniqueValue());
-                instanceGr.setValue('trigger_table', this.REQUEST_TABLE);
-                instanceGr.update();
-                new CSATSurveyNotification().notifyAssigned(instanceGr);
+            if (!instanceGr.get(instanceId)) {
+                return this._finalizeExecution(execId, 'failed', 'Survey instance ' + instanceId + ' could not be retrieved after creation.');
             }
+
+            instanceGr.setValue('trigger_id', requestGr.getUniqueValue());
+            instanceGr.setValue('trigger_table', this.REQUEST_TABLE);
+            instanceGr.update();
+            new CSATSurveyNotification().notifyAssigned(instanceGr);
 
             return this._finalizeExecution(execId, 'success', 'Survey sent', instanceId);
         } catch (e) {
             return this._finalizeExecution(execId, 'failed', e.message);
         }
+    },
+
+    /**
+     * Turns the platform's terse return codes into something a portal user can
+     * act on.
+     */
+    _explainCreateFailure: function(result, metricTypeId) {
+        var name = '';
+        var published = true;
+        var gr = new GlideRecord('asmt_metric_type');
+        if (gr.get(metricTypeId)) {
+            name = gr.getValue('name');
+            published = gr.getValue('publish_state') === 'published';
+        }
+
+        if (result === 'not_available') {
+            if (!published)
+                return 'Survey "' + name + '" is still in Draft. Publish it before sending.';
+            return 'Survey "' + name + '" is not available for this user. It may already be assigned to them and not allow retakes.';
+        }
+
+        if (result === 'noquestions')
+            return 'Survey "' + name + '" has no questions that apply, so nothing could be generated.';
+
+        return 'Survey could not be generated (' + (result || 'no response') + ').';
     },
 
     _finalizeExecution: function(execId, status, message, instanceId) {

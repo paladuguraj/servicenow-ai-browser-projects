@@ -83,11 +83,15 @@ async function main() {
     const search = await pickCompany(page, target.name);
     console.log(`Company typeahead: ${search.count} result(s), selected "${search.picked}"`);
 
-    const templates = await page.locator('#csat-template option').allTextContents();
-    console.log(`Templates: ${templates.slice(1).join(', ')}`);
+    const allTemplates = await page.locator('#csat-template option').allTextContents();
+    const drafts = allTemplates.filter((t) => /Draft/.test(t));
+    // Drafts render disabled, so only published surveys can be exercised.
+    const sendable = allTemplates.slice(1).filter((t) => !/Draft/.test(t));
+    console.log(`Templates: ${sendable.length} sendable, ${drafts.length} draft`);
+    if (drafts.length) console.log(`  drafts blocked: ${drafts.join(', ')}`);
 
     // Requirement 4: immediate-only surveys collapse the schedule to one option.
-    for (const name of templates.slice(1)) {
+    for (const name of sendable) {
       await page.selectOption('#csat-template', { label: name });
       await page.waitForTimeout(400);
       const schedules = await page.locator('#csat-schedule option').allTextContents();
@@ -114,7 +118,7 @@ async function main() {
     }
 
     await page.locator('.csat-users-panel input[type="checkbox"]').first().check();
-    await page.selectOption('#csat-template', { index: 1 });
+    await page.selectOption('#csat-template', { label: sendable[0] });
     await page.fill('#csat-notes', 'Portal end-to-end test');
 
     await page.click('button:has-text("Create Survey Request")');

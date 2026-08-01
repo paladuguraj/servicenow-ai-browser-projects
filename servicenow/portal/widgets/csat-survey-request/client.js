@@ -75,6 +75,10 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
         return !!(t && t.immediate_only);
     };
 
+    c.draftTemplates = function() {
+        return (c.data.templates || []).filter(function(t) { return !t.published; });
+    };
+
     c.onTemplateChange = function() {
         // Case-outcome surveys are one-off, so drop any recurring choice.
         if (c.isImmediateOnly()) c.form.schedule_frequency = 'immediate';
@@ -139,6 +143,10 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
         }
         if (!c.form.metric_type) {
             return c.fail('Select a survey template.');
+        }
+        var template = c.selectedTemplate();
+        if (template && !template.published) {
+            return c.fail('"' + template.name + '" is still in Draft. Publish it in Survey Designer before sending.');
         }
         if (c.form.recipient_mode === 'primary_user' && !c.primaryEligible()) {
             var p = c.data.primaryContact;

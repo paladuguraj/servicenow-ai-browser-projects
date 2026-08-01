@@ -96,8 +96,13 @@
         <label for="csat-template">Survey Template</label>
         <select id="csat-template" class="form-control" ng-model="c.form.metric_type" ng-change="c.onTemplateChange()">
           <option value="">-- Select survey template --</option>
-          <option ng-repeat="template in c.data.templates track by template.sys_id" value="{{template.sys_id}}">{{template.name}}</option>
+          <option ng-repeat="template in c.data.templates track by template.sys_id"
+                  value="{{template.sys_id}}"
+                  ng-disabled="!template.published">{{template.name}}{{template.published ? '' : ' (Draft — cannot be sent)'}}</option>
         </select>
+        <p class="text-danger csat-note" ng-if="c.draftTemplates().length">
+          {{c.draftTemplates().length}} survey(s) are still in Draft and cannot be sent until published in Survey Designer.
+        </p>
       </div>
 
       <div class="form-group">
