@@ -13,6 +13,7 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
 
     c.form = angular.copy(BLANK_FORM);
     c.companySearch = '';
+    c.userFilter = '';
     c.showCompanyList = false;
     var searchTimer = null;
 
@@ -56,6 +57,7 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
             c.data.users = r.data.users || [];
             c.data.primaryContact = r.data.primaryContact || null;
             c.form.selected_users = {};
+            c.userFilter = '';
             c.loadingCompany = false;
         });
     };
@@ -104,6 +106,34 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
 
     c.eligibleUsers = function() {
         return (c.data.users || []).filter(function(u) { return u.eligible; });
+    };
+
+    c.filteredUsers = function() {
+        var term = (c.userFilter || '').toLowerCase().trim();
+        var eligible = c.eligibleUsers();
+        if (!term) return eligible;
+        return eligible.filter(function(u) {
+            return (u.name || '').toLowerCase().indexOf(term) !== -1 ||
+                   (u.email || '').toLowerCase().indexOf(term) !== -1 ||
+                   (u.user_name || '').toLowerCase().indexOf(term) !== -1;
+        });
+    };
+
+    // Large accounts can have thousands of users; render a slice and let the
+    // filter narrow it rather than paint the whole list.
+    var MAX_VISIBLE = 50;
+
+    c.visibleUsers = function() {
+        return c.filteredUsers().slice(0, MAX_VISIBLE);
+    };
+
+    c.selectedUsers = function() {
+        var ids = c.form.selected_users;
+        return (c.data.users || []).filter(function(u) { return ids[u.sys_id]; });
+    };
+
+    c.clearSelection = function() {
+        c.form.selected_users = {};
     };
 
     c.blockedUsers = function() {
@@ -240,6 +270,7 @@ api.controller = function($scope, $timeout, spModal, spUtil) {
     c.reset = function() {
         c.form = angular.copy(BLANK_FORM);
         c.companySearch = '';
+        c.userFilter = '';
         c.showCompanyList = false;
         c.data.users = [];
         c.data.primaryContact = null;

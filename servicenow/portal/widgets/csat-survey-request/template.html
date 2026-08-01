@@ -63,16 +63,39 @@
       </div>
 
       <div class="form-group" ng-if="c.form.company &amp;&amp; c.form.recipient_mode === 'selected_users'">
-        <label>Users in {{c.form.companyName}}</label>
+        <label>Choose recipients from {{c.form.companyName}}</label>
         <p class="help-block" ng-if="c.loadingCompany">Loading users...</p>
 
-        <div class="well well-sm csat-users-panel" ng-if="!c.loadingCompany &amp;&amp; c.eligibleUsers().length">
-          <div class="checkbox" ng-repeat="user in c.eligibleUsers() track by user.sys_id">
-            <label>
-              <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user)"/>
-              {{user.name}} <span class="text-muted">({{user.email || user.user_name}})</span>
-            </label>
+        <div ng-if="!c.loadingCompany &amp;&amp; c.eligibleUsers().length">
+          <div class="csat-chosen" ng-if="c.getSelectedUserIds().length">
+            <span class="label label-primary csat-chip" ng-repeat="user in c.selectedUsers() track by user.sys_id">
+              {{user.name}}
+              <a href="javascript:void(0)" ng-click="c.toggleUser(user)" title="Remove">&times;</a>
+            </span>
+            <a href="javascript:void(0)" class="csat-clear" ng-click="c.clearSelection()">Clear all</a>
           </div>
+          <p class="text-muted csat-note" ng-if="!c.getSelectedUserIds().length">
+            No recipients chosen yet &mdash; tick the people who should receive this survey.
+          </p>
+
+          <input type="text" class="form-control csat-user-filter" ng-model="c.userFilter"
+                 placeholder="Filter {{c.eligibleUsers().length}} eligible users by name or email"/>
+
+          <div class="well well-sm csat-users-panel">
+            <div class="checkbox" ng-repeat="user in c.visibleUsers() track by user.sys_id">
+              <label>
+                <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user)"/>
+                {{user.name}} <span class="text-muted">({{user.email || user.user_name}})</span>
+              </label>
+            </div>
+            <p class="text-muted csat-note" ng-if="!c.visibleUsers().length">No users match "{{c.userFilter}}".</p>
+          </div>
+
+          <p class="help-block">
+            Showing {{c.visibleUsers().length}} of {{c.filteredUsers().length}} matching user(s).
+            <span ng-if="c.filteredUsers().length &gt; c.visibleUsers().length">Filter to narrow the list further.</span>
+            <strong>{{c.getSelectedUserIds().length}} selected.</strong>
+          </p>
         </div>
 
         <p class="text-muted" ng-if="!c.loadingCompany &amp;&amp; !c.eligibleUsers().length">

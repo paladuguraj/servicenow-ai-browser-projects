@@ -9,6 +9,38 @@
   background: #fbfbfc;
 }
 
+.csat-survey-request .csat-chosen {
+  margin-bottom: 8px;
+}
+
+.csat-survey-request .csat-chip {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.csat-survey-request .csat-chip a {
+  color: #fff;
+  margin-left: 6px;
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.csat-survey-request .csat-chip a:hover {
+  opacity: 1;
+}
+
+.csat-survey-request .csat-clear {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.csat-survey-request .csat-user-filter {
+  margin-bottom: 8px;
+}
+
 .csat-survey-request .csat-links .btn-link {
   padding-left: 0;
 }
