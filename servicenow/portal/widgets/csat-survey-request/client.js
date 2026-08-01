@@ -1,81 +1,159 @@
-api.controller = function($scope, spUtil) {
+api.controller = function($scope, $timeout, spModal, spUtil) {
     var c = this;
 
-    c.form = {
+    var BLANK_FORM = {
         company: '',
+        companyName: '',
         metric_type: '',
-        recipient_mode: 'all_users',
+        recipient_mode: 'primary_user',
         schedule_frequency: 'immediate',
         notes: '',
         selected_users: {}
     };
 
-    c.loadUsers = function() {
-        if (!c.form.company) {
-            c.data.users = [];
-            c.form.selected_users = {};
-            return;
-        }
+    c.form = angular.copy(BLANK_FORM);
+    c.companySearch = '';
+    c.showCompanyList = false;
+    var searchTimer = null;
 
-        c.server.get({
-            action: 'getUsers',
-            company_id: c.form.company
-        }).then(function(response) {
-            c.data.users = response.data.users || [];
+    /* ---------- company lookup ---------- */
+
+    c.onCompanySearch = function() {
+        c.showCompanyList = true;
+        if (searchTimer) $timeout.cancel(searchTimer);
+        // Debounced so typing does not fire a request per keystroke.
+        searchTimer = $timeout(function() {
+            c.searching = true;
+            c.server.get({ action: 'searchCompanies', term: c.companySearch }).then(function(r) {
+                c.data.companies = r.data.companies || [];
+                c.searching = false;
+            });
+        }, 300);
+    };
+
+    c.selectCompany = function(company) {
+        c.form.company = company.sys_id;
+        c.form.companyName = company.name;
+        c.companySearch = company.name;
+        c.showCompanyList = false;
+        c.loadCompany();
+    };
+
+    c.clearCompany = function() {
+        c.form.company = '';
+        c.form.companyName = '';
+        c.companySearch = '';
+        c.form.selected_users = {};
+        c.data.users = [];
+        c.data.primaryContact = null;
+        c.showCompanyList = false;
+    };
+
+    c.loadCompany = function() {
+        if (!c.form.company) return;
+        c.loadingCompany = true;
+        c.server.get({ action: 'loadCompany', company_id: c.form.company }).then(function(r) {
+            c.data.users = r.data.users || [];
+            c.data.primaryContact = r.data.primaryContact || null;
             c.form.selected_users = {};
+            c.loadingCompany = false;
         });
+    };
+
+    /* ---------- survey template ---------- */
+
+    c.selectedTemplate = function() {
+        var templates = c.data.templates || [];
+        for (var i = 0; i < templates.length; i++) {
+            if (templates[i].sys_id === c.form.metric_type) return templates[i];
+        }
+        return null;
+    };
+
+    c.isImmediateOnly = function() {
+        var t = c.selectedTemplate();
+        return !!(t && t.immediate_only);
+    };
+
+    c.onTemplateChange = function() {
+        // Case-outcome surveys are one-off, so drop any recurring choice.
+        if (c.isImmediateOnly()) c.form.schedule_frequency = 'immediate';
+    };
+
+    c.availableSchedules = function() {
+        var options = c.data.scheduleOptions || [];
+        if (!c.isImmediateOnly()) return options;
+        return options.filter(function(o) { return o.value === 'immediate'; });
+    };
+
+    /* ---------- recipients ---------- */
+
+    c.primaryEligible = function() {
+        return !!(c.data.primaryContact && c.data.primaryContact.eligible);
+    };
+
+    c.primaryName = function() {
+        var p = c.data.primaryContact;
+        if (!p || !p.user) return '';
+        return p.user.name + ' (' + (p.user.email || p.user.user_name) + ')';
+    };
+
+    c.eligibleUsers = function() {
+        return (c.data.users || []).filter(function(u) { return u.eligible; });
+    };
+
+    c.blockedUsers = function() {
+        return (c.data.users || []).filter(function(u) { return !u.eligible; });
     };
 
     c.isUserSelected = function(userId) {
         return !!c.form.selected_users[userId];
     };
 
-    c.toggleUser = function(userId) {
-        if (c.form.selected_users[userId]) {
-            delete c.form.selected_users[userId];
-        } else {
-            c.form.selected_users[userId] = true;
-        }
+    c.toggleUser = function(user) {
+        if (!user.eligible) return;
+        if (c.form.selected_users[user.sys_id]) delete c.form.selected_users[user.sys_id];
+        else c.form.selected_users[user.sys_id] = true;
     };
 
     c.getSelectedUserIds = function() {
-        return Object.keys(c.form.selected_users).filter(function(key) {
-            return c.form.selected_users[key];
+        return Object.keys(c.form.selected_users).filter(function(k) {
+            return c.form.selected_users[k];
         });
     };
 
     c.recipientCount = function() {
-        if (c.form.recipient_mode === 'selected_users')
-            return c.getSelectedUserIds().length;
-        return (c.data.users || []).length;
+        if (c.form.recipient_mode === 'primary_user') return c.primaryEligible() ? 1 : 0;
+        return c.getSelectedUserIds().length;
     };
+
+    /* ---------- submit ---------- */
 
     c.requestSend = function() {
         c.data.message = '';
         c.data.messageType = '';
         c.pendingConfirmation = false;
 
-        if (!c.form.company || !c.form.metric_type) {
-            c.data.message = 'Company and survey template are required.';
-            c.data.messageType = 'danger';
-            return;
+        if (!c.form.company) {
+            return c.fail('Select a company.');
         }
-
+        if (!c.form.metric_type) {
+            return c.fail('Select a survey template.');
+        }
+        if (c.form.recipient_mode === 'primary_user' && !c.primaryEligible()) {
+            var p = c.data.primaryContact;
+            return c.fail(p && p.reason ? p.reason : 'This company has no eligible primary user.');
+        }
         if (c.form.recipient_mode === 'selected_users' && !c.getSelectedUserIds().length) {
-            c.data.message = 'Select at least one user.';
-            c.data.messageType = 'danger';
-            return;
+            return c.fail('Select at least one user.');
         }
 
-        if (!c.recipientCount()) {
-            c.data.message = 'No active users with an email address were found for this company, so there is nobody to survey.';
-            c.data.messageType = 'warning';
-            return;
-        }
-
-        // Sending to a whole company emails everyone at once, so make the
-        // blast size explicit before anything leaves the instance.
         c.pendingConfirmation = true;
+    };
+
+    c.fail = function(message) {
+        c.data.message = message;
+        c.data.messageType = 'danger';
     };
 
     c.cancelConfirmation = function() {
@@ -86,9 +164,8 @@ api.controller = function($scope, spUtil) {
         c.pendingConfirmation = false;
         c.data.message = '';
         c.data.messageType = '';
-
-        var selected = c.getSelectedUserIds();
         c.submitting = true;
+
         c.server.get({
             action: 'createRequest',
             company: c.form.company,
@@ -96,69 +173,54 @@ api.controller = function($scope, spUtil) {
             recipient_mode: c.form.recipient_mode,
             schedule_frequency: c.form.schedule_frequency,
             notes: c.form.notes,
-            selected_users: selected.join(',')
+            selected_users: c.getSelectedUserIds().join(',')
         }).then(function(response) {
             c.submitting = false;
             var result = response.data.result;
-            if (!result) {
-                c.data.message = 'Failed to create survey request.';
-                c.data.messageType = 'danger';
-                return;
-            }
-            if (result.error) {
-                c.data.message = result.error;
-                c.data.messageType = 'danger';
-                return;
-            }
-            c.data.message = c.describeResult(result);
-            c.data.messageType = c.resultSeverity(result);
-            spUtil.addInfoMessage(c.data.message);
+
+            if (!result) return c.fail('Failed to create survey request.');
+            if (result.error) return c.fail(result.error);
+
+            c.showSubmittedDialog(result);
         }, function() {
             c.submitting = false;
-            c.data.message = 'Failed to create survey request.';
-            c.data.messageType = 'danger';
+            c.fail('Failed to create survey request.');
         });
     };
 
-    c.describeResult = function(result) {
-        var label = 'Survey request ' + (result.number || result.sys_id);
+    c.showSubmittedDialog = function(result) {
         var stats = result.executions || {};
+        var sent = stats.success || 0;
+        var lines = [];
 
         if (result.schedule_frequency !== 'immediate') {
-            return label + ' scheduled (' + c.scheduleLabel(result.schedule_frequency) +
-                '). First run: ' + (result.next_run || 'shortly') + '.';
+            lines.push('The request has been scheduled (' + c.scheduleLabel(result.schedule_frequency) + ').');
+            if (result.next_run) lines.push('First run: ' + result.next_run + '.');
+        } else if (sent) {
+            lines.push(sent + ' survey ' + (sent === 1 ? 'invitation has' : 'invitations have') + ' been sent.');
+        } else {
+            lines.push('No surveys were sent.');
         }
 
-        if (!stats.total)
-            return label + ' created, but no surveys were sent: the selected company has no active users with an email address.';
+        if (stats.skipped) lines.push(stats.skipped + ' recipient(s) skipped: ' + (stats.first_error || 'not eligible'));
+        if (stats.failed) lines.push(stats.failed + ' failed: ' + (stats.first_error || 'see execution log'));
 
-        if (stats.success && !stats.failed && !stats.skipped)
-            return label + ': ' + stats.success + ' survey ' + (stats.success === 1 ? 'invitation' : 'invitations') + ' sent.';
-
-        var parts = [];
-        if (stats.success) parts.push(stats.success + ' sent');
-        if (stats.failed) parts.push(stats.failed + ' failed');
-        if (stats.skipped) parts.push(stats.skipped + ' skipped');
-        var summary = label + ': ' + parts.join(', ') + '.';
-        if (stats.first_error) summary += ' First issue: ' + stats.first_error;
-        return summary;
+        spModal.open({
+            title: 'Survey request submitted',
+            message: lines.join(' '),
+            buttons: [{ label: 'Create another survey', primary: true }]
+        }).then(function() {
+            c.startNewRequest();
+        }, function() {
+            c.startNewRequest();
+        });
     };
 
-    c.resultSeverity = function(result) {
-        var stats = result.executions || {};
-        if (result.schedule_frequency !== 'immediate') return 'success';
-        if (!stats.total) return 'warning';
-        if (stats.failed) return stats.success ? 'warning' : 'danger';
-        return 'success';
-    };
+    /* ---------- reset ---------- */
 
-    c.companyName = function() {
-        var companies = c.data.companies || [];
-        for (var i = 0; i < companies.length; i++) {
-            if (companies[i].sys_id === c.form.company)
-                return companies[i].name;
-        }
-        return 'the selected company';
+    c.startNewRequest = function() {
+        c.reset();
+        spUtil.addInfoMessage('Survey request submitted. Ready for the next one.');
     };
 
     c.scheduleLabel = function(value) {
@@ -168,15 +230,11 @@ api.controller = function($scope, spUtil) {
     };
 
     c.reset = function() {
-        c.form = {
-            company: '',
-            metric_type: '',
-            recipient_mode: 'all_users',
-            schedule_frequency: 'immediate',
-            notes: '',
-            selected_users: {}
-        };
+        c.form = angular.copy(BLANK_FORM);
+        c.companySearch = '';
+        c.showCompanyList = false;
         c.data.users = [];
+        c.data.primaryContact = null;
         c.data.message = '';
         c.data.messageType = '';
         c.pendingConfirmation = false;

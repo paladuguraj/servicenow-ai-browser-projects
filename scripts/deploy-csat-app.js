@@ -7,7 +7,7 @@
  * sets that cannot be merged) and this is deliberately not a separate app.
  */
 
-const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
+const { base, headers, snGet, snPost, snPatch, snDelete, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const GLOBAL_SCOPE = 'global';
 const APP_MENU_TITLE = 'CSAT Survey';
@@ -55,9 +55,11 @@ async function ensureTable(name, label, extra = {}) {
 }
 
 async function ensureColumn(table, element, columnType, label, extra = {}) {
+  // ServiceNow prefixes new columns on global custom tables with u_, so a
+  // second run must look for both spellings or it will try to recreate them.
   const existing = await snGet(
     'sys_dictionary',
-    `sysparm_query=name=${table}^element=${element}&sysparm_fields=sys_id,element`
+    `sysparm_query=name=${table}^elementIN${element},u_${element}&sysparm_fields=sys_id,element`
   );
   if (existing.length) {
     return existing[0].sys_id;
@@ -80,15 +82,32 @@ async function ensureColumn(table, element, columnType, label, extra = {}) {
   return col.sys_id;
 }
 
+/**
+ * Resolves the stored column name for a logical field. Columns added to a
+ * global custom table get a u_ prefix, and choices attached to the unprefixed
+ * name are silently ignored by the platform.
+ */
+async function resolveElement(table, element) {
+  const found = await snGet(
+    'sys_dictionary',
+    `sysparm_query=name=${table}^elementIN${element},u_${element}&sysparm_fields=element`
+  );
+  return found.length ? found[0].element : element;
+}
+
 async function ensureChoice(table, element, value, label, sequence) {
+  const column = await resolveElement(table, element);
   const existing = await snGet(
     'sys_choice',
-    `sysparm_query=name=${table}^element=${element}^value=${value}&sysparm_fields=sys_id`
+    `sysparm_query=name=${table}^element=${column}^value=${value}&sysparm_fields=sys_id`
   );
-  if (existing.length) return;
+  if (existing.length) {
+    await snPatch('sys_choice', existing[0].sys_id, { label, sequence, inactive: false });
+    return;
+  }
   await snPost('sys_choice', {
     name: table,
-    element,
+    element: column,
     value,
     label,
     sequence,
@@ -96,6 +115,39 @@ async function ensureChoice(table, element, value, label, sequence) {
     inactive: false,
     sys_scope: GLOBAL_SCOPE,
   });
+  console.log(`  + choice ${table}.${column}=${value}`);
+}
+
+/**
+ * Keeps a retired choice on the table so historical records still render a
+ * label, but hides it from new selections.
+ */
+async function retireChoice(table, element, value) {
+  const column = await resolveElement(table, element);
+  const existing = await snGet(
+    'sys_choice',
+    `sysparm_query=name=${table}^elementIN${element},${column}^value=${value}&sysparm_fields=sys_id,inactive`
+  );
+  for (const choice of existing) {
+    await snPatch('sys_choice', choice.sys_id, { inactive: true });
+  }
+  if (existing.length) console.log(`  retired choice ${table}.${column}=${value}`);
+}
+
+/**
+ * Removes choices left attached to the unprefixed column name by earlier runs.
+ */
+async function cleanupOrphanChoices(table, element) {
+  const column = await resolveElement(table, element);
+  if (column === element) return;
+  const orphans = await snGet(
+    'sys_choice',
+    `sysparm_query=name=${table}^element=${element}&sysparm_fields=sys_id,value`
+  );
+  for (const orphan of orphans) {
+    await snDelete('sys_choice', orphan.sys_id);
+  }
+  if (orphans.length) console.log(`  removed ${orphans.length} orphaned choice(s) on ${table}.${element}`);
 }
 
 async function ensureScriptInclude(name, script) {
@@ -199,7 +251,7 @@ async function deployTables() {
   // Skip number column — ServiceNow reserves it or it already exists on custom tables
   await ensureColumn(requestTable, 'company', 'reference', 'Company', { reference: 'core_company', mandatory: true });
   await ensureColumn(requestTable, 'metric_type', 'reference', 'Survey Template', { reference: 'asmt_metric_type', mandatory: true });
-  await ensureColumn(requestTable, 'recipient_mode', 'choice', 'Recipient Mode', { choice: 3, default_value: 'all_users' });
+  await ensureColumn(requestTable, 'recipient_mode', 'choice', 'Recipient Mode', { choice: 3, default_value: 'primary_user' });
   await ensureColumn(requestTable, 'schedule_frequency', 'choice', 'Schedule Frequency', { choice: 3, default_value: 'immediate' });
   await ensureColumn(requestTable, 'state', 'choice', 'State', { choice: 3, default_value: 'draft' });
   await ensureColumn(requestTable, 'next_run', 'glide_date_time', 'Next Run');
@@ -208,8 +260,13 @@ async function deployTables() {
   await ensureColumn(requestTable, 'notes', 'string', 'Notes', { max_length: 4000, extraFields: { internal_type: 'string', text_index: false } });
   await ensureColumn(requestTable, 'active', 'boolean', 'Active', { default_value: 'true' });
 
-  await ensureChoice(requestTable, 'recipient_mode', 'all_users', 'All users in company', 10);
-  await ensureChoice(requestTable, 'recipient_mode', 'selected_users', 'Selected users only', 20);
+  for (const field of ['recipient_mode', 'schedule_frequency', 'state'])
+    await cleanupOrphanChoices(requestTable, field);
+  await cleanupOrphanChoices(executionTable, 'status');
+
+  await ensureChoice(requestTable, 'recipient_mode', 'primary_user', 'Primary User', 10);
+  await ensureChoice(requestTable, 'recipient_mode', 'selected_users', 'Selected Users only', 20);
+  await retireChoice(requestTable, 'recipient_mode', 'all_users');
   await ensureChoice(requestTable, 'schedule_frequency', 'immediate', 'Send immediately', 10);
   await ensureChoice(requestTable, 'schedule_frequency', 'every_30_days', 'Every 30 days', 20);
   await ensureChoice(requestTable, 'schedule_frequency', 'every_60_days', 'Every 60 days', 30);

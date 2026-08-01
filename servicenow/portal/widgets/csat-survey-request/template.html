@@ -1,7 +1,7 @@
 <div class="panel panel-default csat-survey-request">
   <div class="panel-heading">
     <h2 class="panel-title">CSAT Survey Request</h2>
-    <p class="text-muted m-t-xs m-b-none">Schedule native ServiceNow surveys for a company account.</p>
+    <p class="text-muted m-t-xs m-b-none">Select a company, choose recipients and survey template, then schedule delivery.</p>
   </div>
   <div class="panel-body">
     <div class="alert alert-{{c.data.messageType}}" ng-if="c.data.message">
@@ -9,59 +9,105 @@
     </div>
 
     <form name="csatForm" novalidate="">
-      <div class="form-group">
-        <label for="csat-company">Company / Account</label>
-        <select id="csat-company" class="form-control" ng-model="c.form.company" ng-change="c.loadUsers()" required="">
-          <option value="">-- Select company --</option>
-          <option ng-repeat="company in c.data.companies track by company.sys_id" value="{{company.sys_id}}">{{company.name}}</option>
-        </select>
-      </div>
 
-      <div class="form-group">
-        <label>Recipients</label>
-        <div class="radio">
-          <label>
-            <input type="radio" ng-model="c.form.recipient_mode" value="all_users"/>
-            All users in company
-            <span class="text-muted" ng-if="c.form.company">({{c.data.users.length}})</span>
-          </label>
+      <div class="form-group csat-company-picker">
+        <label for="csat-company">Company / Account</label>
+        <div class="input-group">
+          <input id="csat-company" type="text" class="form-control" autocomplete="off"
+                 placeholder="Type to search active companies"
+                 ng-model="c.companySearch"
+                 ng-change="c.onCompanySearch()"
+                 ng-focus="c.showCompanyList = true"/>
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="c.clearCompany()" ng-if="c.form.company" title="Clear">
+              <span aria-hidden="true">&times;</span>
+              <span class="sr-only">Clear company</span>
+            </button>
+          </span>
         </div>
-        <div class="radio">
-          <label>
-            <input type="radio" ng-model="c.form.recipient_mode" value="selected_users"/>
-            Selected users only
-            <span class="text-muted" ng-if="c.getSelectedUserIds().length">({{c.getSelectedUserIds().length}} selected)</span>
-          </label>
-        </div>
+
+        <ul class="csat-typeahead" ng-if="c.showCompanyList &amp;&amp; c.data.companies.length">
+          <li ng-repeat="company in c.data.companies track by company.sys_id"
+              ng-click="c.selectCompany(company)">{{company.name}}</li>
+        </ul>
+        <p class="help-block" ng-if="c.searching">Searching...</p>
+        <p class="help-block" ng-if="!c.searching &amp;&amp; c.showCompanyList &amp;&amp; !c.data.companies.length">
+          No active companies match "{{c.companySearch}}".
+        </p>
+        <p class="help-block" ng-if="c.form.company">Selected: <strong>{{c.form.companyName}}</strong></p>
       </div>
 
       <div class="form-group" ng-if="c.form.company">
-        <label>Users in selected company</label>
-        <div class="well well-sm csat-users-panel" ng-if="c.data.users.length">
-          <div class="checkbox" ng-repeat="user in c.data.users track by user.sys_id">
+        <label>Recipients</label>
+
+        <div class="radio">
+          <label>
+            <input type="radio" ng-model="c.form.recipient_mode" value="primary_user"/>
+            Primary User
+            <span class="text-muted" ng-if="c.primaryEligible()">&mdash; {{c.primaryName()}}</span>
+          </label>
+          <p class="help-block csat-note">Primary User must have an active portal account.</p>
+          <p class="text-danger csat-note" ng-if="c.data.primaryContact &amp;&amp; !c.data.primaryContact.eligible">
+            {{c.data.primaryContact.reason}}
+          </p>
+        </div>
+
+        <div class="radio">
+          <label>
+            <input type="radio" ng-model="c.form.recipient_mode" value="selected_users"/>
+            Selected Users only
+            <span class="text-muted" ng-if="c.getSelectedUserIds().length">({{c.getSelectedUserIds().length}} selected)</span>
+          </label>
+          <p class="help-block csat-note">More than one user can be sent the survey.</p>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="c.form.company &amp;&amp; c.form.recipient_mode === 'selected_users'">
+        <label>Users in {{c.form.companyName}}</label>
+        <p class="help-block" ng-if="c.loadingCompany">Loading users...</p>
+
+        <div class="well well-sm csat-users-panel" ng-if="!c.loadingCompany &amp;&amp; c.eligibleUsers().length">
+          <div class="checkbox" ng-repeat="user in c.eligibleUsers() track by user.sys_id">
             <label>
-              <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user.sys_id)" ng-disabled="c.form.recipient_mode !== 'selected_users'"/>
-              {{user.name}} ({{user.email || user.user_name}})
+              <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user)"/>
+              {{user.name}} <span class="text-muted">({{user.email || user.user_name}})</span>
             </label>
           </div>
         </div>
-        <p class="text-muted" ng-if="!c.data.users.length">No active users found for this company.</p>
+
+        <p class="text-muted" ng-if="!c.loadingCompany &amp;&amp; !c.eligibleUsers().length">
+          No users at this company are currently eligible to receive a survey.
+        </p>
+
+        <div ng-if="!c.loadingCompany &amp;&amp; c.blockedUsers().length">
+          <a href="javascript:void(0)" ng-click="c.showBlocked = !c.showBlocked">
+            {{c.showBlocked ? 'Hide' : 'Show'}} {{c.blockedUsers().length}} ineligible user(s)
+          </a>
+          <div class="well well-sm csat-users-panel csat-blocked" ng-if="c.showBlocked">
+            <div ng-repeat="user in c.blockedUsers() track by user.sys_id">
+              <span class="text-muted">{{user.name}}</span>
+              <small class="text-muted"> &mdash; {{user.reason}}</small>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="csat-template">Survey Template</label>
-        <select id="csat-template" class="form-control" ng-model="c.form.metric_type" required="">
+        <select id="csat-template" class="form-control" ng-model="c.form.metric_type" ng-change="c.onTemplateChange()">
           <option value="">-- Select survey template --</option>
           <option ng-repeat="template in c.data.templates track by template.sys_id" value="{{template.sys_id}}">{{template.name}}</option>
         </select>
-        <p class="help-block" ng-if="c.form.metric_type">Uses native ServiceNow assessment surveys (<code>asmt_metric_type</code>).</p>
       </div>
 
       <div class="form-group">
         <label for="csat-schedule">Schedule</label>
         <select id="csat-schedule" class="form-control" ng-model="c.form.schedule_frequency">
-          <option ng-repeat="opt in c.data.scheduleOptions track by opt.value" value="{{opt.value}}">{{opt.label}}</option>
+          <option ng-repeat="opt in c.availableSchedules() track by opt.value" value="{{opt.value}}">{{opt.label}}</option>
         </select>
+        <p class="help-block" ng-if="c.isImmediateOnly()">
+          {{c.selectedTemplate().name}} is only sent immediately.
+        </p>
       </div>
 
       <div class="form-group">
@@ -74,9 +120,7 @@
           <strong>Confirm before sending.</strong>
           This will email
           <strong>{{c.recipientCount()}}</strong>
-          {{c.recipientCount() === 1 ? 'person' : 'people'}}
-          <span ng-if="c.form.recipient_mode === 'all_users'">— every active user at {{c.companyName()}}</span>
-          <span ng-if="c.form.schedule_frequency !== 'immediate'">, repeating {{c.scheduleLabel(c.form.schedule_frequency)}}</span>.
+          {{c.recipientCount() === 1 ? 'person' : 'people'}} at {{c.form.companyName}}<span ng-if="c.form.schedule_frequency !== 'immediate'">, repeating {{c.scheduleLabel(c.form.schedule_frequency)}}</span>.
         </p>
         <button type="button" class="btn btn-primary" ng-click="c.submit()" ng-disabled="c.submitting">
           Send to {{c.recipientCount()}} {{c.recipientCount() === 1 ? 'recipient' : 'recipients'}}
@@ -99,5 +143,8 @@
       <a href="?id=list&amp;table=u_x_csat_survey_execution" class="btn btn-link">View execution log</a>
       <a href="?id=my_surveys" class="btn btn-link">My surveys</a>
     </div>
+    <p class="text-muted csat-note">
+      A user can receive a CSAT survey through this portal once every {{c.data.cooldownDays}} days.
+    </p>
   </div>
 </div>

@@ -27,11 +27,48 @@ CSATSurveyService.prototype = {
         scheduled_for: 'u_scheduled_for'
     },
 
-    getCompanies: function() {
+    COMPANY_ACTIVE_FIELD: 'u_active',
+    COMPANY_PRIMARY_CONTACT_FIELD: 'u_primary_billing_contact',
+
+    // A recipient may not be surveyed again through this portal until this
+    // many days have passed since their last successful send.
+    COOLDOWN_DAYS: 90,
+
+    // These surveys are tied to a single case outcome, so they only make
+    // sense sent immediately rather than on a recurring schedule.
+    IMMEDIATE_ONLY_SURVEYS: ['Closed Case Survey', 'Complex Resolution Survey'],
+
+    /**
+     * The active flag and primary billing contact are customer-specific fields,
+     * so check before querying them rather than returning nothing on an
+     * instance that does not have them.
+     */
+    hasField: function(table, element) {
+        if (!this._fieldCache)
+            this._fieldCache = {};
+        var key = table + '.' + element;
+        if (this._fieldCache.hasOwnProperty(key))
+            return this._fieldCache[key];
+
+        var gr = new GlideRecord('sys_dictionary');
+        gr.addQuery('name', table);
+        gr.addQuery('element', element);
+        gr.setLimit(1);
+        gr.query();
+        this._fieldCache[key] = gr.next() ? true : false;
+        return this._fieldCache[key];
+    },
+
+    getCompanies: function(searchTerm, limit) {
         var companies = [];
         var gr = new GlideRecord('core_company');
+        if (this.hasField('core_company', this.COMPANY_ACTIVE_FIELD))
+            gr.addQuery(this.COMPANY_ACTIVE_FIELD, true);
         gr.addQuery('name', '!=', 'N/A');
+        if (searchTerm)
+            gr.addQuery('name', 'CONTAINS', searchTerm);
         gr.orderBy('name');
+        gr.setLimit(limit ? parseInt(limit, 10) : 100);
         gr.query();
         while (gr.next()) {
             companies.push({
@@ -50,13 +87,144 @@ CSATSurveyService.prototype = {
         gr.orderBy('name');
         gr.query();
         while (gr.next()) {
+            var name = gr.getValue('name');
             templates.push({
                 sys_id: gr.getUniqueValue(),
-                name: gr.getValue('name'),
-                description: gr.getValue('description') || ''
+                name: name,
+                description: gr.getValue('description') || '',
+                immediate_only: this.isImmediateOnly(name)
             });
         }
         return templates;
+    },
+
+    isImmediateOnly: function(templateName) {
+        return this.IMMEDIATE_ONLY_SURVEYS.indexOf(String(templateName)) !== -1;
+    },
+
+    isImmediateOnlyById: function(metricTypeId) {
+        if (!metricTypeId)
+            return false;
+        var gr = new GlideRecord('asmt_metric_type');
+        if (!gr.get(metricTypeId))
+            return false;
+        return this.isImmediateOnly(gr.getValue('name'));
+    },
+
+    /**
+     * The primary billing contact is stored on the company as an email
+     * address rather than a reference, so it has to be resolved to a user
+     * before it can be surveyed.
+     */
+    getPrimaryContact: function(companyId) {
+        var result = { email: '', user: null, eligible: false, reason: '' };
+        if (!companyId)
+            return result;
+
+        if (!this.hasField('core_company', this.COMPANY_PRIMARY_CONTACT_FIELD)) {
+            result.reason = 'Primary Billing Contact is not configured on the company table.';
+            return result;
+        }
+
+        var companyGr = new GlideRecord('core_company');
+        if (!companyGr.get(companyId)) {
+            result.reason = 'Company not found.';
+            return result;
+        }
+
+        var email = (companyGr.getValue(this.COMPANY_PRIMARY_CONTACT_FIELD) || '').trim();
+        result.email = email;
+        if (!email) {
+            result.reason = 'This company has no Primary Billing Contact set.';
+            return result;
+        }
+
+        var userGr = new GlideRecord('sys_user');
+        userGr.addQuery('email', email);
+        userGr.setLimit(1);
+        userGr.query();
+        if (!userGr.next()) {
+            result.reason = 'No user account matches ' + email + '.';
+            return result;
+        }
+
+        result.user = {
+            sys_id: userGr.getUniqueValue(),
+            name: userGr.getValue('name'),
+            user_name: userGr.getValue('user_name'),
+            email: userGr.getValue('email')
+        };
+
+        var portal = this.checkPortalAccount(userGr);
+        if (!portal.active) {
+            result.reason = portal.reason;
+            return result;
+        }
+
+        var cooldown = this.getCooldown(result.user.sys_id);
+        if (cooldown.blocked) {
+            result.reason = cooldown.reason;
+            result.cooldown = cooldown;
+            return result;
+        }
+
+        result.eligible = true;
+        return result;
+    },
+
+    /**
+     * "Active portal account" means the user can actually sign in and answer
+     * the survey: enabled, not locked out, and not an API-only account.
+     */
+    checkPortalAccount: function(userGr) {
+        if (userGr.getValue('active') != '1' && userGr.getValue('active') !== 'true')
+            return { active: false, reason: userGr.getValue('name') + ' does not have an active account.' };
+        if (userGr.getValue('locked_out') == '1' || userGr.getValue('locked_out') === 'true')
+            return { active: false, reason: userGr.getValue('name') + ' is locked out.' };
+        if (userGr.getValue('web_service_access_only') == '1' || userGr.getValue('web_service_access_only') === 'true')
+            return { active: false, reason: userGr.getValue('name') + ' is a web-service-only account and cannot use the portal.' };
+        if (userGr.getValue('internal_integration_user') == '1' || userGr.getValue('internal_integration_user') === 'true')
+            return { active: false, reason: userGr.getValue('name') + ' is an integration account and cannot use the portal.' };
+        if (!userGr.getValue('email'))
+            return { active: false, reason: userGr.getValue('name') + ' has no email address.' };
+        return { active: true, reason: '' };
+    },
+
+    /**
+     * Returns how much of the cooldown window is left for a recipient.
+     */
+    getCooldown: function(userId) {
+        var F = this.F;
+        var result = { blocked: false, last_sent: '', days_remaining: 0, reason: '' };
+
+        var cutoff = new GlideDateTime();
+        cutoff.addDaysUTC(-this.COOLDOWN_DAYS);
+
+        var gr = new GlideRecord(this.EXECUTION_TABLE);
+        gr.addQuery(F.user, userId);
+        gr.addQuery(F.status, 'success');
+        gr.addQuery(F.executed_on, '>=', cutoff);
+        gr.orderByDesc(F.executed_on);
+        gr.setLimit(1);
+        gr.query();
+
+        if (!gr.next())
+            return result;
+
+        var lastSent = new GlideDateTime(gr.getValue(F.executed_on));
+        var eligibleFrom = new GlideDateTime(lastSent);
+        eligibleFrom.addDaysUTC(this.COOLDOWN_DAYS);
+
+        var remaining = Math.ceil(
+            GlideDateTime.subtract(new GlideDateTime(), eligibleFrom).getNumericValue() / (1000 * 60 * 60 * 24)
+        );
+
+        result.blocked = true;
+        result.last_sent = lastSent.getDisplayValue();
+        result.days_remaining = remaining > 0 ? remaining : 1;
+        result.reason =
+            'Surveyed on ' + result.last_sent + '. Eligible again in ' + result.days_remaining + ' day(s).';
+        return result;
     },
 
     getUsersByCompany: function(companyId) {
@@ -70,11 +238,15 @@ CSATSurveyService.prototype = {
         gr.orderBy('name');
         gr.query();
         while (gr.next()) {
+            var portal = this.checkPortalAccount(gr);
+            var cooldown = this.getCooldown(gr.getUniqueValue());
             users.push({
                 sys_id: gr.getUniqueValue(),
                 name: gr.getValue('name'),
                 user_name: gr.getValue('user_name'),
-                email: gr.getValue('email')
+                email: gr.getValue('email'),
+                eligible: portal.active && !cooldown.blocked,
+                reason: !portal.active ? portal.reason : cooldown.reason
             });
         }
         return users;
@@ -82,18 +254,33 @@ CSATSurveyService.prototype = {
 
     createSurveyRequest: function(payload) {
         var F = this.F;
+        var mode = payload.recipient_mode || 'primary_user';
+
+        // Case-outcome surveys cannot be scheduled, regardless of what the
+        // client sent.
+        var frequency = payload.schedule_frequency || 'immediate';
+        if (this.isImmediateOnlyById(payload.metric_type))
+            frequency = 'immediate';
+
+        if (mode === 'primary_user') {
+            var primary = this.getPrimaryContact(payload.company);
+            if (!primary.eligible)
+                return { error: primary.reason || 'The primary user cannot be surveyed.' };
+            payload.selected_users = [primary.user.sys_id];
+        }
+
         var requestGr = new GlideRecord(this.REQUEST_TABLE);
         requestGr.initialize();
         requestGr.setValue(F.company, payload.company);
         requestGr.setValue(F.metric_type, payload.metric_type);
-        requestGr.setValue(F.recipient_mode, payload.recipient_mode || 'all_users');
-        requestGr.setValue(F.schedule_frequency, payload.schedule_frequency || 'immediate');
+        requestGr.setValue(F.recipient_mode, mode);
+        requestGr.setValue(F.schedule_frequency, frequency);
         requestGr.setValue(F.notes, payload.notes || '');
         requestGr.setValue(F.requested_by, gs.getUserID());
         requestGr.setValue(F.state, 'draft');
         requestGr.setValue(F.active, true);
 
-        if (payload.schedule_frequency === 'immediate') {
+        if (frequency === 'immediate') {
             requestGr.setValue(F.next_run, new GlideDateTime());
         }
 
@@ -101,7 +288,7 @@ CSATSurveyService.prototype = {
         if (!requestId)
             throw new Error('Failed to create survey request record');
 
-        if (payload.recipient_mode === 'selected_users' && payload.selected_users) {
+        if (payload.selected_users) {
             for (var i = 0; i < payload.selected_users.length; i++) {
                 var userId = payload.selected_users[i];
                 var userGr = new GlideRecord(this.REQUEST_USER_TABLE);
@@ -136,27 +323,19 @@ CSATSurveyService.prototype = {
         }
     },
 
+    /**
+     * Both recipient modes resolve to explicit rows in the request-user table,
+     * so a request can never fan out to an entire company by accident.
+     */
     getRecipients: function(requestGr) {
         var F = this.F;
         var recipients = [];
-        var mode = requestGr.getValue(F.recipient_mode);
 
-        if (mode === 'selected_users') {
-            var rel = new GlideRecord(this.REQUEST_USER_TABLE);
-            rel.addQuery(F.survey_request, requestGr.getUniqueValue());
-            rel.query();
-            while (rel.next()) {
-                recipients.push(rel.getValue(F.user));
-            }
-            return recipients;
-        }
-
-        var userGr = new GlideRecord('sys_user');
-        userGr.addQuery('active', true);
-        userGr.addQuery('company', requestGr.getValue(F.company));
-        userGr.query();
-        while (userGr.next()) {
-            recipients.push(userGr.getUniqueValue());
+        var rel = new GlideRecord(this.REQUEST_USER_TABLE);
+        rel.addQuery(F.survey_request, requestGr.getUniqueValue());
+        rel.query();
+        while (rel.next()) {
+            recipients.push(rel.getValue(F.user));
         }
         return recipients;
     },
@@ -229,8 +408,16 @@ CSATSurveyService.prototype = {
                 return this._finalizeExecution(execId, 'failed', 'Recipient user not found');
             }
 
-            if (!userGr.getValue('email')) {
-                return this._finalizeExecution(execId, 'skipped', 'Recipient has no email address');
+            var portal = this.checkPortalAccount(userGr);
+            if (!portal.active) {
+                return this._finalizeExecution(execId, 'skipped', portal.reason);
+            }
+
+            // Enforced here as well as in the UI so scheduled runs and API
+            // callers cannot bypass the cooldown.
+            var cooldown = this.getCooldown(userId);
+            if (cooldown.blocked) {
+                return this._finalizeExecution(execId, 'skipped', cooldown.reason);
             }
 
             // An empty source record is required: survey question conditions are
@@ -288,7 +475,7 @@ CSATSurveyService.prototype = {
 
     getExecutionStats: function(requestId) {
         var F = this.F;
-        var stats = { total: 0, success: 0, failed: 0, skipped: 0, pending: 0, first_error: '' };
+        var stats = { total: 0, success: 0, failed: 0, skipped: 0, pending: 0, first_error: '', recipients: [] };
 
         var execGr = new GlideRecord(this.EXECUTION_TABLE);
         execGr.addQuery(F.survey_request, requestId);
@@ -300,6 +487,11 @@ CSATSurveyService.prototype = {
                 stats[status]++;
             if (status !== 'success' && !stats.first_error)
                 stats.first_error = execGr.getValue(F.message) || '';
+            stats.recipients.push({
+                name: execGr[F.user].getDisplayValue(),
+                status: status,
+                message: execGr.getValue(F.message) || ''
+            });
         }
         return stats;
     },
