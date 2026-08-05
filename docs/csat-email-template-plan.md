@@ -1,7 +1,12 @@
 # CSAT Survey Invitation Email — Plan of Action
 
 **Setting up the invitation template and the survey link**
-**Environment: adcomsolutionsdev · Version 1.0**
+**Environment: adcomsolutionsdev · Version 1.1 — implemented**
+
+> **Status: built and verified.** The invitation now follows the same pattern as
+> the existing case survey email and links to the Service Portal. Outbound email
+> remains disabled, so nothing is delivered yet. Sections 1 and 2 record why the
+> change was needed; section 3 records what was built.
 
 ---
 
@@ -56,40 +61,61 @@ case. It is the correct building block.
 
 ---
 
-## 2. Decision needed before build
+## 2. Decisions taken
 
-**Where should the survey link point?**
+**Link destination: Service Portal.** Recipients are customer contacts, so the
+invitation links to `/csat?id=take_survey&instance_id=<sys_id>` rather than the
+platform UI. Verified: opening the link as the survey owner loads the survey
+with a **Get Started** button; opening it as anyone else is correctly refused.
 
-| Option | URL | Best for |
-|---|---|---|
-| **A — Platform** | `nav_to.do?uri=/assessment_take2.do?...` | Internal users. This is what the stock helper returns. |
-| **B — Service Portal** | `/csat?id=take_survey&instance_id=<sys_id>` | External customer contacts. Cleaner, no platform UI. |
+**Pattern: mirrors the existing case invitation.** Same body structure, same
+covering wording, and the same sender-resolution approach, so the two emails
+read consistently.
 
-Recipients are customer billing contacts, so **Option B is recommended**. The
-`take_survey` page already exists on the instance. Option A works with no custom
-code if a platform link is acceptable.
+**Sender:** resolved from the `survey.from.mail` property using the account on
+the CSAT request, falling back to `support@noc-portal.com` — the same rule the
+case email uses.
 
-**Also to confirm with the business:**
-
-- Sender display name and reply-to address
-- Whether the survey has a due date to quote
-- Whether branding or a logo is required
-- Wording for the covering text
+Still to confirm with the business: whether a due date should be quoted, and
+whether branding or a logo is required.
 
 ---
 
-## 3. Plan
+## 3. What was built
 
-### Phase 1 — Stop the wrong email (must happen first)
+Deployed by `scripts/deploy-csat-email-template.js`, which is idempotent and
+safe to re-run.
 
-The case notification must stop catching portal surveys, or recipients will get
-two invitations once the new one is live.
+| Artifact | Purpose |
+|---|---|
+| Mail script `csat_survey_portal_from` | Resolves sender and reply-to from the CSAT request's account |
+| Mail script `csat_survey_portal_link` | Prints the Service Portal survey link, with a copyable fallback |
+| Notification `CSAT Survey Invitation` | The invitation itself, scoped to portal-raised surveys |
+| Condition changes on three existing notifications | Stops them producing a second, broken email |
 
-1. Open **Survey User Invite v2- Manually Created**
-2. Add to its condition: `Trigger table` **is not** `u_x_csat_survey_request`
-3. Save
+### Phase 1 — Stop the wrong email (done first)
 
-Its behaviour for genuine case-triggered surveys is unchanged.
+Three active notifications would otherwise also fire. Each was narrowed, without
+changing how it behaves for the surveys it was written for.
+
+> **The obvious guard does not work for all of them.** Adding
+> `trigger_table != u_x_csat_survey_request` only helps for *event-based*
+> notifications, which are evaluated when the queued event is processed — by
+> which time the portal has stamped the trigger table onto the instance.
+>
+> **Survey User Invite v2- Manually Created** is *record-based* (`generation_type
+> = engine`), so it is evaluated the instant the instance is inserted, before
+> the trigger table is set. The guard was always true and it kept firing. It is
+> now excluded with `task_id IS NOT EMPTY` instead — portal surveys have no
+> task, and that notification renders `${task_id.number}` in its subject and
+> uses `task_id.company` to build its link, so without a task it could only ever
+> produce a broken email anyway.
+
+| Notification | Type | Guard applied |
+|---|---|---|
+| Request survey | event | `trigger_table != u_x_csat_survey_request` |
+| Survey Assigned Notification | event | `trigger_table != u_x_csat_survey_request` |
+| Survey User Invite v2- Manually Created | record | `task_id IS NOT EMPTY` |
 
 ### Phase 2 — Build the link mail script
 
@@ -170,19 +196,27 @@ this is ticked on each survey definition that will be used, otherwise the
 portal falls back to raising the event itself through
 `CSATSurveyNotification.notifyAssigned()`.
 
-### Phase 5 — Test before enabling delivery
+### Phase 5 — Tested with delivery off
 
-With outbound email still **off**, everything is written to `sys_email` without
-being sent. Use that to check the content safely.
+Outbound email is disabled, so everything was written to `sys_email` without
+being sent. Verified on adcomsolutionsdev:
 
-1. Raise a request from the portal to a single test recipient
-2. Open the generated record in **System Logs > Emails**
-3. Verify:
-   - Subject renders the survey name, with no empty placeholders
-   - Body greets the recipient correctly
-   - The survey link is present
-   - The link opens the correct survey for that recipient
-4. Confirm only **one** invitation was produced
+```
+Recipient: American Bank Notifications (security@ambk.com)
+Emails generated for this recipient: 1
+   Closed Case Survey - we would value your feedback
+Link: https://adcomsolutionsdev.service-now.com/csat?id=take_survey
+      &instance_id=698ba85d2be2cf1007a3fa95b891bfa4
+```
+
+| Check | Result |
+|---|---|
+| Exactly one invitation per recipient | Yes — the duplicate no longer fires |
+| Subject renders the survey name | `Closed Case Survey - we would value your feedback` |
+| No empty placeholders | Confirmed |
+| Survey link present | Yes, Service Portal |
+| Link opens the survey for its owner | Verified — loads with **Get Started** |
+| Link refused for anyone else | Verified — "not authorized or the record is not valid" |
 
 ### Phase 6 — Enable delivery
 
@@ -253,13 +287,13 @@ No data model or portal changes are involved, so nothing needs redeploying.
 
 ---
 
-## 8. What we need from you
+## 8. What we still need from you
 
-1. **Link destination** — Service Portal (recommended) or platform
-2. **Wording** — subject line and covering text, or approval of the draft above
-3. **Sender identity** — display name and reply-to address
-4. **Confirmation** to change the existing case notification's condition
-5. **Owner and date** for publishing the two Draft surveys
+1. **Approve the wording** — subject line and covering text as built
+2. **Confirm the sender mapping** covers the accounts you will survey, since
+   anything unmapped falls back to `support@noc-portal.com`
+3. **Enable outbound email** once the existing queue has been reviewed
+4. **Owner and date** for publishing the two Draft surveys
 
-On confirmation this can be implemented and captured in an update set for
-promotion, consistent with the rest of the build.
+The build is captured in the update set **CSAT Survey Portal - Invitation
+email** for promotion, consistent with the rest of the solution.
