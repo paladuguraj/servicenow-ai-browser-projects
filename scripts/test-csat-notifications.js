@@ -143,6 +143,20 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+async function findEligibleRecipients(apiBase, wanted) {
+  const companies = await snGet(
+    'core_company',
+    'sysparm_query=name!=N/A^ORDERBYname&sysparm_fields=sys_id,name&sysparm_limit=60'
+  );
+
+  for (const company of companies) {
+    const res = await fetch(`${base}${apiBase}/users?company_id=${company.sys_id}`, { headers });
+    const eligible = ((await res.json()).result || []).filter((u) => u.eligible);
+    if (eligible.length >= wanted) return { company, users: eligible.slice(0, wanted) };
+  }
+  return null;
+}
+
 async function main() {
   const api = (await snGet('sys_ws_definition', 'sysparm_query=name=CSAT Survey API&sysparm_fields=sys_id,base_uri'))[0];
   const helperSysId = await installHelper(api.sys_id);
@@ -150,21 +164,6 @@ async function main() {
   try {
     const smtp = (await snGet('sys_properties', 'sysparm_query=name=glide.email.smtp.active&sysparm_fields=value'))[0];
     console.log(`Outbound email enabled: ${smtp ? smtp.value : 'unset'}`);
-
-    const company =
-      (await snGet('core_company', 'sysparm_query=name=ACME North America&sysparm_fields=sys_id,name'))[0] ||
-      (await snGet('core_company', 'sysparm_query=name!=N/A&sysparm_limit=1&sysparm_fields=sys_id,name'))[0];
-
-    const users = await snGet(
-      'sys_user',
-      `sysparm_query=active=true^company=${company.sys_id}^emailISNOTEMPTY&sysparm_limit=2&sysparm_fields=sys_id,name,email`
-    );
-    console.log(`Company: ${company.name} (${users.length} recipients with email)`);
-
-    if (!users.length) {
-      console.log('No users with email addresses; cannot verify delivery.');
-      return;
-    }
 
     const notifyOn = (await snGet(
       'asmt_metric_type',
@@ -175,14 +174,30 @@ async function main() {
       'sysparm_query=active=true^evaluation_method=survey^name=Knowledge Lab Session Feedback Survey&sysparm_fields=sys_id,name,notify_user'
     ))[0];
 
+    const scenarios = [
+      ['notify_user = true', notifyOn, 'Scenario 1: template with platform notifications enabled'],
+      ['notify_user = false', notifyOff, 'Scenario 2: template with platform notifications disabled'],
+    ].filter(([, template]) => template);
+
     const results = [];
-    results.push(['notify_user = true', await runScenario(apiBase(api), notifyOn, company, users, 'Scenario 1: template with platform notifications enabled')]);
-    if (notifyOff)
-      results.push(['notify_user = false', await runScenario(apiBase(api), notifyOff, company, users, 'Scenario 2: template with platform notifications disabled')]);
+    for (const [name, template, label] of scenarios) {
+      // Each scenario needs its own recipients: sending puts them into the
+      // 90-day cooldown, so reusing the same people would skip everything
+      // after the first run.
+      const found = await findEligibleRecipients(api.base_uri, 2);
+      if (!found) {
+        console.log(`\n${label}\n  No eligible recipients left (all within the 90-day cooldown).`);
+        results.push([name, null]);
+        continue;
+      }
+      results.push([name, await runScenario(apiBase(api), template, found.company, found.users, label)]);
+    }
 
     console.log(`\n${'='.repeat(60)}`);
     console.log('SUMMARY');
-    results.forEach(([name, ok]) => console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}`));
+    results.forEach(([name, ok]) =>
+      console.log(`  ${ok === null ? 'SKIP' : ok ? 'PASS' : 'FAIL'}  ${name}`)
+    );
   } finally {
     await snDelete('sys_ws_operation', helperSysId);
     console.log('\nRemoved temporary test helper endpoint.');
