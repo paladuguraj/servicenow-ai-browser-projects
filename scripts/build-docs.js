@@ -32,6 +32,12 @@ const DOCUMENTS = [
     title: 'CSAT Survey Portal — Migration Runbook',
     subtitle: 'Deploying to another ServiceNow instance · Version 1.0',
   },
+  {
+    source: 'csat-email-template-plan.md',
+    output: 'CSAT Survey Portal - Email Template Plan of Action.docx',
+    title: 'CSAT Survey Invitation Email — Plan of Action',
+    subtitle: 'Setting up the invitation template and survey link · Version 1.0',
+  },
 ];
 
 function ensureReferenceDoc() {
