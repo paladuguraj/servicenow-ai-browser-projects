@@ -118,6 +118,39 @@ These are instance data or configuration, not application artifacts:
   path differs (for example `/api/2114022/csat_survey_api`). Scripts read it from
   the API definition rather than hardcoding it.
 
+## Update sets on adcomsolutionsdev
+
+| Set | Changes | State | Migrate? |
+|---|---|---|---|
+| **CSAT Survey Portal - COMPLETE v1.0** | **177** | Complete | **Yes — this one** |
+| CSAT Survey Portal | 0 | Ignore | No |
+| CSAT Survey Portal - Tweaks | 0 | Ignore | No |
+| CSAT Survey Portal - Draft guard | 0 | Ignore | No |
+| CSAT Survey Portal - Recipient picker | 0 | Ignore | No |
+| CSAT Survey Portal - View request button | 0 | Ignore | No |
+| CSAT Survey Portal - Requests page | 0 | Ignore | No |
+
+The six working sets were consolidated into the COMPLETE set and marked Ignore.
+They are empty and must not be migrated.
+
+Export:
+`/export_update_set.do?sysparm_sys_id=b9379cd52b62cf1007a3fa95b891bf80`
+
+### Why consolidation was needed
+
+Changes are captured against whichever set is current for the deploying user.
+Two things caused drift across the build:
+
+- Creating a scoped application switched the current set to that application's
+  Default, so some changes were captured elsewhere.
+- The latest `CSATSurveyService` — containing the Draft guard and the fix for
+  falsely reported sends — had been captured only into **Default**. Migrating
+  the named sets alone would have shipped an older version of the core logic.
+
+`npm run updateset:adopt` and a consolidation pass moved everything into one
+set. Records for temporary diagnostic REST endpoints were deleted so they
+cannot be recreated on a target.
+
 ## Promoting via the exported update set
 
 Once a deployment has been captured, later instances can be done with the XML
