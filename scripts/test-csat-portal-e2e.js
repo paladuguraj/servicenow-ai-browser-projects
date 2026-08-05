@@ -142,9 +142,33 @@ async function main() {
 
     const companyValue = await page.inputValue('#csat-company');
     console.log(`Form reset after dialog: ${companyValue === '' ? 'yes' : `no ("${companyValue}")`}`);
+
+    await checkRequestsPage(page);
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * The requests page replaces the stock list so the New button can be swapped
+ * for one that opens the request form rather than an empty record.
+ */
+async function checkRequestsPage(page) {
+  await page.goto(`${base}/csat?id=csat_requests`, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForTimeout(5000);
+
+  const heading = await page.locator('.csat-requests-title').textContent().catch(() => 'MISSING');
+  const buttons = (await page.locator('button, a.btn').allTextContents()).map((t) => t.trim()).filter(Boolean);
+  const rows = await page.locator('table tbody tr').count();
+
+  console.log(`\nRequests page: "${heading.trim()}", ${rows} row(s)`);
+  console.log(`  stock New button removed: ${!buttons.includes('New')}`);
+  console.log(`  New Survey Request present: ${buttons.some((b) => /New Survey Request/.test(b))}`);
+
+  await page.locator('a.btn:has-text("New Survey Request")').click();
+  await page.waitForTimeout(5000);
+  const backOnForm = (await page.locator('.csat-survey-request').count()) > 0;
+  console.log(`  button opens the request form: ${backOnForm}`);
 }
 
 main().catch((err) => {

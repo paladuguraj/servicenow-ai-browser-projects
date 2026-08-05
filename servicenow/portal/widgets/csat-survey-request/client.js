@@ -247,7 +247,7 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
             title: 'Survey request submitted',
             message: lines.join(' '),
             buttons: [
-                { label: 'View this request', value: 'view' },
+                { label: 'View Requests', value: 'view' },
                 { label: 'Create another survey', value: 'new', primary: true }
             ]
         }).then(function(choice) {
@@ -261,14 +261,8 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         });
     };
 
-    /**
-     * Opens the execution log filtered to the request that was just submitted,
-     * so the recipients and their outcomes are visible immediately.
-     */
-    c.openRequestList = function(result) {
-        var url = '?id=list&table=u_x_csat_survey_execution' +
-                  '&filter=' + encodeURIComponent('u_survey_request=' + result.sys_id);
-        $window.location.href = url;
+    c.openRequestList = function() {
+        $window.location.href = '?id=csat_requests';
     };
 
     /* ---------- reset ---------- */
