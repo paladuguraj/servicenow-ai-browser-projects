@@ -6,6 +6,7 @@
     "test:connection": "node scripts/test-connection.js",
     "verify:login": "node scripts/verify-login-page.js",
     "test:login": "node scripts/login-test.js",
+    "docs:build": "node scripts/build-docs.js",
     "preflight:csat": "node scripts/preflight-csat.js",
     "updateset:begin": "node scripts/update-set.js begin",
     "updateset:status": "node scripts/update-set.js status",
