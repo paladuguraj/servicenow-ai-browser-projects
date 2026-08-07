@@ -13,18 +13,24 @@
  * The existing case notification is scoped so it no longer catches portal
  * surveys, preventing duplicate emails.
  */
-const { snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
+const { snGet, snPost, snPatch, snDelete, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const REQUEST_TABLE = 'u_x_csat_survey_request';
 const INSTANCE_TABLE = 'asmt_assessment_instance';
 const CASE_NOTIFICATION = 'Survey User Invite v2- Manually Created';
 const NOTIFICATION_NAME = 'CSAT Survey Invitation';
 
+// The first two are the customer's existing scripts, extended so the shared
+// "Survey User Invite v2- Manually Created" template also works for surveys
+// raised from the portal. The case behaviour in each is untouched.
 const MAIL_SCRIPTS = [
-  ['csat_survey_portal_from', 'mail-scripts/csat_survey_portal_from.js', 'Resolves the CSAT invitation sender from the survey request company'],
-  ['csat_survey_portal_link', 'mail-scripts/csat_survey_portal_link.js', 'Prints the Service Portal survey link for a CSAT invitation'],
+  ['set_survey_partners_from', 'mail-scripts/set_survey_partners_from.js', 'Resolves the survey invitation sender from the case or CSAT survey request'],
+  ['asmt_assessment_instance_script_for_partners', 'mail-scripts/asmt_assessment_instance_script_for_partners.js', 'Prints the survey link for case-triggered or portal-raised surveys'],
   ['csat_survey_portal_notes', 'mail-scripts/csat_survey_portal_notes.js', 'Prints the note captured on the CSAT survey request'],
 ];
+
+// Superseded by the shared scripts above.
+const RETIRED_MAIL_SCRIPTS = ['csat_survey_portal_from', 'csat_survey_portal_link'];
 
 async function ensureMailScript(name, artifact, description) {
   const script = readArtifact(artifact);
@@ -38,6 +44,16 @@ async function ensureMailScript(name, artifact, description) {
   }
   await snPost('sys_script_email', payload);
   console.log(`Created mail script: ${name}`);
+}
+
+async function removeRetiredMailScripts() {
+  for (const name of RETIRED_MAIL_SCRIPTS) {
+    const found = await snGet('sys_script_email', `sysparm_query=name=${name}&sysparm_fields=sys_id`);
+    for (const script of found) {
+      await snDelete('sys_script_email', script.sys_id);
+      console.log(`Removed superseded mail script: ${name}`);
+    }
+  }
 }
 
 async function ensureNotification() {
@@ -153,6 +169,7 @@ async function main() {
   for (const [name, artifact, description] of MAIL_SCRIPTS)
     await ensureMailScript(name, artifact, description);
 
+  await removeRetiredMailScripts();
   await ensureNotification();
   await excludeOtherInvitations();
   await reportState();
