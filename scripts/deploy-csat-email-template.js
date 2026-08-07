@@ -23,6 +23,7 @@ const NOTIFICATION_NAME = 'CSAT Survey Invitation';
 const MAIL_SCRIPTS = [
   ['csat_survey_portal_from', 'mail-scripts/csat_survey_portal_from.js', 'Resolves the CSAT invitation sender from the survey request company'],
   ['csat_survey_portal_link', 'mail-scripts/csat_survey_portal_link.js', 'Prints the Service Portal survey link for a CSAT invitation'],
+  ['csat_survey_portal_notes', 'mail-scripts/csat_survey_portal_notes.js', 'Prints the note captured on the CSAT survey request'],
 ];
 
 async function ensureMailScript(name, artifact, description) {

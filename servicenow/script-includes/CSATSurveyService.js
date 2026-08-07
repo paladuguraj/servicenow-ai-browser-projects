@@ -28,7 +28,13 @@ CSATSurveyService.prototype = {
     },
 
     COMPANY_ACTIVE_FIELD: 'u_active',
-    COMPANY_PRIMARY_CONTACT_FIELD: 'u_primary_billing_contact',
+    ACCOUNT_TABLE: 'customer_account',
+    ACCOUNT_PRIMARY_CONTACT_FIELD: 'primary_contact',
+
+    // Surveys offered in the portal. Override without a deploy by setting the
+    // csat.portal.survey_names property to a comma-separated list, or to an
+    // empty string to offer every active survey.
+    PORTAL_SURVEYS: ['Complex Resolution Survey', 'Generic Quarterly Survey'],
 
     // A recipient may not be surveyed again through this portal until this
     // many days have passed since their last successful send.
@@ -79,11 +85,35 @@ CSATSurveyService.prototype = {
         return companies;
     },
 
+    /**
+     * Names of the surveys the portal may offer. An empty list means no
+     * restriction.
+     */
+    getPortalSurveyNames: function() {
+        var override = gs.getProperty('csat.portal.survey_names');
+        if (override === null || override === undefined)
+            return this.PORTAL_SURVEYS;
+
+        override = (override + '').trim();
+        if (!override)
+            return [];
+
+        return override.split(',').map(function(name) {
+            return name.trim();
+        }).filter(function(name) {
+            return name.length > 0;
+        });
+    },
+
     getSurveyTemplates: function() {
         var templates = [];
+        var allowed = this.getPortalSurveyNames();
+
         var gr = new GlideRecord('asmt_metric_type');
         gr.addQuery('active', true);
         gr.addQuery('evaluation_method', 'survey');
+        if (allowed.length)
+            gr.addQuery('name', 'IN', allowed.join(','));
         gr.orderBy('name');
         gr.query();
         while (gr.next()) {
@@ -122,42 +152,38 @@ CSATSurveyService.prototype = {
     },
 
     /**
-     * The primary billing contact is stored on the company as an email
-     * address rather than a reference, so it has to be resolved to a user
-     * before it can be surveyed.
+     * Reads the account's Primary Contact. customer_contact extends sys_user,
+     * so the reference resolves straight to a surveyable recipient.
      */
     getPrimaryContact: function(companyId) {
         var result = { email: '', user: null, eligible: false, reason: '' };
         if (!companyId)
             return result;
 
-        if (!this.hasField('core_company', this.COMPANY_PRIMARY_CONTACT_FIELD)) {
-            result.reason = 'Primary Billing Contact is not configured on the company table.';
+        if (!this.hasField(this.ACCOUNT_TABLE, this.ACCOUNT_PRIMARY_CONTACT_FIELD)) {
+            result.reason = 'Primary Contact is not configured on the account table.';
             return result;
         }
 
-        var companyGr = new GlideRecord('core_company');
-        if (!companyGr.get(companyId)) {
-            result.reason = 'Company not found.';
+        var accountGr = new GlideRecord(this.ACCOUNT_TABLE);
+        if (!accountGr.get(companyId)) {
+            result.reason = 'This company has no Account Primary Contact';
             return result;
         }
 
-        var email = (companyGr.getValue(this.COMPANY_PRIMARY_CONTACT_FIELD) || '').trim();
-        result.email = email;
-        if (!email) {
-            result.reason = 'This company has no Primary Billing Contact set.';
+        var contactId = accountGr.getValue(this.ACCOUNT_PRIMARY_CONTACT_FIELD);
+        if (!contactId) {
+            result.reason = 'This company has no Account Primary Contact';
             return result;
         }
 
         var userGr = new GlideRecord('sys_user');
-        userGr.addQuery('email', email);
-        userGr.setLimit(1);
-        userGr.query();
-        if (!userGr.next()) {
-            result.reason = 'No user account matches ' + email + '.';
+        if (!userGr.get(contactId)) {
+            result.reason = 'The Account Primary Contact record could not be found.';
             return result;
         }
 
+        result.email = userGr.getValue('email') || '';
         result.user = {
             sys_id: userGr.getUniqueValue(),
             name: userGr.getValue('name'),

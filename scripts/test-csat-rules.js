@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Verify the CSAT portal business rules against a live instance:
- * active-company filtering, primary billing contact resolution, portal-account
+ * active-company filtering, Account Primary Contact resolution, portal-account
  * checks, the 90-day cooldown, and the immediate-only survey restriction.
  *
  * Installs a temporary Scripted REST helper and removes it afterwards.
@@ -35,6 +35,8 @@ const PROBE_SCRIPT = `(function process(request, response) {
       if (gr.get(list[i].sys_id) && gr.getValue('u_active') != '1' && gr.getValue('u_active') !== 'true') inactive++;
     }
     out.result = { returned: list.length, inactive_in_result: inactive, sample: list.slice(0, 3) };
+  } else if (action === 'templates') {
+    out.result = svc.getSurveyTemplates();
   } else if (action === 'immediate') {
     out.result = {
       closed_case: svc.isImmediateOnly('Closed Case Survey'),
@@ -103,13 +105,13 @@ async function main() {
     const cd = await probe(api.base_uri, { probe: 'cooldown_days' });
     check('cooldown window is 90 days', cd.days === 90, `${cd.days} days`);
 
-    console.log('\nRules 2 & 3 — primary billing contact');
+    console.log('\nRules 2 & 3 — Account Primary Contact');
     const withContact = await snGet(
-      'core_company',
-      'sysparm_query=u_primary_billing_contactISNOTEMPTY&sysparm_fields=sys_id,name,u_active,u_primary_billing_contact&sysparm_limit=5'
+      'customer_account',
+      'sysparm_query=primary_contactISNOTEMPTY^u_active=true&sysparm_fields=sys_id,name,primary_contact&sysparm_limit=3'
     );
     if (!withContact.length) {
-      check('a company has a primary billing contact', false, 'no company has u_primary_billing_contact set');
+      check('an account has a Primary Contact', false, 'no active account has primary_contact set');
     } else {
       for (const company of withContact) {
         const primary = await probe(api.base_uri, { probe: 'primary', company_id: company.sys_id });
@@ -125,13 +127,20 @@ async function main() {
     }
 
     const noContact = (await snGet(
-      'core_company',
-      'sysparm_query=u_active=true^u_primary_billing_contactISEMPTY&sysparm_fields=sys_id,name&sysparm_limit=1'
+      'customer_account',
+      'sysparm_query=u_active=true^primary_contactISEMPTY&sysparm_fields=sys_id,name&sysparm_limit=1'
     ))[0];
     if (noContact) {
       const primary = await probe(api.base_uri, { probe: 'primary', company_id: noContact.sys_id });
-      check('company without contact reports a reason', !primary.eligible && !!primary.reason, primary.reason);
+      check('account without a Primary Contact reports a reason', !primary.eligible && !!primary.reason, primary.reason);
     }
+
+    const offered = await probe(api.base_uri, { probe: 'templates' });
+    check(
+      'portal offers only the approved surveys',
+      offered.every((t) => ['Complex Resolution Survey', 'Generic Quarterly Survey'].indexOf(t.name) !== -1),
+      offered.map((t) => t.name).join(', ') || 'none'
+    );
 
     console.log('\nUser eligibility metadata');
     const anyCompany = (await snGet(

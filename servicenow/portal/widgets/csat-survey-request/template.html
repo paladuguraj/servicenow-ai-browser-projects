@@ -43,10 +43,10 @@
         <div class="radio">
           <label>
             <input type="radio" ng-model="c.form.recipient_mode" value="primary_user"/>
-            Primary User
+            Account Primary Contact
             <span class="text-muted" ng-if="c.primaryEligible()">&mdash; {{c.primaryName()}}</span>
           </label>
-          <p class="help-block csat-note">Primary User must have an active portal account.</p>
+          <p class="help-block csat-note">Account Primary Contact must have an active portal account.</p>
           <p class="text-danger csat-note" ng-if="c.data.primaryContact &amp;&amp; !c.data.primaryContact.eligible">
             {{c.data.primaryContact.reason}}
           </p>
@@ -116,6 +116,11 @@
       </div>
 
       <div class="form-group">
+        <div class="alert alert-info csat-precheck">
+          It is possible that these users could have received a Closed Case Survey.
+          If that is a concern, please check the Closed Case Survey Report.
+        </div>
+
         <label for="csat-template">Survey Template</label>
         <select id="csat-template" class="form-control" ng-model="c.form.metric_type" ng-change="c.onTemplateChange()">
           <option value="">-- Select survey template --</option>

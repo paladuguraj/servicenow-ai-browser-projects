@@ -84,6 +84,29 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
     c.onTemplateChange = function() {
         // Case-outcome surveys are one-off, so drop any recurring choice.
         if (c.isImmediateOnly()) c.form.schedule_frequency = 'immediate';
+        c.applyNotesPrefix();
+    };
+
+    /**
+     * Seeds the notes with the survey name. Anything the requester has typed
+     * after the prefix is carried over, so switching survey re-labels the note
+     * without discarding their text.
+     */
+    c.applyNotesPrefix = function() {
+        var template = c.selectedTemplate();
+        var prefix = template ? template.name + ' - ' : '';
+        var current = c.form.notes || '';
+
+        var typed = current;
+        var previous = (c.data.templates || []).map(function(t) { return t.name + ' - '; });
+        for (var i = 0; i < previous.length; i++) {
+            if (current.indexOf(previous[i]) === 0) {
+                typed = current.slice(previous[i].length);
+                break;
+            }
+        }
+
+        c.form.notes = prefix + typed;
     };
 
     c.availableSchedules = function() {

@@ -104,7 +104,7 @@ async function main() {
     const modes = await page.locator('input[name][type=radio], .radio input[type=radio]').count();
     console.log(`Recipient modes offered: ${modes}`);
     const recipientText = await page.locator('.form-group:has(.radio)').first().innerText();
-    console.log(`  Primary User note: ${/active portal account/i.test(recipientText)}`);
+    console.log(`  Account Primary Contact note: ${/active portal account/i.test(recipientText)}`);
     console.log(`  Selected Users note: ${/more than one user/i.test(recipientText)}`);
 
     await page.check('input[type="radio"][value="selected_users"]');

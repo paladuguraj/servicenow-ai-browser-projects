@@ -264,7 +264,7 @@ async function deployTables() {
     await cleanupOrphanChoices(requestTable, field);
   await cleanupOrphanChoices(executionTable, 'status');
 
-  await ensureChoice(requestTable, 'recipient_mode', 'primary_user', 'Primary User', 10);
+  await ensureChoice(requestTable, 'recipient_mode', 'primary_user', 'Account Primary Contact', 10);
   await ensureChoice(requestTable, 'recipient_mode', 'selected_users', 'Selected Users only', 20);
   await retireChoice(requestTable, 'recipient_mode', 'all_users');
   await ensureChoice(requestTable, 'schedule_frequency', 'immediate', 'Send immediately', 10);
