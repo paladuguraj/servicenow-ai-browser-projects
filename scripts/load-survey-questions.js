@@ -51,6 +51,8 @@ function validate(definition) {
         problems.push(`${where}: numericscale needs min and max`);
       if (q.datatype === 'choice' && !(q.choices || []).length)
         problems.push(`${where}: choice needs a "choices" array`);
+      if (q.datatype === 'scale' && !(q.choices || []).length)
+        problems.push(`${where}: a Likert scale needs a "choices" array of labelled points`);
     });
   });
   return problems;
@@ -106,6 +108,10 @@ async function upsertQuestion(survey, category, q, order) {
   if (q.min !== undefined) payload.min = q.min;
   if (q.max !== undefined) payload.max = q.max;
   if (q.scale) payload.scale = q.scale;
+  if (q.datatype === 'scale' && (q.choices || []).length) {
+    payload.min = q.min !== undefined ? q.min : 1;
+    payload.max = q.max !== undefined ? q.max : q.choices.length;
+  }
 
   if (!apply) {
     console.log(`    ${existing.length ? 'update' : 'create'}  [${q.datatype}] ${q.question}`);
@@ -128,21 +134,25 @@ async function upsertQuestion(survey, category, q, order) {
   return sysId;
 }
 
+/**
+ * Scale points and choice options are both asmt_metric_definition rows. The
+ * visible label lives in "display"; "value" is what gets scored.
+ */
 async function syncChoices(metricSysId, choices) {
   for (let i = 0; i < choices.length; i++) {
     const choice = choices[i];
-    const text = typeof choice === 'string' ? choice : choice.text;
+    const display = typeof choice === 'string' ? choice : choice.display || choice.text;
     const value = typeof choice === 'string' ? i + 1 : choice.value !== undefined ? choice.value : i + 1;
 
     const existing = await snGet(
       'asmt_metric_definition',
-      `sysparm_query=metric=${metricSysId}^text=${encodeURIComponent(text)}&sysparm_fields=sys_id`
+      `sysparm_query=metric=${metricSysId}^value=${encodeURIComponent(value)}&sysparm_fields=sys_id`
     );
-    const payload = { metric: metricSysId, text, value, order: (i + 1) * 100 };
+    const payload = { metric: metricSysId, display, value, order: (i + 1) * 100 };
     if (existing.length) await snPatch('asmt_metric_definition', existing[0].sys_id, payload);
     else await snPost('asmt_metric_definition', payload);
   }
-  console.log(`             ${choices.length} answer option(s)`);
+  console.log(`             ${choices.length} option(s): ${choices.map((c) => (typeof c === 'string' ? c : c.display || c.text)).join(' / ')}`);
 }
 
 /**

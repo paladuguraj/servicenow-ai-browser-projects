@@ -1,0 +1,156 @@
+[
+  {
+    "survey": "Complex Resolution Survey",
+    "category": "Complex Resolution Survey",
+    "questions": [
+      {
+        "name": "Q1 Overall Satisfaction",
+        "question": "Overall, how satisfied were you with the resolution of your case?",
+        "explanation": "Overall Experience. Rated 1-5, from Very Dissatisfied to Very Satisfied.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Dissatisfied" },
+          { "value": 2, "display": "Dissatisfied" },
+          { "value": 3, "display": "Neutral" },
+          { "value": 4, "display": "Satisfied" },
+          { "value": 5, "display": "Very Satisfied" }
+        ]
+      },
+      {
+        "name": "Q2 Timeliness",
+        "question": "How would you rate the timeliness of our response and resolution?",
+        "explanation": "SLO / Timeliness Performance. Rated 1-5, from Very Slow to Very Fast.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Slow" },
+          { "value": 2, "display": "Slow" },
+          { "value": 3, "display": "Acceptable" },
+          { "value": 4, "display": "Fast" },
+          { "value": 5, "display": "Very Fast" }
+        ]
+      },
+      {
+        "name": "Q3 Communication",
+        "question": "How clearly did our team communicate updates throughout the incident?",
+        "explanation": "Communication Quality. Rated 1-5, from Very Unclear to Very Clear.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Unclear" },
+          { "value": 2, "display": "Unclear" },
+          { "value": 3, "display": "Adequate" },
+          { "value": 4, "display": "Clear" },
+          { "value": 5, "display": "Very Clear" }
+        ]
+      },
+      {
+        "name": "Q4 Preventative Confidence",
+        "question": "How confident are you that steps have been taken to prevent this issue from recurring?",
+        "explanation": "RCA & Preventative Confidence. Rated 1-5, from Not Confident to Very Confident.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Not Confident" },
+          { "value": 2, "display": "Slightly Confident" },
+          { "value": 3, "display": "Moderately Confident" },
+          { "value": 4, "display": "Confident" },
+          { "value": 5, "display": "Very Confident" }
+        ]
+      },
+      {
+        "name": "Q5 Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "explanation": "Voice of the Customer. Free-form response to capture feedback that scores alone cannot reveal.",
+        "datatype": "string",
+        "mandatory": false
+      }
+    ]
+  },
+  {
+    "survey": "Generic Quarterly Survey",
+    "category": "Generic Quarterly Survey",
+    "questions": [
+      {
+        "name": "Q1 Overall Satisfaction",
+        "question": "Overall, how satisfied were you with the resolution of your case?",
+        "explanation": "Overall Experience. Rated 1-5, from Very Dissatisfied to Very Satisfied.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Dissatisfied" },
+          { "value": 2, "display": "Dissatisfied" },
+          { "value": 3, "display": "Neutral" },
+          { "value": 4, "display": "Satisfied" },
+          { "value": 5, "display": "Very Satisfied" }
+        ]
+      },
+      {
+        "name": "Q2 Timeliness",
+        "question": "How would you rate the timeliness of our response and resolution?",
+        "explanation": "SLO / Timeliness Performance. Rated 1-5, from Very Slow to Very Fast.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Slow" },
+          { "value": 2, "display": "Slow" },
+          { "value": 3, "display": "Acceptable" },
+          { "value": 4, "display": "Fast" },
+          { "value": 5, "display": "Very Fast" }
+        ]
+      },
+      {
+        "name": "Q3 Communication",
+        "question": "How clearly did our team communicate updates throughout the incident?",
+        "explanation": "Communication Quality. Rated 1-5, from Very Unclear to Very Clear.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Unclear" },
+          { "value": 2, "display": "Unclear" },
+          { "value": 3, "display": "Adequate" },
+          { "value": 4, "display": "Clear" },
+          { "value": 5, "display": "Very Clear" }
+        ]
+      },
+      {
+        "name": "Q4 Preventative Confidence",
+        "question": "How confident are you that steps have been taken to prevent this issue from recurring?",
+        "explanation": "RCA & Preventative Confidence. Rated 1-5, from Not Confident to Very Confident.",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Not Confident" },
+          { "value": 2, "display": "Slightly Confident" },
+          { "value": 3, "display": "Moderately Confident" },
+          { "value": 4, "display": "Confident" },
+          { "value": 5, "display": "Very Confident" }
+        ]
+      },
+      {
+        "name": "Q5 Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "explanation": "Voice of the Customer. Free-form response to capture feedback that scores alone cannot reveal.",
+        "datatype": "string",
+        "mandatory": false
+      }
+    ]
+  }
+]
