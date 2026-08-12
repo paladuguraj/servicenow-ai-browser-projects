@@ -17,6 +17,13 @@
           { "value": 4, "display": "Somewhat Satisfied" },
           { "value": 5, "display": "Very Satisfied" }
         ]
+      },
+      {
+        "name": "Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "datatype": "string",
+        "string_option": "multiline",
+        "mandatory": false
       }
     ]
   },
@@ -38,6 +45,13 @@
           { "value": 4, "display": "Somewhat Satisfied" },
           { "value": 5, "display": "Very Satisfied" }
         ]
+      },
+      {
+        "name": "Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "datatype": "string",
+        "string_option": "multiline",
+        "mandatory": false
       }
     ]
   }
