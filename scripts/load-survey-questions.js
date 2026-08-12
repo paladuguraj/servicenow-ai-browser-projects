@@ -108,6 +108,8 @@ async function upsertQuestion(survey, category, q, order) {
   if (q.min !== undefined) payload.min = q.min;
   if (q.max !== undefined) payload.max = q.max;
   if (q.scale) payload.scale = q.scale;
+  // Free text renders as a narrow single-line box unless told otherwise.
+  if (q.datatype === 'string') payload.string_option = q.string_option || 'multiline';
   if (q.datatype === 'scale' && (q.choices || []).length) {
     payload.min = q.min !== undefined ? q.min : 1;
     payload.max = q.max !== undefined ? q.max : q.choices.length;
