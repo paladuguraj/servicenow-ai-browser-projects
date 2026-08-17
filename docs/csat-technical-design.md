@@ -180,6 +180,33 @@ Two notifications listen on `csat.survey.submitted`:
 > `JavaAdapter requires at least one argument`. Notification records are used
 > instead.
 
+### 5.1 White-label survey links
+
+Many partners resell the service under their own brand and their customers reach
+the portal on the partner's domain rather than on the ServiceNow hostname. The
+`survey.link.whitelabel` property maps a partner name to that domain and is
+already used by the case-triggered invitation; CSAT invitations now honour it
+too, so a recipient never sees another brand's hostname.
+
+`CSATSurveyService.getSurveyLink(instanceId, companyId)` resolves the host:
+
+1. Load the recipient's account and read its `account_parent` — the partner.
+2. Look the partner name up in the property. Accounts that are themselves the
+   partner, or that sit under a parent with no domain, fall back to matching on
+   their own name.
+3. Use that domain if found, otherwise `glide.servlet.uri`.
+
+Only the host changes. The survey page is `csat?id=take_survey` for everyone, so
+there is a single survey experience regardless of brand.
+
+The mail script calls `getSurveyLinkForInstance(current)`, which resolves the
+account from the instance's `trigger_id` back to the CSAT request.
+
+Nothing about this is required for the portal to work. A missing property,
+malformed JSON, an instance with no `customer_account` table, or a recipient
+outside the map all fall back to the instance URL; malformed JSON is logged
+rather than thrown, so a bad edit cannot break the invitation email.
+
 ---
 
 ## 6. Portal widgets

@@ -125,6 +125,9 @@ These are instance data or configuration, not application artifacts:
 - **Survey definitions** (`asmt_metric_type` and their questions) — must already exist, or be moved separately via update set
 - **Survey requests and execution history** — operational records, intentionally left behind
 - **SMTP configuration** — instance-level email setup
+- **`survey.link.whitelabel`** — the partner-to-domain map is business data
+  maintained on each instance. The deploy never writes it. Where it is absent,
+  survey links simply use the instance address
 - **REST API base URI** — ServiceNow assigns the namespace per instance, so the
   path differs (for example `/api/2114022/csat_survey_api`). Scripts read it from
   the API definition rather than hardcoding it.

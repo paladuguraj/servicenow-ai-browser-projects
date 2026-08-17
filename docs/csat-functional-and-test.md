@@ -49,6 +49,8 @@ must confirm how many people will be emailed before anything is sent.
 | FR-19 | The report offers only the surveys the portal can send | Met |
 | FR-20 | Report results can be exported to **PDF, Excel and CSV** | Met |
 | FR-21 | Exports reflect the filters currently applied to the report | Met |
+| FR-22 | Recipients of a **white-label partner** receive the survey link on that partner's own domain | Met |
+| FR-23 | Everyone else receives the link on the instance's own address | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -66,6 +68,13 @@ quarterly survey can repeat.
 
 **Draft surveys.** A survey that has not been published cannot generate anything.
 These appear greyed out and labelled, and are rejected if attempted.
+
+**Which address the survey link uses.** Partners who resell the service under
+their own brand have their own domain, listed in the `survey.link.whitelabel`
+property. A customer inherits the domain of the partner their account sits
+under, so they only ever see their own provider's address. Customers who are not
+behind a partner get the standard address. The survey page itself is the same
+for everyone.
 
 ---
 
@@ -144,6 +153,31 @@ of the run).
 | CSV export | FR-20 | Generated from the rows already on screen |
 | Excel matches the report | FR-21 | 48 rows unfiltered, 48 awaiting, 0 replied — identical to the on-screen figures |
 | Repeated PDF exports do not accumulate | — | Previous export purged; one attachment retained per user |
+
+### 4.2b White-label survey links — passed
+
+Every account surveyed to date resolved to its partner's domain, checked by
+rendering the invitation mail script itself rather than the resolver alone:
+
+| Account | Partner | Link host |
+|---|---|---|
+| ADCom (Corporate Account) | Direct | `nocportal.appdirect.com` |
+| Vector-DTLR Inc | Vector Security Networks | `vsnnoc247.vectorsecurity.com` |
+| Vector-Floyds Barbershop | Vector Security Networks | `vsnnoc247.vectorsecurity.com` |
+| 1419 Clark County Credit Union | Fiserv | `nocportal.appdirect.com` |
+| Henry Ford Health System | ATT TAO Partner | `portal.tao.attniglobal.com` |
+| AppDIrect - 10512 | APX Net | `portal.apxnet.com` |
+
+Fallbacks, each confirmed to return the instance address:
+
+| Condition | Result |
+|---|---|
+| Account not behind a white-label partner | Instance address |
+| Property not set or empty | Instance address |
+| Property contains malformed JSON | Instance address, warning logged |
+| Request has no account | Instance address |
+
+Case-triggered surveys were re-checked and are unchanged.
 
 ### 4.3 Rules proven with live data
 
