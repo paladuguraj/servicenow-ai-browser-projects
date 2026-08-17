@@ -128,9 +128,9 @@ These are instance data or configuration, not application artifacts:
 - **`survey.link.whitelabel`** — the partner-to-domain map is business data
   maintained on each instance. The deploy never writes it. Where it is absent,
   survey links simply use the instance address
-- **REST API base URI** — ServiceNow assigns the namespace per instance, so the
-  path differs (for example `/api/2114022/csat_survey_api`). Scripts read it from
-  the API definition rather than hardcoding it.
+- **`CSAT Test Probe`** — a Scripted REST API used only by the check scripts to
+  call server-side code. It is created on demand by `scripts/lib/probe.js`, is
+  not part of the solution, and is deliberately excluded from the set
 
 ## The update set to move
 
@@ -138,27 +138,29 @@ There is one, and it is the only CSAT Survey Portal set left in **Complete**
 state on adcomsolutionsdev:
 
 > ### CSAT Survey Portal - ALL CHANGES v2.0
-> 179 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
+> 117 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
 
-It holds the whole solution as it stands: the portal and its three pages and
-widgets, the three tables with their columns, labels and choice lists, the four
-script includes, both business rules, the scheduled job, the event and
-notifications, the mail scripts, the Scripted REST API, and both survey
-definitions with their questions and answer choices.
+It holds the solution as it stands and nothing else: the portal and its three
+pages and widgets, the three tables with their columns, labels and choice
+lists, the three script includes, both business rules, the scheduled job, the
+event and notifications, the mail scripts, and both survey definitions with the
+two questions each actually asks.
 
 | | |
 |---|---|
 | Application menu and modules | 3 |
-| Tables, columns, labels, choices | 57 |
-| Script includes | 4 |
+| Tables, columns, labels, choices | 53 |
+| Script includes | 3 |
 | Business rules | 2 |
 | Scheduled job | 1 |
 | Event and notifications | 7 |
-| Mail scripts | 5 |
-| Scripted REST API and resources | 5 |
+| Mail scripts | 3 |
 | Portal, pages, widgets, menu, layout | 25 |
 | System properties | 2 |
-| Survey definitions, questions, choices | 68 |
+| Survey definitions, questions, choices | 18 |
+
+Every entry is an insert or update of a record that exists and is in use. There
+are no deletions and no superseded artefacts.
 
 Every other `CSAT Survey Portal` set is now **Ignore**. Their contents are
 preserved, so setting one back to Complete restores it, but none of them should
@@ -191,11 +193,24 @@ It reads every `CSAT Survey Portal` set, keeps the newest version of each
 record, and rebuilds the target set from scratch, so it is safe to run
 repeatedly. Source sets are only read, never emptied.
 
-Three kinds of entry are deliberately left out:
+The build went through several changes of direction, and the sets captured
+every step. These are left out so the target receives only what is in use:
 
-- **Superseded portal layout.** Placing a widget on a page deletes and recreates
-  the containers, rows and columns, so each re-deploy left a delete behind for
-  the previous generation. Those records only ever existed on this instance.
+- **Anything whose final state is a deletion.** The record does not exist here,
+  and on a fresh target there is nothing to delete. This covers the portal
+  layout churn (placing a widget deletes and recreates the containers, rows and
+  columns, so each re-deploy left a delete behind), the orphaned choice lists
+  from the `u_`-prefix defect, and the two mail scripts that were superseded by
+  extending the customer's own.
+- **Superseded survey questions.** The surveys started with five questions,
+  then one, then two. The retired questions were deactivated rather than
+  deleted here, because answers recorded against them during testing would have
+  gone with them. A target has no such history, so it receives only the two
+  questions each survey asks and their answer choices.
+- **The original UI Page build.** `CSATSurveyAjax` and the `CSAT Survey API`
+  with its four resources served the first implementation, which was replaced
+  by the Service Portal. Nothing referenced them any more, so they were deleted
+  from the instance and the repository as well as from the set.
 - **Temporary diagnostic endpoints** created while debugging.
 - **Records that no longer exist here**, which would otherwise be recreated on
   the target.

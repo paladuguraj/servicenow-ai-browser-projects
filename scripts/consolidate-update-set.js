@@ -16,16 +16,8 @@
  * is offered for export. It is reversible: set them back to Complete to use
  * them again.
  */
-const {
-  base,
-  headers,
-  snGet,
-  snPost,
-  snPatch,
-  snDelete,
-  sleep,
-  announceTarget,
-} = require('./lib/sn-client');
+const { base, snGet, snPost, snPatch, announceTarget } = require('./lib/sn-client');
+const { withProbe, PROBE_API_NAME } = require('./lib/probe');
 
 // Only sets this project created. The instance also carries older CSAT work
 // from the customer ("SE-740_CSAT Survey edits_CC" and similar) which must not
@@ -78,6 +70,10 @@ function chronological(a, b) {
 
 /**
  * Why an entry is not carried across. Returns null to keep it.
+ *
+ * The set should describe the solution as it stands, so anything whose final
+ * state is a deletion is left out: the record does not exist here, and on a
+ * fresh target there is nothing to delete.
  */
 function skipReason(history) {
   const last = history[history.length - 1];
@@ -85,20 +81,72 @@ function skipReason(history) {
 
   if (/^zz_/.test(last.target_name)) return 'temporary test endpoint';
   if (LAYOUT_TYPES.indexOf(last.type) !== -1) return 'superseded portal layout';
-
-  // Anything else deleted on purpose — orphaned choice lists, retired mail
-  // scripts — is kept, so a target running an older build gets cleaned up too.
-  return null;
+  return 'record was deleted during the build';
 }
 
+/**
+ * The surveys went through two rounds of question changes. The superseded
+ * questions were deactivated rather than deleted, because answers recorded
+ * against them during testing would have gone with them, but a target has no
+ * such history and should receive only the questions in use.
+ */
+async function dropRetiredQuestions(entries) {
+  const metricIds = [];
+  const definitionIds = [];
+  entries.forEach((row) => {
+    const match = /^(asmt_metric|asmt_metric_definition)_([0-9a-f]{32})$/.exec(row.name);
+    if (!match) return;
+    (match[1] === 'asmt_metric' ? metricIds : definitionIds).push(match[2]);
+  });
+  if (!metricIds.length) return entries;
+
+  const metrics = await snGet(
+    'asmt_metric',
+    `sysparm_query=sys_idIN${metricIds.join(',')}&sysparm_fields=sys_id,name,active&sysparm_limit=1000`
+  );
+  const retired = new Set(metrics.filter((m) => m.active !== 'true').map((m) => m.sys_id));
+
+  // A choice belongs to one question, so it goes wherever that question goes.
+  const definitions = definitionIds.length
+    ? await snGet(
+        'asmt_metric_definition',
+        `sysparm_query=sys_idIN${definitionIds.join(',')}&sysparm_fields=sys_id,metric&sysparm_limit=1000`
+      )
+    : [];
+  const retiredDefinitions = new Set(
+    definitions.filter((d) => retired.has(d.metric && d.metric.value ? d.metric.value : d.metric)).map((d) => d.sys_id)
+  );
+
+  const dropped = [];
+  const kept = entries.filter((row) => {
+    const match = /^(asmt_metric|asmt_metric_definition)_([0-9a-f]{32})$/.exec(row.name);
+    if (!match) return true;
+    const isRetired = match[1] === 'asmt_metric' ? retired.has(match[2]) : retiredDefinitions.has(match[2]);
+    if (isRetired) dropped.push(row);
+    return !isRetired;
+  });
+
+  if (dropped.length) {
+    const questions = dropped.filter((d) => d.type === 'Assessment Metric');
+    console.log(
+      `  skipping ${dropped.length} — superseded survey question(s) and their answer choices: ` +
+        `${[...new Set(questions.map((q) => q.target_name))].sort().join(', ')}`
+    );
+  }
+  return kept;
+}
+
+/**
+ * Every set this project created, whatever its state. Retired sources are
+ * marked Ignore rather than emptied, so a re-run has to keep reading them.
+ */
 async function findSourceSets() {
-  const sets = await snGet(
+  return snGet(
     'sys_update_set',
     `sysparm_query=${encodeURIComponent(
-      `nameSTARTSWITH${SOURCE_PREFIX}^state!=ignore^name!=${targetName}`
+      `nameSTARTSWITH${SOURCE_PREFIX}^name!=${targetName}`
     )}&sysparm_fields=sys_id,name,state,sys_created_on&sysparm_orderby=sys_created_on`
   );
-  return sets;
 }
 
 async function loadEntries(sets) {
@@ -227,30 +275,6 @@ const COPY_SCRIPT = `(function process(request, response) {
   return { result: out };
 })(request, response);`;
 
-async function withCopyEndpoint(run) {
-  const api = (
-    await snGet('sys_ws_definition', 'sysparm_query=name=CSAT Survey API&sysparm_fields=sys_id,base_uri')
-  )[0];
-  if (!api) throw new Error('CSAT Survey API not found; deploy the app before consolidating.');
-
-  const op = await snPost('sys_ws_operation', {
-    web_service_definition: api.sys_id,
-    name: 'consolidate_update_set',
-    http_method: 'POST',
-    relative_path: '/consolidate_update_set',
-    active: true,
-    operation_script: COPY_SCRIPT,
-    requires_authentication: true,
-  });
-
-  try {
-    await sleep(1500);
-    return await run(`${base}${api.base_uri}/consolidate_update_set`);
-  } finally {
-    await snDelete('sys_ws_operation', op.sys_id);
-  }
-}
-
 async function ensureTargetSet() {
   const existing = await snGet(
     'sys_update_set',
@@ -310,7 +334,8 @@ async function main() {
   console.log(`${history.size} distinct record(s) after collapsing repeats.`);
   Object.keys(skipped).forEach((reason) => console.log(`  skipping ${skipped[reason]} — ${reason}`));
 
-  const keep = await dropStale(candidates);
+  const live = await dropStale(candidates);
+  const keep = await dropRetiredQuestions(live);
   console.log(`${keep.length} entry(s) to carry across.\n`);
 
   const byType = {};
@@ -334,21 +359,20 @@ async function main() {
   const targetSysId = await ensureTargetSet();
 
   console.log(`\nCopying ${keep.length} entry(s)...`);
-  const result = await withCopyEndpoint(async (url) => {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        target_set: targetSysId,
-        fields: COPIED_FIELDS,
-        force: FORCE_CAPTURE,
-        ids: keep.map((row) => row.sys_id),
+  const result = await withProbe(
+    'consolidate_update_set',
+    COPY_SCRIPT,
+    (call) =>
+      call({
+        body: {
+          target_set: targetSysId,
+          fields: COPIED_FIELDS,
+          force: FORCE_CAPTURE,
+          ids: keep.map((row) => row.sys_id),
+        },
       }),
-    });
-    const body = await res.json();
-    if (!body.result || !body.result.result) throw new Error(`copy failed: ${JSON.stringify(body).slice(0, 400)}`);
-    return body.result.result;
-  });
+    'POST'
+  );
 
   if (result.error) throw new Error(result.error);
   if (result.cleared) console.log(`  cleared ${result.cleared} entry(s) from a previous run`);

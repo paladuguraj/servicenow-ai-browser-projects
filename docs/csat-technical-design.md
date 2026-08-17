@@ -326,7 +326,6 @@ ENV_FILE=.env.target npm run updateset:complete
 |---|---|
 | `deploy-csat-app.js` | Application menu, tables, columns, choices, script includes, business rule, scheduled job |
 | `patch-csat-app.js` | Re-pushes server-side scripts |
-| `setup-csat-rest-api.js` | Scripted REST API and its four operations |
 | `deploy-csat-notifications.js` | Event, notifications, submission business rule |
 | `deploy-csat-portal.js` | Widgets, pages, layout, portal, menu |
 
