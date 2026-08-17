@@ -12,6 +12,8 @@ const WIDGET_ID = 'csat-survey-request';
 const LIST_WIDGET_ID = 'csat-survey-requests';
 const HOME_PAGE_ID = 'csat_home';
 const LIST_PAGE_ID = 'csat_requests';
+const REPORT_WIDGET_ID = 'csat-survey-report';
+const REPORT_PAGE_ID = 'csat_report';
 
 // Theme and login page are inherited from the stock Service Portal ('/sp').
 // Resolved at deploy time because these sys_ids differ between instances.
@@ -122,7 +124,7 @@ async function placeWidgetOnPage(pageSysId, widgetSysId, title) {
   console.log(`Placed widget on page ${pageSysId}`);
 }
 
-async function ensureMenu(portalSysId, homePageSysId, listPageSysId) {
+async function ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageSysId) {
   const portal = (await snGet('sp_portal', `sysparm_query=sys_id=${portalSysId}&sysparm_fields=sp_rectangle_menu`))[0];
   let menuId = portal.sp_rectangle_menu && portal.sp_rectangle_menu.value;
 
@@ -139,6 +141,7 @@ async function ensureMenu(portalSysId, homePageSysId, listPageSysId) {
   const items = [
     { label: 'New Request', type: 'page', order: 100, sp_page: homePageSysId },
     { label: 'Survey Requests', type: 'page', order: 200, sp_page: listPageSysId },
+    { label: 'Results', type: 'page', order: 250, sp_page: reportPageSysId },
     { label: 'Executions', type: 'url', order: 300, url: '?id=list&table=u_x_csat_survey_execution' },
     { label: 'My Surveys', type: 'url', order: 400, url: '?id=my_surveys' },
   ];
@@ -232,13 +235,22 @@ async function main() {
   const listPageSysId = await ensurePage(LIST_PAGE_ID, 'CSAT Survey Requests');
   await placeWidgetOnPage(listPageSysId, listWidgetSysId, 'CSAT Survey Requests');
 
+  const reportWidgetSysId = await ensureWidget(
+    REPORT_WIDGET_ID,
+    'CSAT Survey Results',
+    'Filterable report of surveys sent from the portal and who has replied'
+  );
+  const reportPageSysId = await ensurePage(REPORT_PAGE_ID, 'CSAT Survey Results');
+  await placeWidgetOnPage(reportPageSysId, reportWidgetSysId, 'CSAT Survey Results');
+
   const portalSysId = await ensurePortal(homePageSysId);
-  await ensureMenu(portalSysId, homePageSysId, listPageSysId);
+  await ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageSysId);
 
   console.log('\nDeployment complete.');
   console.log(`Portal URL: ${base}/${PORTAL_SUFFIX}`);
   console.log(`Request form: ${base}/${PORTAL_SUFFIX}?id=${HOME_PAGE_ID}`);
   console.log(`Requests list: ${base}/${PORTAL_SUFFIX}?id=${LIST_PAGE_ID}`);
+  console.log(`Results report: ${base}/${PORTAL_SUFFIX}?id=${REPORT_PAGE_ID}`);
 }
 
 main().catch((err) => {

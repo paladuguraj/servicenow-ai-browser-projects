@@ -39,6 +39,15 @@ async function main() {
   });
   console.log('Updated CSATSurveyAjax');
 
+  const reportInclude = (await snGet('sys_script_include', 'sysparm_query=name=CSATSurveyReport&sysparm_fields=sys_id'))[0];
+  if (reportInclude) {
+    await snPatch('sys_script_include', reportInclude.sys_id, {
+      script: readArtifact('script-includes/CSATSurveyReport.js'),
+      active: true,
+    });
+    console.log('Updated CSATSurveyReport');
+  }
+
   const notificationInclude = (await snGet('sys_script_include', 'sysparm_query=name=CSATSurveyNotification&sysparm_fields=sys_id'))[0];
   if (notificationInclude) {
     await snPatch('sys_script_include', notificationInclude.sys_id, {
