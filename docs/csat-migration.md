@@ -106,6 +106,17 @@ templates with `notify_user` both enabled and disabled. Both scenarios must PASS
 The test sends to a single named recipient. Do not switch it to "all users" —
 that emails every active employee of the selected company on each run.
 
+## Plugin prerequisite for the report PDF export
+
+The results report can export to PDF, Excel and CSV. Excel and CSV need nothing
+beyond the platform; the PDF is rendered by **ServiceNow PDF Generation
+Utilities** (`sn_pdfgeneratorutils`). Preflight reports whether it is active.
+
+If the plugin is inactive the report itself and the Excel and CSV exports still
+work — only the PDF button returns an error — so this is a warning rather than a
+blocker. Activate the plugin from **System Definition > Plugins** on the target
+if PDF export is required.
+
 ## What does not transfer
 
 These are instance data or configuration, not application artifacts:

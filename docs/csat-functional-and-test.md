@@ -45,6 +45,10 @@ must confirm how many people will be emailed before anything is sent.
 | FR-15 | Recipients are emailed when a survey is assigned | Met — see 5.1 |
 | FR-16 | Respondent and requester are emailed when a survey is submitted | Met — see 5.1 |
 | FR-17 | Every send is recorded for audit and reporting | Met |
+| FR-18 | Survey owners can run a **results report** filtered by survey, account, sent-between dates, and sent vs replied | Met |
+| FR-19 | The report offers only the surveys the portal can send | Met |
+| FR-20 | Report results can be exported to **PDF, Excel and CSV** | Met |
+| FR-21 | Exports reflect the filters currently applied to the report | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -123,6 +127,23 @@ Run: `npm run test:csat:portal` (browser automation, full journey)
 | Submission dialog | FR-12, FR-13 | View Requests / Create another survey |
 | Form resets for next request | FR-13 | Confirmed |
 | Requests page | FR-14 | 20 rows; stock New removed; New Survey Request present and opens the form |
+
+### 4.2a Results report and exports — passed
+
+Verified against live data on adcomsolutionsdev (48 sent, 0 replied at the time
+of the run).
+
+| Check | Covers | Observed |
+|---|---|---|
+| Survey filter offers portal surveys only | FR-19 | Complex Resolution Survey, Generic Quarterly Survey |
+| Account filter | FR-18 | 12 accounts drawn from the audit trail |
+| Report run, unfiltered | FR-18 | 48 rows, 12 account groups |
+| Report run, awaiting reply only | FR-18 | 48 rows |
+| PDF export | FR-20 | Valid PDF returned, with filters, summary tiles, per-account and per-survey breakdowns and all detail rows |
+| Excel export | FR-20 | Valid `.xlsx` workbook, headers Company / Survey Template / User / Email / Executed On / State / Taken on |
+| CSV export | FR-20 | Generated from the rows already on screen |
+| Excel matches the report | FR-21 | 48 rows unfiltered, 48 awaiting, 0 replied — identical to the on-screen figures |
+| Repeated PDF exports do not accumulate | — | Previous export purged; one attachment retained per user |
 
 ### 4.3 Rules proven with live data
 

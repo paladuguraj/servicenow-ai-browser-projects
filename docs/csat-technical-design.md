@@ -206,6 +206,61 @@ Wraps `widget-data-table` via `$sp.getWidget()` rather than reusing the stock
 > removes the stock **New** button. The page then supplies **New Survey
 > Request**, which opens the request form instead of an empty record.
 
+### `csat-survey-report`
+
+Server script exposes `run` and `pdf`; both delegate to `CSATSurveyReport`.
+`run` returns the result rows, the summary, the per-account and per-survey
+breakdowns, and the Excel export URL for the filters just used.
+
+Filter options are limited to surveys the portal is configured to send, read
+from the same `csat.portal.survey_names` property as the request form, so the
+report never offers a survey the portal cannot raise.
+
+---
+
+## 6.1 Report exports
+
+The report exports to PDF, Excel and CSV. Each takes a different route because
+each has a different constraint.
+
+| Format | Produced by | Why |
+|---|---|---|
+| CSV | Browser, from rows already returned | No round trip and no re-query |
+| Excel | Platform list exporter (`.do?XLSX`) | A genuine workbook, and it applies the caller's own read access |
+| PDF | `sn_pdfgeneratorutils.PDFGenerationAPI` | Carries the summary and breakdowns, not just detail rows |
+
+**Excel.** `CSATSurveyReport.getExcelUrl()` renders the active filters as an
+encoded query and points the platform's own XLSX exporter at
+`u_x_csat_survey_execution`. Nothing is assembled by hand, so the file is a real
+`.xlsx` and the rows respect the reader's access to the underlying records.
+
+The encoded query mirrors the in-script filtering, including the case where an
+execution has no assessment instance at all:
+
+```
+u_status=success
+  ^u_assessment_instance.state!=complete
+  ^ORu_assessment_instanceISEMPTY
+```
+
+A dot-walked `!=` drops rows whose reference is empty, so the `ORISEMPTY` clause
+is required for "awaiting reply" to match what the report shows on screen.
+
+**PDF.** `generatePdf()` renders the same figures to HTML and converts them.
+The generated file is attached to the requesting user's own `sys_user` record,
+which keeps one person's exports out of everyone else's view, and each export
+purges that user's previous one so attachments do not accumulate.
+
+The download URL returned is `/api/now/attachment/<sys_id>/file` rather than
+`/sys_attachment.do?sys_id=`, because the latter redirects to `navpage.do`
+instead of serving the file. The REST endpoint responds with a
+`Content-Disposition: attachment` header, so the client triggers it through a
+hidden link and the report page stays put.
+
+This is the only part of the solution that depends on a plugin. If **ServiceNow
+PDF Generation Utilities** is inactive the report and the other two exports are
+unaffected and the PDF button reports the failure. Preflight checks for it.
+
 ---
 
 ## 7. Scheduled processing
