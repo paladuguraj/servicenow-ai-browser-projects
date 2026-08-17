@@ -22,6 +22,7 @@ api.controller = function($scope) {
             c.running = false;
             c.data.results = r.data.results;
             c.data.breakdown = r.data.breakdown;
+            c.excelUrl = r.data.excelUrl;
             c.hasRun = true;
         }, function() {
             c.running = false;
@@ -33,6 +34,7 @@ api.controller = function($scope) {
         c.filters = { metric_type: '', company: '', sent_from: '', sent_to: '', response: 'all' };
         c.data.results = null;
         c.data.breakdown = null;
+        c.excelUrl = '';
         c.hasRun = false;
         c.error = '';
     };
@@ -73,10 +75,62 @@ api.controller = function($scope) {
         var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         var link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'csat-survey-results-' + new Date().toISOString().slice(0, 10) + '.csv';
+        link.download = stamped('csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
+    };
+
+    /**
+     * Excel goes through the platform's own XLSX exporter rather than a file
+     * assembled here, so the download is a real workbook and still obeys the
+     * reader's access to the underlying records.
+     */
+    c.exportExcel = function() {
+        if (!c.excelUrl || !c.rows().length) return;
+        download(c.excelUrl, stamped('xlsx'));
+    };
+
+    /**
+     * Both server-produced files come back with a download disposition, so
+     * navigating a hidden link fetches them without leaving the report or
+     * opening an empty tab.
+     */
+    function download(url, filename) {
+        var link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename || '');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function stamped(extension) {
+        return 'csat-survey-results-' + new Date().toISOString().slice(0, 10) + '.' + extension;
+    }
+
+    /**
+     * The PDF is rendered server side because it carries the summary tiles and
+     * breakdowns as well as the detail rows, which the browser cannot produce
+     * without a print dialog.
+     */
+    c.exportPdf = function() {
+        if (c.pdfBusy || !c.rows().length) return;
+        c.pdfBusy = true;
+        c.error = '';
+
+        c.server.get(angular.extend({ action: 'pdf' }, c.filters)).then(function(r) {
+            c.pdfBusy = false;
+            var pdf = r.data.pdf;
+            if (!pdf || pdf.error) {
+                c.error = (pdf && pdf.error) || 'The PDF could not be generated.';
+                return;
+            }
+            download(pdf.url, pdf.file_name);
+        }, function() {
+            c.pdfBusy = false;
+            c.error = 'The PDF could not be generated. Please try again.';
+        });
     };
 };

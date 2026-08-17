@@ -51,7 +51,16 @@
           <span ng-if="c.running">Running...</span>
         </button>
         <button type="button" class="btn btn-default" ng-click="c.reset()">Reset</button>
-        <button type="button" class="btn btn-default" ng-click="c.exportCsv()" ng-if="c.rows().length">Export CSV</button>
+      </div>
+
+      <div class="btn-toolbar csat-exports" ng-if="c.rows().length">
+        <span class="csat-export-label">Export</span>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportPdf()" ng-disabled="c.pdfBusy">
+          <span ng-if="!c.pdfBusy">PDF</span>
+          <span ng-if="c.pdfBusy">Preparing PDF...</span>
+        </button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportExcel()">Excel</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportCsv()">CSV</button>
       </div>
     </div>
   </div>

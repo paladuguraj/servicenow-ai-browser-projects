@@ -179,10 +179,181 @@ CSATSurveyReport.prototype = {
     },
 
     /**
+     * The same filters expressed as an encoded query, so exports can reuse
+     * ServiceNow's own list exporter rather than reimplementing the selection.
+     */
+    buildEncodedQuery: function(filters) {
+        filters = filters || {};
+        var parts = ['u_status=success'];
+
+        if (filters.metric_type) parts.push('u_metric_type=' + filters.metric_type);
+        if (filters.company) parts.push('u_survey_request.u_company=' + filters.company);
+        if (filters.sent_from) parts.push('u_executed_on>=' + filters.sent_from + ' 00:00:00');
+        if (filters.sent_to) parts.push('u_executed_on<=' + filters.sent_to + ' 23:59:59');
+        if (filters.response === 'replied') parts.push('u_assessment_instance.state=complete');
+        // A send with no instance at all still counts as awaiting a reply, and a
+        // dot-walked != would drop those rows on its own.
+        if (filters.response === 'not_replied')
+            parts.push('u_assessment_instance.state!=complete', 'ORu_assessment_instanceISEMPTY');
+
+        parts.push('ORDERBYDESCu_executed_on');
+        return parts.join('^');
+    },
+
+    EXPORT_FIELDS: [
+        'u_survey_request.u_company',
+        'u_metric_type',
+        'u_user',
+        'u_user.email',
+        'u_executed_on',
+        'u_assessment_instance.state',
+        'u_assessment_instance.taken_on'
+    ],
+
+    /**
+     * A link to the platform's XLSX exporter. This produces a genuine
+     * spreadsheet and applies the caller's own read access, unlike a file
+     * assembled in the browser.
+     */
+    getExcelUrl: function(filters) {
+        return '/' + this.EXECUTION_TABLE + '.do?XLSX' +
+            '&sysparm_query=' + encodeURIComponent(this.buildEncodedQuery(filters)) +
+            '&sysparm_fields=' + encodeURIComponent(this.EXPORT_FIELDS.join(','));
+    },
+
+    /**
+     * Renders the current results to a PDF and attaches it to the requesting
+     * user, which keeps each person's exports private and easy to purge.
+     * Returns the attachment sys_id for the client to download.
+     */
+    generatePdf: function(filters) {
+        var results = this.getResults(filters);
+        var breakdown = this._breakdownFromRows(results.rows);
+        var userId = gs.getUserID();
+
+        this._purgePreviousExports(userId);
+
+        var html = this._buildPdfHtml(filters, results, breakdown);
+        var name = 'csat-survey-results-' + new GlideDateTime().getLocalDate().getValue();
+
+        try {
+            new sn_pdfgeneratorutils.PDFGenerationAPI().convertToPDF(html, 'sys_user', userId, name);
+        } catch (e) {
+            return { error: 'PDF could not be generated: ' + e.message };
+        }
+
+        var att = new GlideRecord('sys_attachment');
+        att.addQuery('table_name', 'sys_user');
+        att.addQuery('table_sys_id', userId);
+        att.addQuery('file_name', 'STARTSWITH', 'csat-survey-results');
+        att.orderByDesc('sys_created_on');
+        att.setLimit(1);
+        att.query();
+
+        if (!att.next())
+            return { error: 'PDF was generated but the file could not be located.' };
+
+        // The attachment REST endpoint is used rather than sys_attachment.do,
+        // which bounces to navpage.do instead of serving the file.
+        return {
+            sys_id: att.getUniqueValue(),
+            file_name: att.getValue('file_name'),
+            url: '/api/now/attachment/' + att.getUniqueValue() + '/file'
+        };
+    },
+
+    _purgePreviousExports: function(userId) {
+        var att = new GlideRecord('sys_attachment');
+        att.addQuery('table_name', 'sys_user');
+        att.addQuery('table_sys_id', userId);
+        att.addQuery('file_name', 'STARTSWITH', 'csat-survey-results');
+        att.query();
+        while (att.next())
+            att.deleteRecord();
+    },
+
+    _buildPdfHtml: function(filters, results, breakdown) {
+        var s = results.summary;
+        var esc = function(v) {
+            return GlideStringUtil.escapeHTML(v === null || v === undefined ? '' : String(v));
+        };
+
+        var applied = [];
+        if (filters.metric_type) applied.push('Survey: ' + esc(this._displayName('asmt_metric_type', filters.metric_type)));
+        if (filters.company) applied.push('Account: ' + esc(this._displayName('core_company', filters.company)));
+        if (filters.sent_from) applied.push('Sent from: ' + esc(filters.sent_from));
+        if (filters.sent_to) applied.push('Sent to: ' + esc(filters.sent_to));
+        if (filters.response && filters.response !== 'all')
+            applied.push('Showing: ' + (filters.response === 'replied' ? 'replied only' : 'awaiting reply only'));
+        if (!applied.length) applied.push('No filters applied');
+
+        var html = [];
+        html.push('<html><head><meta charset="utf-8"/><style>');
+        html.push('body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#25313d;}');
+        html.push('h1{font-size:18px;margin:0 0 4px;} h2{font-size:13px;margin:18px 0 6px;}');
+        html.push('.meta{color:#6b7580;font-size:10px;margin-bottom:14px;}');
+        html.push('table{border-collapse:collapse;width:100%;margin-bottom:12px;}');
+        html.push('th,td{border:1px solid #c8d1da;padding:4px 6px;text-align:left;vertical-align:top;}');
+        html.push('th{background:#eef2f6;}');
+        html.push('.tiles td{text-align:center;font-size:16px;font-weight:bold;border:1px solid #c8d1da;}');
+        html.push('.tiles th{text-align:center;font-weight:normal;font-size:10px;color:#6b7580;}');
+        html.push('</style></head><body>');
+
+        html.push('<h1>CSAT Survey Results</h1>');
+        html.push('<div class="meta">' + applied.join(' &nbsp;|&nbsp; ') +
+            '<br/>Generated ' + esc(new GlideDateTime().getDisplayValue()) + ' by ' + esc(gs.getUserDisplayName()) + '</div>');
+
+        html.push('<table class="tiles"><tr><th>Surveys sent</th><th>Replied</th><th>Response rate</th><th>Average score</th></tr>');
+        html.push('<tr><td>' + s.sent + '</td><td>' + s.replied + '</td><td>' + s.response_rate +
+            '%</td><td>' + (s.average_score === null ? '-' : s.average_score) + '</td></tr></table>');
+
+        if (s.skipped || s.failed)
+            html.push('<div class="meta">Excluded from the totals: ' + s.skipped + ' skipped and ' +
+                s.failed + ' failed send(s), which never reached a recipient.</div>');
+
+        html.push('<h2>By account</h2><table><tr><th>Account</th><th>Sent</th><th>Replied</th><th>Rate</th></tr>');
+        breakdown.by_account.forEach(function(a) {
+            html.push('<tr><td>' + esc(a.name) + '</td><td>' + a.sent + '</td><td>' + a.replied + '</td><td>' + a.response_rate + '%</td></tr>');
+        });
+        html.push('</table>');
+
+        html.push('<h2>By survey</h2><table><tr><th>Survey</th><th>Sent</th><th>Replied</th><th>Rate</th></tr>');
+        breakdown.by_survey.forEach(function(b) {
+            html.push('<tr><td>' + esc(b.name) + '</td><td>' + b.sent + '</td><td>' + b.replied + '</td><td>' + b.response_rate + '%</td></tr>');
+        });
+        html.push('</table>');
+
+        html.push('<h2>Detail (' + results.rows.length + ' row' + (results.rows.length === 1 ? '' : 's') + ')</h2>');
+        html.push('<table><tr><th>Account</th><th>Survey</th><th>Recipient</th><th>Sent on</th><th>Status</th><th>Replied on</th><th>Score</th><th>Comments</th></tr>');
+        results.rows.forEach(function(r) {
+            html.push('<tr><td>' + esc(r.account) + '</td><td>' + esc(r.survey) + '</td><td>' + esc(r.recipient) +
+                '</td><td>' + esc(r.sent_on) + '</td><td>' + (r.replied ? 'Replied' : 'Awaiting') +
+                '</td><td>' + esc(r.replied_on) + '</td><td>' + (r.score === null ? '' : r.score) +
+                '</td><td>' + esc(r.comments) + '</td></tr>');
+        });
+        html.push('</table>');
+
+        if (results.truncated)
+            html.push('<div class="meta">Only the first ' + results.max_rows + ' rows are included.</div>');
+
+        html.push('</body></html>');
+        return html.join('');
+    },
+
+    _displayName: function(table, sysId) {
+        var gr = new GlideRecord(table);
+        return gr.get(sysId) ? gr.getDisplayValue() : sysId;
+    },
+
+    /**
      * Counts by account and by survey for the summary tiles.
      */
     getBreakdown: function(filters) {
-        var results = this.getResults(filters);
+        return this._breakdownFromRows(this.getResults(filters).rows);
+    },
+
+    _breakdownFromRows: function(rows) {
+        var results = { rows: rows };
         var byAccount = {};
         var bySurvey = {};
 
