@@ -4,27 +4,46 @@
  * create a request, confirm assignment emails, complete a survey instance,
  * then confirm submission emails.
  *
- * Completing a survey requires a server-side state change, so this installs a
- * temporary Scripted REST helper and removes it again when finished.
+ * Listing recipients, raising a request and completing a survey all need
+ * server-side calls, so they run through a temporary probe endpoint.
  */
-const { base, headers, snGet, snPost, snDelete, sleep } = require('./lib/sn-client');
+const { snGet, sleep } = require('./lib/sn-client');
+const { withProbe } = require('./lib/probe');
 
-const COMPLETE_SCRIPT = `(function process(request, response) {
-  var v = request.queryParams.instance_id;
-  var instanceId = String(Array.isArray(v) ? v[0] : v || '');
+const HELPER_SCRIPT = `(function process(request, response) {
+  var body = request.body ? request.body.data : null;
 
-  var gr = new GlideRecord('asmt_assessment_instance');
-  if (!gr.get(instanceId))
-    return { error: 'instance not found: ' + instanceId };
+  if (body && body.action === 'users')
+    return { result: new CSATSurveyService().getUsersByCompany(body.company_id) };
 
-  var before = gr.getValue('state');
-  gr.setValue('state', 'complete');
-  gr.setValue('taken_on', new GlideDateTime());
-  gr.update();
+  if (body && body.action === 'create_request') {
+    return { result: new CSATSurveyService().createSurveyRequest({
+      company: body.company,
+      metric_type: body.metric_type,
+      recipient_mode: 'selected_users',
+      selected_users: body.selected_users,
+      schedule_frequency: 'immediate',
+      notes: body.notes,
+      submit: true
+    }) };
+  }
 
-  var after = new GlideRecord('asmt_assessment_instance');
-  after.get(instanceId);
-  return { state_before: before, state_after: after.getValue('state') };
+  if (body && body.action === 'complete_instance') {
+    var gr = new GlideRecord('asmt_assessment_instance');
+    if (!gr.get(body.instance_id))
+      return { result: { error: 'instance not found: ' + body.instance_id } };
+
+    var before = gr.getValue('state');
+    gr.setValue('state', 'complete');
+    gr.setValue('taken_on', new GlideDateTime());
+    gr.update();
+
+    var after = new GlideRecord('asmt_assessment_instance');
+    after.get(body.instance_id);
+    return { result: { state_before: before, state_after: after.getValue('state') } };
+  }
+
+  return { result: { error: 'unknown action' } };
 })(request, response);`;
 
 function nowStamp() {
@@ -54,25 +73,7 @@ async function waitForEmails(timestamp, match, expectedCount, timeoutMs = 60000)
   return found;
 }
 
-async function installHelper(apiSysId) {
-  const existing = await snGet(
-    'sys_ws_operation',
-    `sysparm_query=web_service_definition=${apiSysId}^name=test_complete_instance&sysparm_fields=sys_id`
-  );
-  if (existing.length) return existing[0].sys_id;
-  const created = await snPost('sys_ws_operation', {
-    web_service_definition: apiSysId,
-    name: 'test_complete_instance',
-    http_method: 'GET',
-    relative_path: '/test_complete_instance',
-    active: true,
-    operation_script: COMPLETE_SCRIPT,
-    requires_authentication: true,
-  });
-  return created.sys_id;
-}
-
-async function runScenario(apiBase, template, company, users, label) {
+async function runScenario(call, template, company, users, label) {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`${label}`);
   console.log(`  Template: ${template.name} (notify_user=${template.notify_user})`);
@@ -81,20 +82,15 @@ async function runScenario(apiBase, template, company, users, label) {
   const startedAt = nowStamp();
   await sleep(1500);
 
-  const createRes = await fetch(`${base}${apiBase}/requests`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
+  const created = await call({
+    body: {
+      action: 'create_request',
       company: company.sys_id,
       metric_type: template.sys_id,
-      recipient_mode: 'selected_users',
       selected_users: users.map((u) => u.sys_id),
-      schedule_frequency: 'immediate',
       notes: `Notification verification: ${label}`,
-      submit: true,
-    }),
+    },
   });
-  const created = (await createRes.json()).result;
 
   const executions = await snGet(
     'u_x_csat_survey_execution',
@@ -118,8 +114,7 @@ async function runScenario(apiBase, template, company, users, label) {
   const beforeSubmit = nowStamp();
   await sleep(1500);
 
-  const completeRes = await fetch(`${base}${apiBase}/test_complete_instance?instance_id=${instanceId}`, { headers });
-  const completeBody = (await completeRes.json()).result;
+  const completeBody = await call({ body: { action: 'complete_instance', instance_id: instanceId } });
   console.log(`\nCompleted instance ${instanceId}: ${completeBody.state_before} -> ${completeBody.state_after}`);
 
   const submitPattern = new RegExp(
@@ -143,25 +138,23 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-async function findEligibleRecipients(apiBase, wanted) {
+async function findEligibleRecipients(call, wanted) {
   const companies = await snGet(
     'core_company',
     'sysparm_query=name!=N/A^ORDERBYname&sysparm_fields=sys_id,name&sysparm_limit=60'
   );
 
   for (const company of companies) {
-    const res = await fetch(`${base}${apiBase}/users?company_id=${company.sys_id}`, { headers });
-    const eligible = ((await res.json()).result || []).filter((u) => u.eligible);
+    const eligible = ((await call({ body: { action: 'users', company_id: company.sys_id } })) || []).filter(
+      (u) => u.eligible
+    );
     if (eligible.length >= wanted) return { company, users: eligible.slice(0, wanted) };
   }
   return null;
 }
 
 async function main() {
-  const api = (await snGet('sys_ws_definition', 'sysparm_query=name=CSAT Survey API&sysparm_fields=sys_id,base_uri'))[0];
-  const helperSysId = await installHelper(api.sys_id);
-
-  try {
+  await withProbe('csat_notifications', HELPER_SCRIPT, async (call) => {
     const smtp = (await snGet('sys_properties', 'sysparm_query=name=glide.email.smtp.active&sysparm_fields=value'))[0];
     console.log(`Outbound email enabled: ${smtp ? smtp.value : 'unset'}`);
 
@@ -184,13 +177,13 @@ async function main() {
       // Each scenario needs its own recipients: sending puts them into the
       // 90-day cooldown, so reusing the same people would skip everything
       // after the first run.
-      const found = await findEligibleRecipients(api.base_uri, 2);
+      const found = await findEligibleRecipients(call, 2);
       if (!found) {
         console.log(`\n${label}\n  No eligible recipients left (all within the 90-day cooldown).`);
         results.push([name, null]);
         continue;
       }
-      results.push([name, await runScenario(apiBase(api), template, found.company, found.users, label)]);
+      results.push([name, await runScenario(call, template, found.company, found.users, label)]);
     }
 
     console.log(`\n${'='.repeat(60)}`);
@@ -198,14 +191,7 @@ async function main() {
     results.forEach(([name, ok]) =>
       console.log(`  ${ok === null ? 'SKIP' : ok ? 'PASS' : 'FAIL'}  ${name}`)
     );
-  } finally {
-    await snDelete('sys_ws_operation', helperSysId);
-    console.log('\nRemoved temporary test helper endpoint.');
-  }
-}
-
-function apiBase(api) {
-  return api.base_uri;
+  }, 'POST');
 }
 
 main().catch((err) => {

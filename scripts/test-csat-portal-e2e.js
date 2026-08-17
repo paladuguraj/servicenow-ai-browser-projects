@@ -9,24 +9,34 @@
  */
 const { chromium } = require('playwright');
 const { base, headers, snGet } = require('./lib/sn-client');
+const { withProbe } = require('./lib/probe');
 
 /**
  * Finds a company that still has at least one recipient outside the cooldown,
  * so the run actually exercises the submit path.
  */
 async function findCompanyWithEligibleUsers() {
-  const api = (await snGet('sys_ws_definition', 'sysparm_query=name=CSAT Survey API&sysparm_fields=base_uri'))[0];
+  const script = `(function process(request, response) {
+    var ids = String(request.queryParams.ids || '').split(',');
+    var svc = new CSATSurveyService();
+    for (var i = 0; i < ids.length; i++) {
+      var users = svc.getUsersByCompany(ids[i]);
+      for (var u = 0; u < users.length; u++) {
+        if (users[u].eligible) return { result: ids[i] };
+      }
+    }
+    return { result: '' };
+  })(request, response);`;
+
   const companies = await snGet(
     'core_company',
     'sysparm_query=name!=N/A^ORDERBYname&sysparm_fields=sys_id,name&sysparm_limit=40'
   );
 
-  for (const company of companies) {
-    const res = await fetch(`${base}${api.base_uri}/users?company_id=${company.sys_id}`, { headers });
-    const users = (await res.json()).result || [];
-    if (users.some((u) => u.eligible)) return company;
-  }
-  return null;
+  const match = await withProbe('csat_eligible_company', script, (call) =>
+    call({ params: { ids: companies.map((c) => c.sys_id).join(',') } })
+  );
+  return companies.find((c) => c.sys_id === match) || null;
 }
 
 async function login(page) {

@@ -6,7 +6,8 @@
  *
  * Installs a temporary Scripted REST helper and removes it afterwards.
  */
-const { base, headers, snGet, snPost, snDelete, announceTarget } = require('./lib/sn-client');
+const { snGet, announceTarget } = require('./lib/sn-client');
+const { withProbe } = require('./lib/probe');
 
 const PROBE_SCRIPT = `(function process(request, response) {
   function param(name) {
@@ -56,31 +57,6 @@ const PROBE_SCRIPT = `(function process(request, response) {
   return out;
 })(request, response);`;
 
-async function installProbe(apiSysId) {
-  const existing = await snGet(
-    'sys_ws_operation',
-    `sysparm_query=web_service_definition=${apiSysId}^name=test_probe&sysparm_fields=sys_id`
-  );
-  if (existing.length) return existing[0].sys_id;
-  const created = await snPost('sys_ws_operation', {
-    web_service_definition: apiSysId,
-    name: 'test_probe',
-    http_method: 'GET',
-    relative_path: '/test_probe',
-    active: true,
-    operation_script: PROBE_SCRIPT,
-    requires_authentication: true,
-  });
-  return created.sys_id;
-}
-
-async function probe(apiBase, params) {
-  const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${base}${apiBase}/test_probe?${qs}`, { headers });
-  const body = await res.json();
-  return body.result ? body.result.result : null;
-}
-
 const results = [];
 function check(name, passed, detail) {
   results.push({ name, passed, detail });
@@ -90,25 +66,24 @@ function check(name, passed, detail) {
 async function main() {
   announceTarget('Verify CSAT portal rules');
 
-  const api = (await snGet('sys_ws_definition', 'sysparm_query=name=CSAT Survey API&sysparm_fields=sys_id,base_uri'))[0];
-  const probeSysId = await installProbe(api.sys_id);
+  await withProbe('csat_rules', PROBE_SCRIPT, async (call) => {
+    const probe = (params) => call({ params });
 
-  try {
     console.log('Rule 1 — only active companies, searchable');
-    const companies = await probe(api.base_uri, { probe: 'companies' });
+    const companies = await probe({ probe: 'companies' });
     check('company list excludes inactive', companies.inactive_in_result === 0, `${companies.returned} returned, ${companies.inactive_in_result} inactive`);
-    const searched = await probe(api.base_uri, { probe: 'companies', term: 'Bank' });
+    const searched = await probe({ probe: 'companies', term: 'Bank' });
     const allMatch = searched.sample.every((c) => /bank/i.test(c.name));
     check('search term filters results', searched.returned > 0 && allMatch, `"Bank" -> ${searched.returned} matches`);
 
     console.log('\nRule 4 — immediate-only surveys');
-    const imm = await probe(api.base_uri, { probe: 'immediate' });
+    const imm = await probe({ probe: 'immediate' });
     check('Closed Case Survey is immediate-only', imm.closed_case === true);
     check('Complex Resolution Survey is immediate-only', imm.complex === true);
     check('Generic Quarterly Survey allows scheduling', imm.generic === false);
 
     console.log('\nRule 5 — 90-day cooldown');
-    const cd = await probe(api.base_uri, { probe: 'cooldown_days' });
+    const cd = await probe({ probe: 'cooldown_days' });
     check('cooldown window is 90 days', cd.days === 90, `${cd.days} days`);
 
     console.log('\nRules 2 & 3 — Account Primary Contact');
@@ -120,7 +95,7 @@ async function main() {
       check('an account has a Primary Contact', false, 'no active account has primary_contact set');
     } else {
       for (const company of withContact) {
-        const primary = await probe(api.base_uri, { probe: 'primary', company_id: company.sys_id });
+        const primary = await probe({ probe: 'primary', company_id: company.sys_id });
         const resolved = !!(primary && primary.user);
         check(
           `resolves contact for ${company.name}`,
@@ -137,11 +112,11 @@ async function main() {
       'sysparm_query=u_active=true^primary_contactISEMPTY&sysparm_fields=sys_id,name&sysparm_limit=1'
     ))[0];
     if (noContact) {
-      const primary = await probe(api.base_uri, { probe: 'primary', company_id: noContact.sys_id });
+      const primary = await probe({ probe: 'primary', company_id: noContact.sys_id });
       check('account without a Primary Contact reports a reason', !primary.eligible && !!primary.reason, primary.reason);
     }
 
-    const offered = await probe(api.base_uri, { probe: 'templates' });
+    const offered = await probe({ probe: 'templates' });
     check(
       'portal offers only the approved surveys',
       offered.every((t) => ['Complex Resolution Survey', 'Generic Quarterly Survey'].indexOf(t.name) !== -1),
@@ -180,7 +155,7 @@ async function main() {
 
       if (child) {
         const expected = partners[child['account_parent.name']];
-        const resolved = await probe(api.base_uri, { probe: 'link', company_id: child.sys_id });
+        const resolved = await probe({ probe: 'link', company_id: child.sys_id });
         check(
           `${child.name} inherits the ${child['account_parent.name']} domain`,
           resolved.link.indexOf(expected.replace(/\/+$/, '')) === 0,
@@ -197,7 +172,7 @@ async function main() {
       ))[0];
 
       if (outside) {
-        const resolved = await probe(api.base_uri, { probe: 'link', company_id: outside.sys_id });
+        const resolved = await probe({ probe: 'link', company_id: outside.sys_id });
         check(
           `${outside.name} falls back to the instance URL`,
           resolved.domain === '' && resolved.link.indexOf(resolved.instance_url) === 0,
@@ -212,7 +187,7 @@ async function main() {
       'sysparm_query=active=true^companyISNOTEMPTY&sysparm_fields=company&sysparm_limit=1'
     ))[0];
     if (anyCompany) {
-      const users = await probe(api.base_uri, { probe: 'users', company_id: anyCompany.company.value });
+      const users = await probe({ probe: 'users', company_id: anyCompany.company.value });
       const shaped = users.length === 0 || users.every((u) => 'eligible' in u && 'reason' in u);
       check('users carry eligibility flags', shaped, `${users.length} user(s)`);
     }
@@ -220,10 +195,7 @@ async function main() {
     const failed = results.filter((r) => !r.passed).length;
     console.log(`\n${results.length - failed}/${results.length} checks passed`);
     if (failed) process.exitCode = 1;
-  } finally {
-    await snDelete('sys_ws_operation', probeSysId);
-    console.log('Removed temporary probe endpoint.');
-  }
+  });
 }
 
 main().catch((err) => {
