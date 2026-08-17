@@ -59,6 +59,28 @@ async function checkServicePortal() {
   });
 }
 
+async function checkReporting() {
+  // The report's Excel export uses the platform list exporter, which is always
+  // present, but the PDF export needs the PDF generation plugin. Without it the
+  // report still runs and exports Excel/CSV, so this is only a warning.
+  await safe('Reporting', async () => {
+    const plugin = await snGet(
+      'sys_plugins',
+      'sysparm_query=nameLIKEPDF Generation Utilities&sysparm_fields=name,active'
+    );
+    const active = plugin.some((p) => p.active === 'true' || p.active === true);
+    if (active) {
+      record('OK', 'Reporting', 'PDF Generation Utilities active; report PDF export available');
+      return;
+    }
+    record(
+      'WARNING',
+      'Reporting',
+      'PDF Generation Utilities inactive; the report PDF export will fail (Excel and CSV still work)'
+    );
+  });
+}
+
 async function checkSurveyPlatform() {
   await safe('Surveys', async () => {
     const templates = await snGet(
@@ -206,6 +228,7 @@ async function main() {
   await checkAuthAndRoles();
   await checkServicePortal();
   await checkSurveyPlatform();
+  await checkReporting();
   await checkEmail();
   await checkData();
   await checkExistingArtifacts();
