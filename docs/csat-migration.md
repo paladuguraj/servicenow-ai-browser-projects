@@ -132,49 +132,88 @@ These are instance data or configuration, not application artifacts:
   path differs (for example `/api/2114022/csat_survey_api`). Scripts read it from
   the API definition rather than hardcoding it.
 
-## Update sets on adcomsolutionsdev
+## The update set to move
 
-| Set | Changes | State | Migrate? |
-|---|---|---|---|
-| **CSAT Survey Portal - COMPLETE v1.0** | **177** | Complete | **Yes — this one** |
-| CSAT Survey Portal | 0 | Ignore | No |
-| CSAT Survey Portal - Tweaks | 0 | Ignore | No |
-| CSAT Survey Portal - Draft guard | 0 | Ignore | No |
-| CSAT Survey Portal - Recipient picker | 0 | Ignore | No |
-| CSAT Survey Portal - View request button | 0 | Ignore | No |
-| CSAT Survey Portal - Requests page | 0 | Ignore | No |
+There is one, and it is the only CSAT Survey Portal set left in **Complete**
+state on adcomsolutionsdev:
 
-The six working sets were consolidated into the COMPLETE set and marked Ignore.
-They are empty and must not be migrated.
+> ### CSAT Survey Portal - ALL CHANGES v2.0
+> 179 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
 
-Export:
-`/export_update_set.do?sysparm_sys_id=b9379cd52b62cf1007a3fa95b891bf80`
+It holds the whole solution as it stands: the portal and its three pages and
+widgets, the three tables with their columns, labels and choice lists, the four
+script includes, both business rules, the scheduled job, the event and
+notifications, the mail scripts, the Scripted REST API, and both survey
+definitions with their questions and answer choices.
+
+| | |
+|---|---|
+| Application menu and modules | 3 |
+| Tables, columns, labels, choices | 57 |
+| Script includes | 4 |
+| Business rules | 2 |
+| Scheduled job | 1 |
+| Event and notifications | 7 |
+| Mail scripts | 5 |
+| Scripted REST API and resources | 5 |
+| Portal, pages, widgets, menu, layout | 25 |
+| System properties | 2 |
+| Survey definitions, questions, choices | 68 |
+
+Every other `CSAT Survey Portal` set is now **Ignore**. Their contents are
+preserved, so setting one back to Complete restores it, but none of them should
+be migrated — everything they held is in the set above.
+
+> The instance also carries older CSAT work belonging to the customer
+> (`SE-740_CSAT Survey edits_CC` and similar, 14 sets). Those are unrelated to
+> this project and were left alone.
+
+### Moving it
+
+1. On the source: **System Update Sets > Local Update Sets >
+   CSAT Survey Portal - ALL CHANGES v2.0 > Export to XML**
+2. On the target: **Retrieved Update Sets > Import Update Set from XML**
+3. Open the retrieved set, **Preview**, resolve any collisions, then **Commit**
+
+Read [what does not transfer](#what-does-not-transfer) first — companies, users,
+SMTP and `survey.link.whitelabel` are instance data and are not in the set.
+
+### Rebuilding the consolidated set
+
+If more changes are made, re-run:
+
+```bash
+ENV_FILE=.env.adcom node scripts/consolidate-update-set.js --dry-run
+ENV_FILE=.env.adcom node scripts/consolidate-update-set.js --retire-sources
+```
+
+It reads every `CSAT Survey Portal` set, keeps the newest version of each
+record, and rebuilds the target set from scratch, so it is safe to run
+repeatedly. Source sets are only read, never emptied.
+
+Three kinds of entry are deliberately left out:
+
+- **Superseded portal layout.** Placing a widget on a page deletes and recreates
+  the containers, rows and columns, so each re-deploy left a delete behind for
+  the previous generation. Those records only ever existed on this instance.
+- **Temporary diagnostic endpoints** created while debugging.
+- **Records that no longer exist here**, which would otherwise be recreated on
+  the target.
+
+The scheduled job needs the opposite treatment. ServiceNow treats
+`sysauto_script` as data, so editing it is never captured; the script pushes it
+in through `GlideUpdateManager2`, the same API behind the **Add to Update Set**
+action. Without that step the 30 and 60-day schedules would never run on the
+target.
 
 ### Why consolidation was needed
 
-Changes are captured against whichever set is current for the deploying user.
-Two things caused drift across the build:
+Changes are captured against whichever set is current for the deploying user,
+and the work ran across a dozen sets as it was built. Two things also caused
+drift:
 
 - Creating a scoped application switched the current set to that application's
   Default, so some changes were captured elsewhere.
 - The latest `CSATSurveyService` — containing the Draft guard and the fix for
-  falsely reported sends — had been captured only into **Default**. Migrating
-  the named sets alone would have shipped an older version of the core logic.
-
-`npm run updateset:adopt` and a consolidation pass moved everything into one
-set. Records for temporary diagnostic REST endpoints were deleted so they
-cannot be recreated on a target.
-
-## Promoting via the exported update set
-
-Once a deployment has been captured, later instances can be done with the XML
-instead of the scripts:
-
-1. Export from the source: **System Update Sets > Local Update Sets >
-   CSAT Survey Portal > Export to XML**
-2. On the target: **Retrieved Update Sets > Import Update Set from XML**
-3. Preview, then Commit
-
-The scheduled job (`sysauto_script`) is data rather than metadata and is not
-captured in update sets, so re-create it on the target by running
-`deploy-csat-app.js`, or add the record manually.
+  falsely reported sends — had at one point been captured only into **Default**,
+  so migrating the named sets alone would have shipped older core logic.
