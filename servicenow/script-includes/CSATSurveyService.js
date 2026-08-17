@@ -30,6 +30,15 @@ CSATSurveyService.prototype = {
     COMPANY_ACTIVE_FIELD: 'u_active',
     ACCOUNT_TABLE: 'customer_account',
     ACCOUNT_PRIMARY_CONTACT_FIELD: 'primary_contact',
+    ACCOUNT_PARENT_FIELD: 'account_parent',
+
+    // Maps a white-label partner name to the domain that partner's customers
+    // reach the portal on. Maintained by the business, shared with the
+    // case-triggered survey invitation.
+    WHITELABEL_PROPERTY: 'survey.link.whitelabel',
+
+    // Page the invitation email points a recipient at.
+    SURVEY_PAGE: 'csat?id=take_survey',
 
     // Surveys offered in the portal. Override without a deploy by setting the
     // csat.portal.survey_names property to a comma-separated list, or to an
@@ -63,6 +72,75 @@ CSATSurveyService.prototype = {
         gr.query();
         this._fieldCache[key] = gr.next() ? true : false;
         return this._fieldCache[key];
+    },
+
+    /**
+     * White-label partners reach the portal on their own domain rather than on
+     * the ServiceNow hostname. The survey.link.whitelabel property maps a
+     * partner name to that domain, and a customer account inherits it from the
+     * partner it sits under.
+     *
+     * Returns an empty string when the recipient is not behind a white-label
+     * partner, when the property is absent or unparseable, or on an instance
+     * without the customer account table — in every case the caller falls back
+     * to the instance URL.
+     */
+    getWhitelabelDomain: function(companyId) {
+        if (!companyId)
+            return '';
+
+        var raw = gs.getProperty(this.WHITELABEL_PROPERTY);
+        if (!raw)
+            return '';
+
+        var domains;
+        try {
+            domains = JSON.parse(raw);
+        } catch (e) {
+            gs.warn('CSAT: ' + this.WHITELABEL_PROPERTY + ' is not valid JSON, so survey links will use the instance URL. ' + e.message);
+            return '';
+        }
+        if (!domains)
+            return '';
+
+        if (!this.hasField(this.ACCOUNT_TABLE, this.ACCOUNT_PARENT_FIELD))
+            return '';
+
+        var account = new GlideRecord(this.ACCOUNT_TABLE);
+        if (!account.get(companyId))
+            return '';
+
+        // The partner is normally the parent account. Accounts that are
+        // themselves the partner, or that sit under a parent with no domain of
+        // its own, are matched on their own name.
+        var candidates = [account[this.ACCOUNT_PARENT_FIELD].name + '', account.getValue('name') + ''];
+        for (var i = 0; i < candidates.length; i++) {
+            var name = candidates[i];
+            if (name && name !== 'null' && domains[name])
+                return domains[name] + '';
+        }
+
+        return '';
+    },
+
+    /**
+     * The link a recipient follows from the invitation email. Only the host
+     * changes for a white-label partner; the survey page is the same for
+     * everyone.
+     */
+    getSurveyLink: function(instanceId, companyId) {
+        var host = this.getWhitelabelDomain(companyId) || gs.getProperty('glide.servlet.uri');
+        return (host + '').replace(/\/+$/, '') + '/' + this.SURVEY_PAGE + '&instance_id=' + instanceId;
+    },
+
+    /**
+     * Resolves the same link from the assessment instance alone, which is all
+     * the invitation mail script has to work with.
+     */
+    getSurveyLinkForInstance: function(instanceGr) {
+        var requestGr = new GlideRecord(this.REQUEST_TABLE);
+        var companyId = requestGr.get(instanceGr.getValue('trigger_id')) ? requestGr.getValue(this.F.company) : '';
+        return this.getSurveyLink(instanceGr.getUniqueValue(), companyId);
     },
 
     getCompanies: function(searchTerm, limit) {

@@ -6,6 +6,8 @@
 //
 // The case path below is unchanged. A fallback resolves the account from the
 // CSAT survey request and links to the Service Portal instead of the platform.
+// Both paths honour survey.link.whitelabel, so a partner's customers are sent
+// to that partner's own domain.
 
 var partner = new GlideRecord('customer_account');
 partner.addQuery('sys_id', current.task_id.company);
@@ -20,8 +22,9 @@ if (partner.next()) {
 
 	// for CSAT
 } else if (current.getValue('trigger_table') == 'u_x_csat_survey_request') {
-    var base = (gs.getProperty('glide.servlet.uri') + '').replace(/\/+$/, '');
-    var url = base + '/csat?id=take_survey&instance_id=' + current.getUniqueValue();
+    // White-label partners reach the portal on their own domain, so the host
+    // depends on the account the survey was raised for.
+    var url = new CSATSurveyService().getSurveyLinkForInstance(current);
 
     template.print(
         '<p style="text-align: left;">' +
