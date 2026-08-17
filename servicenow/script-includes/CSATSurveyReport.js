@@ -15,10 +15,16 @@ CSATSurveyReport.prototype = {
      * Only surveys and accounts that actually appear in the audit trail are
      * offered, so the filters cannot produce an empty report by selecting
      * something that was never sent.
+     *
+     * The survey list is additionally limited to the ones the portal is
+     * configured to send, so retired or externally triggered surveys do not
+     * appear as filter options. Both this and the request form read the same
+     * csat.portal.survey_names property.
      */
     getFilterOptions: function() {
         var surveys = {};
         var accounts = {};
+        var allowed = new CSATSurveyService().getPortalSurveyNames();
 
         var gr = new GlideRecord(this.EXECUTION_TABLE);
         gr.addQuery('u_status', 'success');
@@ -28,8 +34,10 @@ CSATSurveyReport.prototype = {
 
         while (gr.next()) {
             var typeId = gr.getValue('u_metric_type');
-            if (typeId && !surveys[typeId])
-                surveys[typeId] = gr.u_metric_type.getDisplayValue();
+            var typeName = gr.u_metric_type.getDisplayValue();
+            var offered = !allowed.length || allowed.indexOf(typeName + '') !== -1;
+            if (typeId && offered && !surveys[typeId])
+                surveys[typeId] = typeName;
 
             var companyId = gr.u_survey_request.u_company + '';
             if (companyId && companyId !== 'null' && !accounts[companyId])
