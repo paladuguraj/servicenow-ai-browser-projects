@@ -18,8 +18,7 @@
     "deploy:csat:notifications": "node scripts/deploy-csat-notifications.js",
     "test:csat": "node scripts/test-csat-portal-e2e.js && node scripts/test-csat-notifications.js",
     "test:csat:portal": "node scripts/test-csat-portal-e2e.js",
-    "test:csat:email": "node scripts/test-csat-notifications.js",
-    "test:csat:ui-page": "node scripts/test-csat-e2e.js"
+    "test:csat:email": "node scripts/test-csat-notifications.js"
   },
   "repository": {
     "type": "git",

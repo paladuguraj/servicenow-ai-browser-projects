@@ -301,7 +301,6 @@ async function main() {
   const appMenuSysId = await ensureAppMenu();
   await deployTables();
 
-  await ensureScriptInclude('CSATSurveyAjax', readArtifact('script-includes/CSATSurveyAjax.js'));
   await ensureScriptInclude('CSATSurveyService', readArtifact('script-includes/CSATSurveyService.js'));
   await ensureScriptInclude('CSATSurveyNotification', readArtifact('script-includes/CSATSurveyNotification.js'));
   await ensureScriptInclude('CSATSurveyReport', readArtifact('script-includes/CSATSurveyReport.js'));

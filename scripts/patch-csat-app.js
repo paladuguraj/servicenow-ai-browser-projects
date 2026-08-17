@@ -31,14 +31,6 @@ async function main() {
   });
   console.log('Updated scheduled job');
 
-  const ajaxInclude = (await snGet('sys_script_include', 'sysparm_query=name=CSATSurveyAjax&sysparm_fields=sys_id'))[0];
-  await snPatch('sys_script_include', ajaxInclude.sys_id, {
-    script: readArtifact('script-includes/CSATSurveyAjax.js'),
-    active: true,
-    client_callable: true,
-  });
-  console.log('Updated CSATSurveyAjax');
-
   const reportInclude = (await snGet('sys_script_include', 'sysparm_query=name=CSATSurveyReport&sysparm_fields=sys_id'))[0];
   if (reportInclude) {
     await snPatch('sys_script_include', reportInclude.sys_id, {
