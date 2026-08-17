@@ -45,6 +45,12 @@ const PROBE_SCRIPT = `(function process(request, response) {
     };
   } else if (action === 'cooldown_days') {
     out.result = { days: svc.COOLDOWN_DAYS };
+  } else if (action === 'link') {
+    out.result = {
+      domain: svc.getWhitelabelDomain(param('company_id')),
+      link: svc.getSurveyLink('TESTINSTANCE', param('company_id')),
+      instance_url: (gs.getProperty('glide.servlet.uri') + '').replace(/\\/+$/, '')
+    };
   }
 
   return out;
@@ -141,6 +147,64 @@ async function main() {
       offered.every((t) => ['Complex Resolution Survey', 'Generic Quarterly Survey'].indexOf(t.name) !== -1),
       offered.map((t) => t.name).join(', ') || 'none'
     );
+
+    console.log('\nRule 6 — white-label partners get their own domain in the survey link');
+    const whitelabelProp = (await snGet(
+      'sys_properties',
+      'sysparm_query=name=survey.link.whitelabel&sysparm_fields=value'
+    ))[0];
+
+    if (!whitelabelProp || !whitelabelProp.value) {
+      check('survey.link.whitelabel is configured', true, 'not set on this instance; links use the instance URL');
+    } else {
+      let partners = {};
+      try {
+        partners = JSON.parse(whitelabelProp.value);
+      } catch (e) {
+        check('survey.link.whitelabel holds valid JSON', false, e.message);
+      }
+
+      const partnerNames = Object.keys(partners);
+      check('survey.link.whitelabel holds valid JSON', partnerNames.length > 0, `${partnerNames.length} partner(s)`);
+
+      // Partner names can contain "&", so the query has to be encoded or it
+      // gets truncated into separate URL parameters.
+      const q = (encoded) => `sysparm_query=${encodeURIComponent(encoded)}`;
+      const nameList = partnerNames.join(',');
+
+      // An account under a partner must inherit that partner's domain.
+      const child = (await snGet(
+        'customer_account',
+        `${q(`account_parent.nameIN${nameList}`)}&sysparm_fields=sys_id,name,account_parent.name&sysparm_limit=1`
+      ))[0];
+
+      if (child) {
+        const expected = partners[child['account_parent.name']];
+        const resolved = await probe(api.base_uri, { probe: 'link', company_id: child.sys_id });
+        check(
+          `${child.name} inherits the ${child['account_parent.name']} domain`,
+          resolved.link.indexOf(expected.replace(/\/+$/, '')) === 0,
+          resolved.link
+        );
+      } else {
+        check('an account sits under a white-label partner', false, 'none found to test');
+      }
+
+      // Anyone outside the map must still reach the instance URL.
+      const outside = (await snGet(
+        'customer_account',
+        `${q(`account_parent.nameNOT IN${nameList}^nameNOT IN${nameList}`)}&sysparm_fields=sys_id,name&sysparm_limit=1`
+      ))[0];
+
+      if (outside) {
+        const resolved = await probe(api.base_uri, { probe: 'link', company_id: outside.sys_id });
+        check(
+          `${outside.name} falls back to the instance URL`,
+          resolved.domain === '' && resolved.link.indexOf(resolved.instance_url) === 0,
+          resolved.link
+        );
+      }
+    }
 
     console.log('\nUser eligibility metadata');
     const anyCompany = (await snGet(
