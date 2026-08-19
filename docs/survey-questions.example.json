@@ -40,8 +40,8 @@
     ]
   },
   {
-    "survey": "Generic Quarterly Survey",
-    "category": "Generic Quarterly Survey",
+    "survey": "Generic Schedule Survey",
+    "category": "Generic Schedule Survey",
     "questions": [
       {
         "question": "Overall, how satisfied are you with our service this quarter?",

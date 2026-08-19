@@ -43,7 +43,7 @@ CSATSurveyService.prototype = {
     // Surveys offered in the portal. Override without a deploy by setting the
     // csat.portal.survey_names property to a comma-separated list, or to an
     // empty string to offer every active survey.
-    PORTAL_SURVEYS: ['Complex Resolution Survey', 'Generic Quarterly Survey'],
+    PORTAL_SURVEYS: ['Complex Resolution Survey', 'Generic Schedule Survey'],
 
     // A recipient may not be surveyed again through this portal until this
     // many days have passed since their last successful send.

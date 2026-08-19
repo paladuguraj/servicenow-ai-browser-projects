@@ -42,7 +42,7 @@ const PROBE_SCRIPT = `(function process(request, response) {
     out.result = {
       closed_case: svc.isImmediateOnly('Closed Case Survey'),
       complex: svc.isImmediateOnly('Complex Resolution Survey'),
-      generic: svc.isImmediateOnly('Generic Quarterly Survey')
+      generic: svc.isImmediateOnly('Generic Schedule Survey')
     };
   } else if (action === 'cooldown_days') {
     out.result = { days: svc.COOLDOWN_DAYS };
@@ -80,7 +80,7 @@ async function main() {
     const imm = await probe({ probe: 'immediate' });
     check('Closed Case Survey is immediate-only', imm.closed_case === true);
     check('Complex Resolution Survey is immediate-only', imm.complex === true);
-    check('Generic Quarterly Survey allows scheduling', imm.generic === false);
+    check('Generic Schedule Survey allows scheduling', imm.generic === false);
 
     console.log('\nRule 5 — 90-day cooldown');
     const cd = await probe({ probe: 'cooldown_days' });
@@ -119,7 +119,7 @@ async function main() {
     const offered = await probe({ probe: 'templates' });
     check(
       'portal offers only the approved surveys',
-      offered.every((t) => ['Complex Resolution Survey', 'Generic Quarterly Survey'].indexOf(t.name) !== -1),
+      offered.every((t) => ['Complex Resolution Survey', 'Generic Schedule Survey'].indexOf(t.name) !== -1),
       offered.map((t) => t.name).join(', ') || 'none'
     );
 

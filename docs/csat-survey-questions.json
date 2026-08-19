@@ -28,8 +28,8 @@
     ]
   },
   {
-    "survey": "Generic Quarterly Survey",
-    "category": "Generic Quarterly Survey",
+    "survey": "Generic Schedule Survey",
+    "category": "Generic Schedule Survey",
     "questions": [
       {
         "name": "Overall Service Quality",
