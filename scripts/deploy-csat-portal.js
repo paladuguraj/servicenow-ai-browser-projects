@@ -7,7 +7,10 @@
 const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const PORTAL_SUFFIX = 'csat';
-const PORTAL_TITLE = 'CSAT Survey Portal';
+const PORTAL_TITLE = 'Network Operations CSAT Survey';
+
+const THEME_NAME = 'Network Operations CSAT';
+const HEADER_COLOUR = '#011B58';
 const WIDGET_ID = 'csat-survey-request';
 const LIST_WIDGET_ID = 'csat-survey-requests';
 const HOME_PAGE_ID = 'csat_home';
@@ -15,8 +18,9 @@ const LIST_PAGE_ID = 'csat_requests';
 const REPORT_WIDGET_ID = 'csat-survey-report';
 const REPORT_PAGE_ID = 'csat_report';
 
-// Theme and login page are inherited from the stock Service Portal ('/sp').
-// Resolved at deploy time because these sys_ids differ between instances.
+// The login page is inherited from the stock Service Portal ('/sp'), resolved
+// at deploy time because the sys_id differs between instances. The theme is
+// this portal's own — see ensureTheme.
 let spTheme = '';
 let spLoginPage = '';
 
@@ -174,20 +178,77 @@ async function ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageS
 
 async function resolvePortalDefaults() {
   const stock = (await snGet('sp_portal', 'sysparm_query=url_suffix=sp&sysparm_fields=theme,login_page'))[0];
-  if (stock) {
-    spTheme = stock.theme ? stock.theme.value : '';
-    spLoginPage = stock.login_page ? stock.login_page.value : '';
+  spLoginPage = stock && stock.login_page ? stock.login_page.value : '';
+  spTheme = await ensureTheme(stock && stock.theme ? stock.theme.value : '');
+  console.log(`Theme: ${THEME_NAME} (${spTheme})${spLoginPage ? `, login page: ${spLoginPage}` : ' (no login page inherited)'}`);
+}
+
+/**
+ * This portal needs its own theme. The stock theme is shared with the other
+ * portals on the instance, so recolouring it would repaint all of them.
+ *
+ * The theme is a copy of whatever the stock portal uses, with the header
+ * colour overridden. Copying rather than starting from nothing keeps the
+ * inherited header, footer and typography intact.
+ */
+async function ensureTheme(stockThemeSysId) {
+  const COPIED = [
+    'css_variables',
+    'header',
+    'footer',
+    'navbar_fixed',
+    'color_scheme',
+    'js_includes',
+    'css_includes',
+  ];
+
+  let source = null;
+  if (stockThemeSysId) {
+    source = (await snGet('sp_theme', `sysparm_query=sys_id=${stockThemeSysId}&sysparm_fields=${COPIED.join(',')}`))[0];
+  }
+  if (!source) {
+    source = (await snGet(
+      'sp_theme',
+      `sysparm_query=nameSTARTSWITHStock^ORname=Coral&sysparm_limit=1&sysparm_fields=${COPIED.join(',')}`
+    ))[0];
+  }
+  if (!source)
+    throw new Error('No Service Portal theme found to copy; is the Service Portal plugin active?');
+
+  const payload = { name: THEME_NAME };
+  COPIED.forEach((field) => {
+    const value = source[field];
+    payload[field] = value && typeof value === 'object' ? value.value : value || '';
+  });
+  payload.css_variables = applyHeaderColour(payload.css_variables);
+
+  const existing = await snGet(
+    'sp_theme',
+    `sysparm_query=${encodeURIComponent(`name=${THEME_NAME}`)}&sysparm_fields=sys_id`
+  );
+  if (existing.length) {
+    await snPatch('sp_theme', existing[0].sys_id, payload);
+    console.log(`Updated theme: ${THEME_NAME}`);
+    return existing[0].sys_id;
   }
 
-  if (!spTheme) {
-    const theme = (await snGet('sp_theme', 'sysparm_query=name=Coral^ORnameSTARTSWITHStock&sysparm_limit=1&sysparm_fields=sys_id'))[0];
-    spTheme = theme ? theme.sys_id : '';
-  }
+  const created = await snPost('sp_theme', payload);
+  console.log(`Created theme: ${THEME_NAME}`);
+  return created.sys_id;
+}
 
-  if (!spTheme)
-    throw new Error('No Service Portal theme found on this instance; is the Service Portal plugin active?');
+/**
+ * The stock header renders as a Bootstrap inverse navbar, so its background
+ * comes from $navbar-inverse-bg. Replace the declaration if the copied theme
+ * has one, otherwise append it.
+ */
+function applyHeaderColour(cssVariables) {
+  const declaration = `$navbar-inverse-bg: \t${HEADER_COLOUR} !default;`;
+  const existing = /^\s*\$navbar-inverse-bg\s*:.*$/m;
+  const variables = cssVariables || '';
 
-  console.log(`Theme: ${spTheme}${spLoginPage ? `, login page: ${spLoginPage}` : ' (no login page inherited)'}`);
+  if (existing.test(variables)) return variables.replace(existing, declaration);
+  return `${variables.replace(/\s*$/, '')}\n${declaration}\n`;
 }
 
 async function ensurePortal(homePageSysId) {
