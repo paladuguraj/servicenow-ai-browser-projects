@@ -10,11 +10,13 @@
  * Source sets are left untouched, so the history stays readable.
  *
  * Usage:
- *   node scripts/consolidate-update-set.js [--name "..."] [--dry-run] [--retire-sources]
+ *   node scripts/consolidate-update-set.js [--name "..."] [--dry-run]
+ *                                          [--retire-sources] [--keep "A,B"]
  *
- * --retire-sources marks the sets it consolidated as Ignore, so only one set
- * is offered for export. It is reversible: set them back to Complete to use
- * them again.
+ * --retire-sources marks the sets it consolidated as Ignore, so the migration
+ * set is the obvious one to export. It is reversible: set them back to
+ * Complete to use them again. --keep exempts named sets, for a round of
+ * changes that should stay usable on its own.
  */
 const { base, snGet, snPost, snPatch, announceTarget } = require('./lib/sn-client');
 const { withProbe, PROBE_API_NAME } = require('./lib/probe');
@@ -50,6 +52,15 @@ const FORCE_CAPTURE = [
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const retireSources = args.includes('--retire-sources');
+
+// Sets to leave in Complete state even when retiring the rest. A dated set of
+// one round of changes is worth keeping usable on its own, so it can be
+// applied to an instance that already has the solution.
+const keepFlag = args.indexOf('--keep');
+const keepComplete = (keepFlag !== -1 ? args[keepFlag + 1] || '' : '')
+  .split(',')
+  .map((n) => n.trim())
+  .filter(Boolean);
 const nameFlag = args.indexOf('--name');
 const targetName = nameFlag !== -1 ? args[nameFlag + 1] : DEFAULT_TARGET;
 
@@ -450,8 +461,18 @@ async function main() {
     throw new Error(`expected ${expected} entries in the set but found ${result.total}`);
 
   if (retireSources) {
-    for (const set of sources) await snPatch('sys_update_set', set.sys_id, { state: 'ignore' });
-    console.log(`\nMarked ${sources.length} superseded set(s) as Ignore so only one is offered for export.`);
+    const retired = sources.filter((s) => keepComplete.indexOf(s.name) === -1);
+    for (const set of retired) await snPatch('sys_update_set', set.sys_id, { state: 'ignore' });
+    console.log(`\nMarked ${retired.length} superseded set(s) as Ignore.`);
+    for (const name of keepComplete) {
+      const kept = sources.find((s) => s.name === name);
+      if (!kept) {
+        console.log(`  --keep "${name}" matched no source set`);
+        continue;
+      }
+      await snPatch('sys_update_set', kept.sys_id, { state: 'complete' });
+      console.log(`  kept Complete: ${name}`);
+    }
   }
 
   console.log(`\n"${targetName}" is complete with ${result.total} change(s).`);

@@ -138,7 +138,7 @@ There is one, and it is the only CSAT Survey Portal set left in **Complete**
 state on adcomsolutionsdev:
 
 > ### CSAT Survey Portal - ALL CHANGES v2.0
-> 117 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
+> 118 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
 
 It holds the solution as it stands and nothing else: the portal and its three
 pages and widgets, the three tables with their columns, labels and choice
@@ -155,16 +155,27 @@ two questions each actually asks.
 | Scheduled job | 1 |
 | Event and notifications | 7 |
 | Mail scripts | 3 |
-| Portal, pages, widgets, menu, layout | 25 |
+| Portal, pages, widgets, menu, layout, theme | 26 |
 | System properties | 2 |
 | Survey definitions, questions, choices | 18 |
 
 Every entry is an insert or update of a record that exists and is in use. There
 are no deletions and no superseded artefacts.
 
-Every other `CSAT Survey Portal` set is now **Ignore**. Their contents are
+One other set is deliberately left in Complete state:
+
+> ### CSAT Survey Portal - Rebrand and survey intro
+> 6 changes · the portal rename and `#011B58` header, its dedicated theme, the
+> Generic Schedule Survey rename and the two surveys skipping their Get Started
+> page
+
+That is a delta, for an instance that already runs the solution and only needs
+this round of changes. Everything in it is also in the full set above, so apply
+one or the other, not both.
+
+Every other `CSAT Survey Portal` set is **Ignore**. Their contents are
 preserved, so setting one back to Complete restores it, but none of them should
-be migrated — everything they held is in the set above.
+be migrated — everything they held is in the full set.
 
 > The instance also carries older CSAT work belonging to the customer
 > (`SE-740_CSAT Survey edits_CC` and similar, 14 sets). Those are unrelated to
@@ -186,7 +197,8 @@ If more changes are made, re-run:
 
 ```bash
 ENV_FILE=.env.adcom node scripts/consolidate-update-set.js --dry-run
-ENV_FILE=.env.adcom node scripts/consolidate-update-set.js --retire-sources
+ENV_FILE=.env.adcom node scripts/consolidate-update-set.js --retire-sources \
+  --keep "CSAT Survey Portal - Rebrand and survey intro"
 ```
 
 It reads every `CSAT Survey Portal` set, keeps the newest version of each
