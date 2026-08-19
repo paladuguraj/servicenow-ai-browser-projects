@@ -31,10 +31,21 @@ const DEFAULT_TARGET = 'CSAT Survey Portal - ALL CHANGES v2.0';
 // achieves nothing.
 const LAYOUT_TYPES = ['Container', 'Row', 'Column', 'Instance'];
 
+// Records that have to be pushed into the set deliberately.
+//
 // The platform treats scheduled jobs as data rather than metadata, so editing
-// one is never captured. It has to be pushed into the set deliberately or the
-// 30/60-day schedules would never run on the target.
-const FORCE_CAPTURE = [['sysauto_script', 'CSAT Survey Request - Scheduled Runner']];
+// one is never captured, and the 30/60-day schedules would never run on the
+// target without this.
+//
+// The portal layout is here for a different reason: placing a widget deletes
+// and recreates the containers, rows, columns and instances, so their sys_ids
+// change on every deploy and any previously captured entry goes stale. Taking
+// the live layout straight from the pages keeps the set correct however many
+// times the portal has been redeployed.
+const FORCE_CAPTURE = [
+  { table: 'sysauto_script', query: 'name=CSAT Survey Request - Scheduled Runner', label: 'scheduled job' },
+  { layout: true, pages: ['csat_home', 'csat_requests', 'csat_report'], label: 'portal layout' },
+];
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
@@ -241,22 +252,73 @@ const COPY_SCRIPT = `(function process(request, response) {
   // Records the platform will not capture on its own are pushed in through the
   // same API the "Add to Update Set" action uses.
   out.forced = [];
+  out.forcedCount = 0;
   if (body.force.length) {
+    var manager = new GlideUpdateManager2();
     var previous = new GlideUpdateSet().get();
     new GlideUpdateSet().set(body.target_set);
+
+    function save(gr) {
+      manager.saveRecord(gr);
+      return 1;
+    }
+
+    // Walks page -> container -> row -> column -> instance, capturing each.
+    function captureLayout(pageIds) {
+      var saved = 0;
+      var page = new GlideRecord('sp_page');
+      page.addQuery('id', 'IN', pageIds.join(','));
+      page.query();
+      while (page.next()) {
+        var container = new GlideRecord('sp_container');
+        container.addQuery('sp_page', page.getUniqueValue());
+        container.query();
+        while (container.next()) {
+          saved += save(container);
+          var row = new GlideRecord('sp_row');
+          row.addQuery('sp_container', container.getUniqueValue());
+          row.query();
+          while (row.next()) {
+            saved += save(row);
+            var column = new GlideRecord('sp_column');
+            column.addQuery('sp_row', row.getUniqueValue());
+            column.query();
+            while (column.next()) {
+              saved += save(column);
+              var instance = new GlideRecord('sp_instance');
+              instance.addQuery('sp_column', column.getUniqueValue());
+              instance.query();
+              while (instance.next()) saved += save(instance);
+            }
+          }
+        }
+      }
+      return saved;
+    }
+
     try {
       for (var j = 0; j < body.force.length; j++) {
-        var table = body.force[j][0];
-        var recordName = body.force[j][1];
-        var forced = new GlideRecord(table);
-        forced.addQuery('name', recordName);
-        forced.query();
-        if (!forced.next()) {
-          out.errors.push('cannot force-capture missing ' + table + ' "' + recordName + '"');
+        var spec = body.force[j];
+        if (spec.layout) {
+          var count = captureLayout(spec.pages);
+          if (!count) out.errors.push('no portal layout found for ' + spec.pages.join(', '));
+          else {
+            out.forced.push(count + ' ' + spec.label + ' record(s)');
+            out.forcedCount += count;
+          }
           continue;
         }
-        new GlideUpdateManager2().saveRecord(forced);
-        out.forced.push(table + ' "' + recordName + '"');
+        var forced = new GlideRecord(spec.table);
+        forced.addEncodedQuery(spec.query);
+        forced.query();
+        if (!forced.hasNext()) {
+          out.errors.push('cannot force-capture ' + spec.table + ' matching ' + spec.query);
+          continue;
+        }
+        var n = 0;
+        while (forced.next()) n += save(forced);
+        out.forced.push(n + ' ' + spec.label + ' record(s)');
+        out.forcedCount += n;
       }
     } finally {
       new GlideUpdateSet().set(previous);
@@ -383,7 +445,7 @@ async function main() {
   }
   console.log(`  ${result.written} copied, ${result.total} present in the set.`);
 
-  const expected = keep.length + result.forced.length;
+  const expected = keep.length + result.forcedCount;
   if (result.total !== expected)
     throw new Error(`expected ${expected} entries in the set but found ${result.total}`);
 
