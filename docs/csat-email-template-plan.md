@@ -65,8 +65,9 @@ case. It is the correct building block.
 
 **Link destination: Service Portal.** Recipients are customer contacts, so the
 invitation links to `/csat?id=take_survey&instance_id=<sys_id>` rather than the
-platform UI. Verified: opening the link as the survey owner loads the survey
-with a **Get Started** button; opening it as anyone else is correctly refused.
+platform UI. Verified: opening the link as the survey owner loads the survey;
+opening it as anyone else is correctly refused. The link now lands straight on
+the first question — see the survey landing page note in the technical design.
 
 **Pattern: mirrors the existing case invitation.** Same body structure, same
 covering wording, and the same sender-resolution approach, so the two emails
@@ -215,7 +216,7 @@ Link: https://adcomsolutionsdev.service-now.com/csat?id=take_survey
 | Subject renders the survey name | `Closed Case Survey - we would value your feedback` |
 | No empty placeholders | Confirmed |
 | Survey link present | Yes, Service Portal |
-| Link opens the survey for its owner | Verified — loads with **Get Started** |
+| Link opens the survey for its owner | Verified — lands on the first question |
 | Link refused for anyone else | Verified — "not authorized or the record is not valid" |
 
 ### Phase 6 — Enable delivery
@@ -237,7 +238,7 @@ These block a live send regardless of the email template:
 | Outbound email enabled | **Off** |
 | Closed Case Survey | Published, 1 question |
 | Complex Resolution Survey | **Draft, 0 questions** |
-| Generic Quarterly Survey | **Draft, 0 questions** |
+| Generic Schedule Survey | **Draft, 0 questions** |
 | Primary Billing Contact populated | **1 company only** |
 
 A survey with one question will produce a very thin invitation. Content should

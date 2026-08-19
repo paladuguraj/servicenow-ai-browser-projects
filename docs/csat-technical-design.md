@@ -209,7 +209,44 @@ rather than thrown, so a bad edit cannot break the invitation email.
 
 ---
 
-## 6. Portal widgets
+## 6. Portal branding and the survey landing page
+
+**Theme.** The portal is titled *Network Operations CSAT Survey* and has its own
+theme of the same name, with the header set to `#011B58` through
+`$navbar-inverse-bg` — the stock header renders as a Bootstrap inverse navbar,
+so that variable drives its background.
+
+The theme is a **copy** of whatever theme the stock `/sp` portal uses, taken at
+deploy time, rather than an edit of it. The stock theme is shared with the
+knowledge, Tao and configuration portals on this instance, so recolouring it
+would have repainted all of them. Copying also inherits the header, footer and
+typography, so only the colour differs.
+
+Verified in the compiled output rather than the source variables: the CSAT
+portal resolves to `.navbar-inverse { background-color: #011B58; }` while `/sp`
+is unchanged.
+
+**Landing page.** The stock survey widget opens on an introduction screen with
+a *Get Started* button. Cloning the widget to remove it was unnecessary: the
+screen is already conditional on the survey's own **Do not show survey
+introduction notes** field, which `SPSurveyAPI.loadSurvey` passes to the widget
+as `not_show_intro_note`, and the widget's controller reads:
+
+```js
+// Skip introduction note page
+if (c.data.not_show_intro_note == 'true')
+    c.state = 0;
+```
+
+Setting that field on the two portal surveys therefore sends recipients
+straight to the first question and leaves every other survey on the instance —
+including Closed Case Survey — on its existing behaviour. `scripts/configure-survey-landing.js`
+applies it.
+
+The introduction text is left stored but unrendered, so clearing the field
+restores the landing page without having to rewrite it.
+
+## 6.2 Portal widgets
 
 ### `csat-survey-request`
 
@@ -245,7 +282,7 @@ report never offers a survey the portal cannot raise.
 
 ---
 
-## 6.1 Report exports
+## 6.3 Report exports
 
 The report exports to PDF, Excel and CSV. Each takes a different route because
 each has a different constraint.

@@ -51,6 +51,9 @@ must confirm how many people will be emailed before anything is sent.
 | FR-21 | Exports reflect the filters currently applied to the report | Met |
 | FR-22 | Recipients of a **white-label partner** receive the survey link on that partner's own domain | Met |
 | FR-23 | Everyone else receives the link on the instance's own address | Met |
+| FR-24 | The portal is branded **Network Operations CSAT Survey** with a `#011B58` header | Met |
+| FR-25 | Recipients land **directly on the first question**, with no Get Started page | Met |
+| FR-26 | Branding and landing-page changes affect **only this portal and these surveys** | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -113,7 +116,7 @@ Run: `npm run test:csat:rules` against adcomsolutionsdev
 | 2 | Search filters the company list | FR-02 | Pass — "Bank" returned 116 matches |
 | 3 | Closed Case Survey is immediate-only | FR-08 | Pass |
 | 4 | Complex Resolution Survey is immediate-only | FR-08 | Pass |
-| 5 | Generic Quarterly Survey allows scheduling | FR-09 | Pass |
+| 5 | Generic Schedule Survey allows scheduling | FR-09 | Pass |
 | 6 | Cooldown window is 90 days | FR-10 | Pass |
 | 7 | Primary Billing Contact resolves to a user | FR-03, FR-04 | Pass — resolved to a named, eligible user |
 | 8 | Account without a contact explains why | FR-03 | Pass — "This company has no Primary Billing Contact set." |
@@ -144,7 +147,7 @@ of the run).
 
 | Check | Covers | Observed |
 |---|---|---|
-| Survey filter offers portal surveys only | FR-19 | Complex Resolution Survey, Generic Quarterly Survey |
+| Survey filter offers portal surveys only | FR-19 | Complex Resolution Survey, Generic Schedule Survey |
 | Account filter | FR-18 | 12 accounts drawn from the audit trail |
 | Report run, unfiltered | FR-18 | 48 rows, 12 account groups |
 | Report run, awaiting reply only | FR-18 | 48 rows |
@@ -178,6 +181,17 @@ Fallbacks, each confirmed to return the instance address:
 | Request has no account | Instance address |
 
 Case-triggered surveys were re-checked and are unchanged.
+
+### 4.2c Branding and survey landing page — passed
+
+| Check | Covers | Observed |
+|---|---|---|
+| Portal title | FR-24 | Page title reads *Service Portal - Network Operations CSAT Survey* |
+| Header colour | FR-24 | Compiled CSS gives `.navbar-inverse { background-color: #011B58 }` |
+| Other portals unaffected | FR-26 | `/sp`, `/kb`, `/tao`, `/sp_config` still on the Stock theme, none resolving to `#011B58` |
+| No Get Started page | FR-25 | Loading a real survey as its recipient returns `not_show_intro_note = true`, so the widget opens on the first question |
+| Other surveys unaffected | FR-26 | Closed Case Survey still shows its landing page |
+| Survey rename applied everywhere | — | Definition, description, category and the `csat.portal.survey_names` allow-list all read *Generic Schedule Survey*; the request form and report filter both offer it |
 
 ### 4.3 Rules proven with live data
 
@@ -222,7 +236,7 @@ are created and visible to recipients in **My Surveys**, but no email arrives.
 |---|---|---|
 | Closed Case Survey | Yes | 1 |
 | Complex Resolution Survey | **No** | **0** |
-| Generic Quarterly Survey | **No** | **0** |
+| Generic Schedule Survey | **No** | **0** |
 
 Two of the three surveys cannot be sent. They need questions adding and then
 publishing in Survey Designer. Only Closed Case Survey is usable today, and with
