@@ -1,0 +1,84 @@
+.csat-survey-request .csat-users-panel {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 0;
+}
+
+.csat-survey-request .csat-blocked {
+  margin-top: 8px;
+  background: #fbfbfc;
+}
+
+.csat-survey-request .csat-chosen {
+  margin-bottom: 8px;
+}
+
+.csat-survey-request .csat-chip {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.csat-survey-request .csat-chip a {
+  color: #fff;
+  margin-left: 6px;
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.csat-survey-request .csat-chip a:hover {
+  opacity: 1;
+}
+
+.csat-survey-request .csat-clear {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.csat-survey-request .csat-user-filter {
+  margin-bottom: 8px;
+}
+
+.csat-survey-request .csat-links .btn-link {
+  padding-left: 0;
+}
+
+.csat-survey-request .csat-note {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.csat-survey-request .radio .csat-note {
+  margin-left: 20px;
+}
+
+.csat-survey-request .csat-company-picker {
+  position: relative;
+}
+
+.csat-survey-request .csat-typeahead {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.csat-survey-request .csat-typeahead li {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.csat-survey-request .csat-typeahead li:hover {
+  background: #f0f6ff;
+}

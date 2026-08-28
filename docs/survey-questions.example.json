@@ -1,0 +1,68 @@
+[
+  {
+    "survey": "Complex Resolution Survey",
+    "category": "Complex Resolution Survey",
+    "questions": [
+      {
+        "question": "How satisfied were you with the resolution of your issue?",
+        "explanation": "Considers whether the outcome fully addressed the problem you reported.",
+        "datatype": "numericscale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true
+      },
+      {
+        "question": "How would you rate the communication you received while the issue was open?",
+        "explanation": "Covers how clearly and how often we kept you updated.",
+        "datatype": "scale"
+      },
+      {
+        "question": "Was the issue resolved within an acceptable timeframe?",
+        "explanation": "Judged against the urgency you expected, not our internal targets.",
+        "datatype": "boolean"
+      },
+      {
+        "question": "Which part of the resolution worked best for you?",
+        "explanation": "Select the single area that stood out.",
+        "datatype": "choice",
+        "choices": [
+          { "text": "Speed of response", "value": 1 },
+          { "text": "Technical expertise", "value": 2 },
+          { "text": "Quality of updates", "value": 3 },
+          { "text": "Follow-up after closure", "value": 4 }
+        ]
+      },
+      {
+        "question": "What could we have done better?",
+        "explanation": "Free text. Anything you share is reviewed by the account team.",
+        "datatype": "string"
+      }
+    ]
+  },
+  {
+    "survey": "Generic Schedule Survey",
+    "category": "Generic Schedule Survey",
+    "questions": [
+      {
+        "question": "Overall, how satisfied are you with our service this quarter?",
+        "explanation": "Your general impression across everything we delivered in the period.",
+        "datatype": "numericscale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true
+      },
+      {
+        "question": "How likely are you to recommend us to a colleague?",
+        "explanation": "0 means not at all likely, 10 means extremely likely.",
+        "datatype": "numericscale",
+        "min": 0,
+        "max": 10
+      },
+      {
+        "question": "Any comments you would like to share with the account team?",
+        "explanation": "Optional free text.",
+        "datatype": "string"
+      }
+    ]
+  }
+]

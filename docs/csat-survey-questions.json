@@ -1,0 +1,58 @@
+[
+  {
+    "survey": "Complex Resolution Survey",
+    "category": "Complex Resolution Survey",
+    "questions": [
+      {
+        "name": "Overall Service Quality",
+        "question": "How would you rate the overall quality of our service?",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Dissatisfied" },
+          { "value": 2, "display": "Somewhat Dissatisfied" },
+          { "value": 3, "display": "Neutral" },
+          { "value": 4, "display": "Somewhat Satisfied" },
+          { "value": 5, "display": "Very Satisfied" }
+        ]
+      },
+      {
+        "name": "Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "datatype": "string",
+        "string_option": "multiline",
+        "mandatory": false
+      }
+    ]
+  },
+  {
+    "survey": "Generic Schedule Survey",
+    "category": "Generic Schedule Survey",
+    "questions": [
+      {
+        "name": "Overall Service Quality",
+        "question": "How would you rate the overall quality of our service?",
+        "datatype": "scale",
+        "min": 1,
+        "max": 5,
+        "mandatory": true,
+        "choices": [
+          { "value": 1, "display": "Very Dissatisfied" },
+          { "value": 2, "display": "Somewhat Dissatisfied" },
+          { "value": 3, "display": "Neutral" },
+          { "value": 4, "display": "Somewhat Satisfied" },
+          { "value": 5, "display": "Very Satisfied" }
+        ]
+      },
+      {
+        "name": "Additional Comments",
+        "question": "Do you have any additional comments or suggestions for how we could improve?",
+        "datatype": "string",
+        "string_option": "multiline",
+        "mandatory": false
+      }
+    ]
+  }
+]
