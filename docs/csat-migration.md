@@ -134,17 +134,42 @@ These are instance data or configuration, not application artifacts:
 
 ## The update set to move
 
-There is one, and it is the only CSAT Survey Portal set left in **Complete**
-state on adcomsolutionsdev:
+Two, and they must both be committed, in this order.
 
-> ### CSAT Survey Portal - ALL CHANGES v2.0
-> 118 changes · `cdf1ea853b7a8750c4e908ac24e45a64`
+> ### 1. CSAT Survey Portal - ALL CHANGES v2.0
+> 117 changes · scope **global** · `cdf1ea853b7a8750c4e908ac24e45a64`
 
-It holds the solution as it stands and nothing else: the portal and its three
-pages and widgets, the three tables with their columns, labels and choice
-lists, the three script includes, both business rules, the scheduled job, the
-event and notifications, the mail scripts, and both survey definitions with the
-two questions each actually asks.
+> ### 2. CSAT Survey Portal - ALL CHANGES v2.0 (sn_portal_surveys)
+> 1 change · scope **sn_portal_surveys** · `af789f582b4f435007a3fa95b891bf66`
+
+They are split because **an update set can only hold changes from its own
+application scope**. Committing a global set that contains a scoped record
+fails with:
+
+```
+Update scope id '67ac5062db10220035417878f0b8f5c4' is different than
+update set scope id 'global'. Resolve the problem before committing.
+```
+
+The one scoped change is a condition added to **Survey Assigned Notification**,
+which belongs to the Service Portal Surveys store app. Without it that stock
+notification also fires for portal-raised surveys and the recipient receives
+two invitations. It cannot simply be dropped, and it cannot be made global: it
+edits a record the store app owns.
+
+> It also cannot be avoided by turning off the platform invitation on these
+> surveys. Both Complex Resolution Survey and Generic Schedule Survey have
+> active trigger conditions on `sn_customerservice_case`, so they are raised by
+> the case flow as well as by the portal; suppressing their platform
+> notification would stop the case-triggered invitations too. Filtering on
+> `trigger_table` is what keeps the two paths apart.
+
+The global set holds everything else:
+
+the portal and its three pages and widgets, the three tables with their
+columns, labels and choice lists, the three script includes, both business
+rules, the scheduled job, the event and notifications, the mail scripts, and
+both survey definitions with the two questions each actually asks.
 
 | | |
 |---|---|
@@ -153,7 +178,7 @@ two questions each actually asks.
 | Script includes | 3 |
 | Business rules | 2 |
 | Scheduled job | 1 |
-| Event and notifications | 7 |
+| Event and notifications | 6 |
 | Mail scripts | 3 |
 | Portal, pages, widgets, menu, layout, theme | 26 |
 | System properties | 2 |
@@ -183,10 +208,16 @@ be migrated — everything they held is in the full set.
 
 ### Moving it
 
+Repeat these steps for **both** sets, global first:
+
 1. On the source: **System Update Sets > Local Update Sets >
-   CSAT Survey Portal - ALL CHANGES v2.0 > Export to XML**
+   *the set* > Export to XML**
 2. On the target: **Retrieved Update Sets > Import Update Set from XML**
 3. Open the retrieved set, **Preview**, resolve any collisions, then **Commit**
+
+The Service Portal Surveys app must be present on the target before the scoped
+set will commit. If the two invitations are acceptable for a first pass, the
+global set works on its own and the scoped one can follow.
 
 Read [what does not transfer](#what-does-not-transfer) first — companies, users,
 SMTP and `survey.link.whitelabel` are instance data and are not in the set.

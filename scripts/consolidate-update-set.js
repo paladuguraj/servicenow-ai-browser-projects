@@ -176,7 +176,7 @@ async function loadEntries(sets) {
   for (const set of sets) {
     const rows = await snGet(
       'sys_update_xml',
-      `sysparm_query=update_set=${set.sys_id}&sysparm_fields=sys_id,name,type,target_name,action,sys_created_on,sys_recorded_at&sysparm_limit=5000`
+      `sysparm_query=update_set=${set.sys_id}&sysparm_fields=sys_id,name,type,target_name,action,application,sys_created_on,sys_recorded_at&sysparm_limit=5000`
     );
     rows.forEach((row) => entries.push(row));
   }
@@ -348,28 +348,52 @@ const COPY_SCRIPT = `(function process(request, response) {
   return { result: out };
 })(request, response);`;
 
-async function ensureTargetSet() {
+async function ensureTargetSet(name, application, description) {
   const existing = await snGet(
     'sys_update_set',
-    `sysparm_query=${encodeURIComponent(`name=${targetName}`)}&sysparm_fields=sys_id,state`
+    `sysparm_query=${encodeURIComponent(`name=${name}`)}&sysparm_fields=sys_id,state`
   );
 
   if (existing.length) {
     const set = existing[0];
-    if (set.state === 'complete') await snPatch('sys_update_set', set.sys_id, { state: 'in progress' });
+    const patch = { application };
+    if (set.state === 'complete') patch.state = 'in progress';
+    await snPatch('sys_update_set', set.sys_id, patch);
     return set.sys_id;
   }
 
   const created = await snPost('sys_update_set', {
-    name: targetName,
-    description:
-      'Every CSAT Survey Portal change as a single set: portal, widgets, pages, tables, ' +
-      'script includes, notifications, mail scripts and survey definitions. Rebuilt by ' +
-      'scripts/consolidate-update-set.js from the sets captured during the build.',
+    name,
+    application,
+    description,
     state: 'in progress',
   });
-  console.log(`Created update set: ${targetName}`);
+  console.log(`Created update set: ${name}`);
   return created.sys_id;
+}
+
+/**
+ * An update set can only hold changes from its own application scope —
+ * committing a global set that contains a scoped record fails with "Update
+ * scope id ... is different than update set scope id". Almost everything here
+ * is global, but the guard that stops the Service Portal Surveys invitation
+ * firing for portal-raised surveys belongs to that store app, so it needs a
+ * set of its own.
+ */
+function groupByScope(entries) {
+  const groups = new Map();
+  entries.forEach((row) => {
+    const scope = (row.application && row.application.value) || row.application || 'global';
+    if (!groups.has(scope)) groups.set(scope, []);
+    groups.get(scope).push(row);
+  });
+  return groups;
+}
+
+async function scopeLabel(sysId) {
+  if (sysId === 'global') return 'global';
+  const scope = await snGet('sys_scope', `sysparm_query=sys_id=${sysId}&sysparm_fields=scope,name`);
+  return scope.length ? scope[0].scope : sysId;
 }
 
 async function main() {
@@ -429,36 +453,56 @@ async function main() {
     return;
   }
 
-  const targetSysId = await ensureTargetSet();
+  const groups = groupByScope(keep);
+  const built = [];
 
-  console.log(`\nCopying ${keep.length} entry(s)...`);
-  const result = await withProbe(
-    'consolidate_update_set',
-    COPY_SCRIPT,
-    (call) =>
-      call({
-        body: {
-          target_set: targetSysId,
-          fields: COPIED_FIELDS,
-          force: FORCE_CAPTURE,
-          ids: keep.map((row) => row.sys_id),
-        },
-      }),
-    'POST'
-  );
+  for (const [scope, rows] of groups) {
+    const label = await scopeLabel(scope);
+    const isGlobal = scope === 'global';
+    const name = isGlobal ? targetName : `${targetName} (${label})`;
 
-  if (result.error) throw new Error(result.error);
-  if (result.cleared) console.log(`  cleared ${result.cleared} entry(s) from a previous run`);
-  result.forced.forEach((f) => console.log(`  force-captured ${f}`));
-  if (result.errors.length) {
-    console.log(`  ${result.errors.length} problem(s):`);
-    result.errors.forEach((e) => console.log(`      ${e}`));
+    const description = isGlobal
+      ? 'Every global CSAT Survey Portal change as a single set: portal, widgets, pages, ' +
+        'tables, script includes, notifications, mail scripts and survey definitions. ' +
+        'Rebuilt by scripts/consolidate-update-set.js.'
+      : `CSAT Survey Portal changes belonging to the ${label} application. Kept separate ` +
+        'because an update set can only hold changes from its own scope. Commit alongside ' +
+        `"${targetName}".`;
+
+    const targetSysId = await ensureTargetSet(name, scope, description);
+
+    console.log(`\nCopying ${rows.length} entry(s) into "${name}" [${label}]...`);
+    const result = await withProbe(
+      'consolidate_update_set',
+      COPY_SCRIPT,
+      (call) =>
+        call({
+          body: {
+            target_set: targetSysId,
+            fields: COPIED_FIELDS,
+            // Forced records are all global, so only the global set takes them.
+            force: isGlobal ? FORCE_CAPTURE : [],
+            ids: rows.map((row) => row.sys_id),
+          },
+        }),
+      'POST'
+    );
+
+    if (result.error) throw new Error(result.error);
+    if (result.cleared) console.log(`  cleared ${result.cleared} entry(s) from a previous run`);
+    result.forced.forEach((f) => console.log(`  force-captured ${f}`));
+    if (result.errors.length) {
+      console.log(`  ${result.errors.length} problem(s):`);
+      result.errors.forEach((e) => console.log(`      ${e}`));
+    }
+    console.log(`  ${result.written} copied, ${result.total} present in the set.`);
+
+    const expected = rows.length + result.forcedCount;
+    if (result.total !== expected)
+      throw new Error(`expected ${expected} entries in "${name}" but found ${result.total}`);
+
+    built.push({ name, label, sysId: targetSysId, total: result.total });
   }
-  console.log(`  ${result.written} copied, ${result.total} present in the set.`);
-
-  const expected = keep.length + result.forcedCount;
-  if (result.total !== expected)
-    throw new Error(`expected ${expected} entries in the set but found ${result.total}`);
 
   if (retireSources) {
     const retired = sources.filter((s) => keepComplete.indexOf(s.name) === -1);
@@ -475,9 +519,17 @@ async function main() {
     }
   }
 
-  console.log(`\n"${targetName}" is complete with ${result.total} change(s).`);
-  console.log('\nExport XML:');
-  console.log(`  ${base}/export_update_set.do?sysparm_sys_id=${targetSysId}&sysparm_delete_when_done=false`);
+  console.log(built.length > 1 ? '\nCommit these in order:' : '');
+  built.forEach((set, index) => {
+    console.log(`\n${built.length > 1 ? `${index + 1}. ` : ''}"${set.name}" [${set.label}] — ${set.total} change(s)`);
+    console.log(`   ${base}/export_update_set.do?sysparm_sys_id=${set.sysId}&sysparm_delete_when_done=false`);
+  });
+
+  if (built.length > 1)
+    console.log(
+      '\nAn update set can only hold changes from its own scope, so these have to stay\n' +
+        'separate. Commit the global set first, then the scoped one.'
+    );
 }
 
 main().catch((err) => {
