@@ -7,7 +7,8 @@
     "verify:login": "node scripts/verify-login-page.js",
     "test:login": "node scripts/login-test.js",
     "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/setup-csat-rest-api.js && node scripts/build-ui-page-simple.js",
-    "deploy:escalation-fields": "node scripts/deploy-escalation-fields.js"
+    "deploy:escalation-fields": "node scripts/deploy-escalation-fields.js",
+    "deploy:escalation-form": "node scripts/deploy-escalation-form.js"
   },
   "repository": {
     "type": "git",
