@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "servicenow": {
+      "command": "npx",
+      "args": ["-y", "nowaikit"],
+      "env": {
+        "SERVICENOW_INSTANCE_URL": "https://dev413733.service-now.com",
+        "SERVICENOW_AUTH_METHOD": "basic",
+        "SERVICENOW_BASIC_USERNAME": "${env:SN_USERNAME}",
+        "SERVICENOW_BASIC_PASSWORD": "${env:SN_PASSWORD}",
+        "WRITE_ENABLED": "false",
+        "MCP_TOOL_PACKAGE": "full"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
