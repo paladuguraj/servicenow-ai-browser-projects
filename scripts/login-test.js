@@ -8,7 +8,10 @@ const path = require('path');
 const { chromium } = require('playwright');
 
 function loadDotEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
+  const root = path.join(__dirname, '..');
+  const envPath = process.env.ENV_FILE
+    ? path.resolve(root, process.env.ENV_FILE)
+    : path.join(root, '.env');
   if (!fs.existsSync(envPath)) return;
   for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
     const trimmed = line.trim();
