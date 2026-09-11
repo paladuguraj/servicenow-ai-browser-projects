@@ -23,7 +23,7 @@ function loadDotEnv() {
 
 loadDotEnv();
 
-const instanceUrl = (process.env.SN_INSTANCE_URL || 'https://dev413733.service-now.com').replace(/\/$/, '');
+const instanceUrl = (process.env.SN_INSTANCE_URL || 'https://adcomsolutionsdev.service-now.com').replace(/\/$/, '');
 const username = process.env.SN_USERNAME;
 const password = process.env.SN_PASSWORD;
 
