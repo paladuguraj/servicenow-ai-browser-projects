@@ -15,7 +15,7 @@
  */
 const { snGet, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
-const SURVEYS = ['Complex Resolution Survey', 'Generic Schedule Survey'];
+const SURVEYS = ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'];
 const apply = process.argv.includes('--apply');
 
 async function main() {

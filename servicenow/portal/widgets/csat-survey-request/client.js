@@ -1,6 +1,10 @@
 api.controller = function($scope, $timeout, $window, spModal, spUtil) {
     var c = this;
 
+    // What the customer is told the survey is called, matching the invitation
+    // email. Kept in step with the deploy scripts.
+    var CUSTOMER_FACING_LABEL = 'How did we do?';
+
     var BLANK_FORM = {
         company: '',
         companyName: '',
@@ -88,20 +92,28 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
     };
 
     /**
-     * Seeds the notes with the survey name. Anything the requester has typed
-     * after the prefix is carried over, so switching survey re-labels the note
-     * without discarding their text.
+     * Seeds the notes with the label the customer knows the survey by, since
+     * the note is printed in the invitation email. It is deliberately not the
+     * template name: the definitions are named for internal use and that
+     * wording should not reach a recipient.
+     *
+     * Anything the requester has typed after the prefix is carried over, and
+     * prefixes seeded by an earlier version are recognised too so switching
+     * survey never strands an old label in the note.
      */
     c.applyNotesPrefix = function() {
-        var template = c.selectedTemplate();
-        var prefix = template ? template.name + ' - ' : '';
+        var prefix = c.selectedTemplate() ? CUSTOMER_FACING_LABEL + ' - ' : '';
         var current = c.form.notes || '';
 
+        var known = [CUSTOMER_FACING_LABEL].concat(
+            (c.data.templates || []).map(function(t) { return t.name; })
+        );
+
         var typed = current;
-        var previous = (c.data.templates || []).map(function(t) { return t.name + ' - '; });
-        for (var i = 0; i < previous.length; i++) {
-            if (current.indexOf(previous[i]) === 0) {
-                typed = current.slice(previous[i].length);
+        for (var i = 0; i < known.length; i++) {
+            var seeded = known[i] + ' - ';
+            if (current.indexOf(seeded) === 0) {
+                typed = current.slice(seeded.length);
                 break;
             }
         }

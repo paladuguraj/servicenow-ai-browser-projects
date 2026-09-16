@@ -20,6 +20,12 @@ const INSTANCE_TABLE = 'asmt_assessment_instance';
 const CASE_NOTIFICATION = 'Survey User Invite v2- Manually Created';
 const NOTIFICATION_NAME = 'CSAT Survey Invitation';
 
+// What the customer is told the survey is called. Deliberately not
+// ${metric_type}: the definitions are named for internal use ("Managed Network
+// Services Survey - Manual" and "- Automatic") and that distinction means
+// nothing to a recipient.
+const CUSTOMER_FACING_LABEL = 'How did we do?';
+
 // The first two are the customer's existing scripts, extended so the shared
 // "Survey User Invite v2- Manually Created" template also works for surveys
 // raised from the portal. The case behaviour in each is untouched.
@@ -73,7 +79,7 @@ async function ensureNotification() {
     action_update: false,
     active: true,
     recipient_fields: 'user',
-    subject: '${metric_type} - we would value your feedback',
+    subject: `${CUSTOMER_FACING_LABEL} - we would value your feedback`,
     message_html: readArtifact('notifications/csat-survey-invitation.html'),
     // ^EQ is the end-of-query marker the condition builder appends; without it
     // the UI re-renders the condition inconsistently on save.

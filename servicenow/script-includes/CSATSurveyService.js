@@ -43,7 +43,7 @@ CSATSurveyService.prototype = {
     // Surveys offered in the portal. Override without a deploy by setting the
     // csat.portal.survey_names property to a comma-separated list, or to an
     // empty string to offer every active survey.
-    PORTAL_SURVEYS: ['Complex Resolution Survey', 'Generic Schedule Survey'],
+    PORTAL_SURVEYS: ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'],
 
     // A recipient may not be surveyed again through this portal until this
     // many days have passed since their last successful send.
@@ -51,7 +51,7 @@ CSATSurveyService.prototype = {
 
     // These surveys are tied to a single case outcome, so they only make
     // sense sent immediately rather than on a recurring schedule.
-    IMMEDIATE_ONLY_SURVEYS: ['Closed Case Survey', 'Complex Resolution Survey'],
+    IMMEDIATE_ONLY_SURVEYS: ['Closed Case Survey', 'Managed Network Services Survey - Manual'],
 
     /**
      * The active flag and primary billing contact are customer-specific fields,

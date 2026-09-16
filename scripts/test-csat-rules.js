@@ -41,8 +41,8 @@ const PROBE_SCRIPT = `(function process(request, response) {
   } else if (action === 'immediate') {
     out.result = {
       closed_case: svc.isImmediateOnly('Closed Case Survey'),
-      complex: svc.isImmediateOnly('Complex Resolution Survey'),
-      generic: svc.isImmediateOnly('Generic Schedule Survey')
+      manual: svc.isImmediateOnly('Managed Network Services Survey - Manual'),
+      automatic: svc.isImmediateOnly('Managed Network Services Survey - Automatic')
     };
   } else if (action === 'cooldown_days') {
     out.result = { days: svc.COOLDOWN_DAYS };
@@ -79,8 +79,8 @@ async function main() {
     console.log('\nRule 4 — immediate-only surveys');
     const imm = await probe({ probe: 'immediate' });
     check('Closed Case Survey is immediate-only', imm.closed_case === true);
-    check('Complex Resolution Survey is immediate-only', imm.complex === true);
-    check('Generic Schedule Survey allows scheduling', imm.generic === false);
+    check('Managed Network Services Survey - Manual is immediate-only', imm.manual === true);
+    check('Managed Network Services Survey - Automatic allows scheduling', imm.automatic === false);
 
     console.log('\nRule 5 — 90-day cooldown');
     const cd = await probe({ probe: 'cooldown_days' });
@@ -119,7 +119,7 @@ async function main() {
     const offered = await probe({ probe: 'templates' });
     check(
       'portal offers only the approved surveys',
-      offered.every((t) => ['Complex Resolution Survey', 'Generic Schedule Survey'].indexOf(t.name) !== -1),
+      offered.every((t) => ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'].indexOf(t.name) !== -1),
       offered.map((t) => t.name).join(', ') || 'none'
     );
 

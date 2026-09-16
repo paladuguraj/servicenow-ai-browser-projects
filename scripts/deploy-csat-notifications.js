@@ -9,6 +9,10 @@
 
 const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
+// What the customer is told the survey is called, kept in step with
+// deploy-csat-email-template.js.
+const CUSTOMER_FACING_LABEL = 'How did we do?';
+
 /**
  * Turning on outbound email can release everything already sitting in the
  * queue, so on a shared instance that has to be a deliberate act. Pass
@@ -140,14 +144,19 @@ async function main() {
     'Fired when a CSAT survey linked to a survey request is completed. parm1=requestor, parm2=respondent.'
   );
 
+  // The respondent is a customer, so this uses the customer-facing label
+  // rather than ${metric_type}. The definitions are named for internal use
+  // ("... - Manual" and "... - Automatic") and that split means nothing to a
+  // recipient. The requestor notification below is internal and keeps the real
+  // name, which is what makes a response identifiable.
   await ensureNotification({
     name: 'CSAT Survey Submitted - Thank You',
     event_name: 'csat.survey.submitted',
     recipient_fields: 'user',
-    subject: 'Thank you for completing ${metric_type}',
+    subject: `Thank you for completing our ${CUSTOMER_FACING_LABEL} survey`,
     message_html: [
       '<p>Hi ${user},</p>',
-      '<p>Thank you for completing the <strong>${metric_type}</strong> survey.</p>',
+      `<p>Thank you for completing our <strong>${CUSTOMER_FACING_LABEL}</strong> survey.</p>`,
       '<p>Your feedback helps us improve the services we deliver to you.</p>',
     ].join('\n'),
   });

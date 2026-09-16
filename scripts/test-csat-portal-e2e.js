@@ -105,7 +105,7 @@ async function main() {
       await page.selectOption('#csat-template', { label: name });
       await page.waitForTimeout(400);
       const schedules = await page.locator('#csat-schedule option').allTextContents();
-      const restricted = /Closed Case Survey|Complex Resolution Survey/.test(name);
+      const restricted = /Closed Case Survey|Managed Network Services Survey - Manual/.test(name);
       const ok = restricted ? schedules.length === 1 : schedules.length === 3;
       console.log(`  ${ok ? 'OK  ' : 'FAIL'} ${name}: ${schedules.length} schedule option(s)${restricted ? ' (expected 1)' : ' (expected 3)'}`);
     }
