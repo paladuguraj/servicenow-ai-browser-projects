@@ -163,12 +163,17 @@ async function dropRetiredQuestions(entries) {
  * marked Ignore rather than emptied, so a re-run has to keep reading them.
  */
 async function findSourceSets() {
-  return snGet(
+  const sets = await snGet(
     'sys_update_set',
     `sysparm_query=${encodeURIComponent(
-      `nameSTARTSWITH${SOURCE_PREFIX}^name!=${targetName}`
+      `nameSTARTSWITH${SOURCE_PREFIX}`
     )}&sysparm_fields=sys_id,name,state,sys_created_on&sysparm_orderby=sys_created_on`
   );
+
+  // Exclude the sets this script builds. That means the target and its
+  // per-scope companions, which are named "<target> (<scope>)" — treating one
+  // as a source would clear it and then try to read the rows it just deleted.
+  return sets.filter((s) => !s.name.startsWith(targetName));
 }
 
 async function loadEntries(sets) {
