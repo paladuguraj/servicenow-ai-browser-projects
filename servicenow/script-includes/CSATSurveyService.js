@@ -45,9 +45,19 @@ CSATSurveyService.prototype = {
     // empty string to offer every active survey.
     PORTAL_SURVEYS: ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'],
 
-    // A recipient may not be surveyed again through this portal until this
-    // many days have passed since their last successful send.
+    // A recipient may not be surveyed again with the same survey until this
+    // many days have passed since their last successful send of it. The window
+    // is per survey, so a complex-resolution survey and the scheduled
+    // relationship survey each run their own 90 days.
     COOLDOWN_DAYS: 90,
+
+    // Recurring surveys land better midweek and mid-morning, so a scheduled
+    // send waits for Tue/Wed/Thu between these hours in the recipient's local
+    // time. Monday, Friday and the weekend are avoided. Sends the requester
+    // triggers by hand are never held back.
+    SEND_WINDOW_DAYS: [2, 3, 4], // GlideDateTime local day: 1 = Monday
+    SEND_WINDOW_START_HOUR: 9,
+    SEND_WINDOW_END_HOUR: 11,
 
     // These surveys are tied to a single case outcome, so they only make
     // sense sent immediately rather than on a recurring schedule.
@@ -233,7 +243,7 @@ CSATSurveyService.prototype = {
      * Reads the account's Primary Contact. customer_contact extends sys_user,
      * so the reference resolves straight to a surveyable recipient.
      */
-    getPrimaryContact: function(companyId) {
+    getPrimaryContact: function(companyId, metricTypeId) {
         var result = { email: '', user: null, eligible: false, reason: '' };
         if (!companyId)
             return result;
@@ -275,7 +285,7 @@ CSATSurveyService.prototype = {
             return result;
         }
 
-        var cooldown = this.getCooldown(result.user.sys_id);
+        var cooldown = this.getCooldown(result.user.sys_id, metricTypeId);
         if (cooldown.blocked) {
             result.reason = cooldown.reason;
             result.cooldown = cooldown;
@@ -307,9 +317,15 @@ CSATSurveyService.prototype = {
     /**
      * Returns how much of the cooldown window is left for a recipient.
      */
-    getCooldown: function(userId) {
+    /**
+     * The 90-day window runs per survey rather than across the portal, so a
+     * recipient can be asked about a complex resolution and still receive the
+     * scheduled relationship survey. Passing no metric type falls back to the
+     * old portal-wide behaviour, which is what the reporting probes rely on.
+     */
+    getCooldown: function(userId, metricTypeId) {
         var F = this.F;
-        var result = { blocked: false, last_sent: '', days_remaining: 0, reason: '' };
+        var result = { blocked: false, last_sent: '', days_remaining: 0, reason: '', metric_type: metricTypeId || '' };
 
         var cutoff = new GlideDateTime();
         cutoff.addDaysUTC(-this.COOLDOWN_DAYS);
@@ -318,6 +334,8 @@ CSATSurveyService.prototype = {
         gr.addQuery(F.user, userId);
         gr.addQuery(F.status, 'success');
         gr.addQuery(F.executed_on, '>=', cutoff);
+        if (metricTypeId)
+            gr.addQuery(F.metric_type, metricTypeId);
         gr.orderByDesc(F.executed_on);
         gr.setLimit(1);
         gr.query();
@@ -341,7 +359,7 @@ CSATSurveyService.prototype = {
         return result;
     },
 
-    getUsersByCompany: function(companyId) {
+    getUsersByCompany: function(companyId, metricTypeId) {
         var users = [];
         if (!companyId)
             return users;
@@ -353,7 +371,7 @@ CSATSurveyService.prototype = {
         gr.query();
         while (gr.next()) {
             var portal = this.checkPortalAccount(gr);
-            var cooldown = this.getCooldown(gr.getUniqueValue());
+            var cooldown = this.getCooldown(gr.getUniqueValue(), metricTypeId);
             users.push({
                 sys_id: gr.getUniqueValue(),
                 name: gr.getValue('name'),
@@ -382,12 +400,26 @@ CSATSurveyService.prototype = {
         if (this.isImmediateOnlyById(payload.metric_type))
             frequency = 'immediate';
 
-        if (mode === 'primary_user') {
-            var primary = this.getPrimaryContact(payload.company);
-            if (!primary.eligible)
+        // Recipients are chosen with checkboxes, so a request can go to the
+        // account's primary contact, to named users, or to both at once.
+        var recipients = [];
+        if (mode === 'primary_user' || mode === 'both') {
+            var primary = this.getPrimaryContact(payload.company, payload.metric_type);
+            if (!primary.eligible && mode === 'primary_user')
                 return { error: primary.reason || 'The primary user cannot be surveyed.' };
-            payload.selected_users = [primary.user.sys_id];
+            if (primary.eligible)
+                recipients.push(primary.user.sys_id);
         }
+        if (mode === 'selected_users' || mode === 'both') {
+            var chosen = payload.selected_users || [];
+            for (var r = 0; r < chosen.length; r++) {
+                if (chosen[r] && recipients.indexOf(chosen[r]) === -1)
+                    recipients.push(chosen[r]);
+            }
+        }
+        if (!recipients.length)
+            return { error: 'No eligible recipients were selected.' };
+        payload.selected_users = recipients;
 
         var requestGr = new GlideRecord(this.REQUEST_TABLE);
         requestGr.initialize();
@@ -426,6 +458,62 @@ CSATSurveyService.prototype = {
         return this.getRequestSummary(requestId);
     },
 
+    /**
+     * The timezone the send window is judged in. Most user records have no
+     * timezone set, so in practice this is usually the instance default; the
+     * recipient's own is used whenever it is populated.
+     */
+    sendWindowTimeZone: function(requestGr) {
+        var recipients = this.getRecipients(requestGr);
+        for (var i = 0; i < recipients.length; i++) {
+            var userGr = new GlideRecord('sys_user');
+            if (userGr.get(recipients[i])) {
+                var tz = (userGr.getValue('time_zone') || '').trim();
+                if (tz) return tz;
+            }
+        }
+        return gs.getProperty('glide.sys.default.tz') || 'UTC';
+    },
+
+    isWithinSendWindow: function(when, timeZone) {
+        var gdt = new GlideDateTime(when);
+        gdt.setTZ(Packages.java.util.TimeZone.getTimeZone(timeZone));
+
+        var day = parseInt(gdt.getDayOfWeekLocalTime(), 10);
+        if (this.SEND_WINDOW_DAYS.indexOf(day) === -1)
+            return false;
+
+        var hour = parseInt(gdt.getLocalTime().getByFormat('HH'), 10);
+        return hour >= this.SEND_WINDOW_START_HOUR && hour < this.SEND_WINDOW_END_HOUR;
+    },
+
+    /**
+     * The first moment from `when` onwards that falls inside the window.
+     * Returns `when` unchanged if it already does. Steps by the hour, which is
+     * the resolution the scheduled job runs at.
+     */
+    nextSendWindow: function(when, timeZone) {
+        var candidate = new GlideDateTime(when);
+        // A whole week of hours is more than enough to reach Tue/Wed/Thu.
+        for (var i = 0; i < 24 * 8; i++) {
+            if (this.isWithinSendWindow(candidate, timeZone))
+                return candidate;
+            candidate = new GlideDateTime(candidate);
+            candidate.addSeconds(3600);
+        }
+        return new GlideDateTime(when);
+    },
+
+    /**
+     * Recurring sends are held to the window; immediate ones are not, because
+     * the requester is asking for them to go now.
+     */
+    scheduleNextRun: function(requestGr, from) {
+        if (requestGr.getValue(this.F.schedule_frequency) === 'immediate')
+            return from;
+        return this.nextSendWindow(from, this.sendWindowTimeZone(requestGr));
+    },
+
     activateRequest: function(requestId) {
         var F = this.F;
         var requestGr = new GlideRecord(this.REQUEST_TABLE);
@@ -434,7 +522,7 @@ CSATSurveyService.prototype = {
 
         requestGr.setValue(F.state, 'active');
         if (!requestGr.getValue(F.next_run)) {
-            requestGr.setValue(F.next_run, new GlideDateTime());
+            requestGr.setValue(F.next_run, this.scheduleNextRun(requestGr, new GlideDateTime()));
         }
         requestGr.update();
 
@@ -491,15 +579,10 @@ CSATSurveyService.prototype = {
         requestGr.setValue(F.last_run, now);
 
         var frequency = requestGr.getValue(F.schedule_frequency);
-        if (frequency === 'every_30_days') {
-            var next30 = new GlideDateTime();
-            next30.addDaysUTC(30);
-            requestGr.setValue(F.next_run, next30);
-            requestGr.setValue(F.state, 'active');
-        } else if (frequency === 'every_60_days') {
-            var next60 = new GlideDateTime();
-            next60.addDaysUTC(60);
-            requestGr.setValue(F.next_run, next60);
+        if (frequency === 'every_30_days' || frequency === 'every_60_days') {
+            var next = new GlideDateTime();
+            next.addDaysUTC(frequency === 'every_30_days' ? 30 : 60);
+            requestGr.setValue(F.next_run, this.scheduleNextRun(requestGr, next));
             requestGr.setValue(F.state, 'active');
         } else {
             requestGr.setValue(F.state, 'completed');
@@ -534,8 +617,9 @@ CSATSurveyService.prototype = {
             }
 
             // Enforced here as well as in the UI so scheduled runs and API
-            // callers cannot bypass the cooldown.
-            var cooldown = this.getCooldown(userId);
+            // callers cannot bypass the cooldown. Scoped to the survey being
+            // sent, so each survey carries its own 90-day window.
+            var cooldown = this.getCooldown(userId, metricTypeId);
             if (cooldown.blocked) {
                 return this._finalizeExecution(execId, 'skipped', cooldown.reason);
             }
@@ -617,10 +701,29 @@ CSATSurveyService.prototype = {
         requestGr.addQuery(F.next_run, '<=', new GlideDateTime());
         requestGr.query();
 
+        var deferred = 0;
         while (requestGr.next()) {
+            // A request can come due outside the window when it was scheduled
+            // before this rule existed, or when the job was held up. Push it to
+            // the next good slot rather than sending at a bad time.
+            if (requestGr.getValue(F.schedule_frequency) !== 'immediate') {
+                var zone = this.sendWindowTimeZone(requestGr);
+                if (!this.isWithinSendWindow(new GlideDateTime(), zone)) {
+                    var slot = this.nextSendWindow(new GlideDateTime(), zone);
+                    var holdGr = new GlideRecord(this.REQUEST_TABLE);
+                    if (holdGr.get(requestGr.getUniqueValue())) {
+                        holdGr.setValue(F.next_run, slot);
+                        holdGr.update();
+                    }
+                    deferred++;
+                    continue;
+                }
+            }
             this.executeRequest(requestGr.getUniqueValue());
             processed++;
         }
+        if (deferred)
+            gs.info('CSAT: ' + deferred + ' scheduled request(s) held until the next Tue-Thu mid-morning slot.');
         return processed;
     },
 

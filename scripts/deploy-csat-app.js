@@ -203,18 +203,24 @@ async function ensureBusinessRule(name, table, when, script, order = 100) {
 }
 
 async function ensureScheduledJob(name, script) {
+  // Hourly, not daily: recurring sends are held to a mid-morning window in the
+  // recipient's local time, so the runner has to come round often enough to
+  // catch it. Each pass only acts on requests that are actually due.
+  const schedule = { run_type: 'periodically', run_period: '1970-01-01 01:00:00' };
+
   const existing = await snGet('sysauto_script', `sysparm_query=name=${name}&sysparm_fields=sys_id`);
   if (existing.length) {
-    await snPatch('sysauto_script', existing[0].sys_id, { script, active: true });
-    console.log(`Updated scheduled job: ${name}`);
+    await snPatch('sysauto_script', existing[0].sys_id, { script, active: true, ...schedule });
+    console.log(`Updated scheduled job: ${name} (hourly)`);
     return existing[0].sys_id;
   }
   const job = await snPost('sysauto_script', {
     name,
     script,
     active: true,
+    ...schedule,
   });
-  console.log(`Created scheduled job: ${name}`);
+  console.log(`Created scheduled job: ${name} (hourly)`);
   return job.sys_id;
 }
 
@@ -264,8 +270,10 @@ async function deployTables() {
     await cleanupOrphanChoices(requestTable, field);
   await cleanupOrphanChoices(executionTable, 'status');
 
+  // Recipients are picked with checkboxes, so a request can carry both.
   await ensureChoice(requestTable, 'recipient_mode', 'primary_user', 'Account Primary Contact', 10);
-  await ensureChoice(requestTable, 'recipient_mode', 'selected_users', 'Selected Users only', 20);
+  await ensureChoice(requestTable, 'recipient_mode', 'selected_users', 'Selected Users', 20);
+  await ensureChoice(requestTable, 'recipient_mode', 'both', 'Account Primary Contact and Selected Users', 30);
   await retireChoice(requestTable, 'recipient_mode', 'all_users');
   await ensureChoice(requestTable, 'schedule_frequency', 'immediate', 'Send immediately', 10);
   await ensureChoice(requestTable, 'schedule_frequency', 'every_30_days', 'Every 30 days', 20);
