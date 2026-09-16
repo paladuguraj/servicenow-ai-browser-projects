@@ -180,7 +180,46 @@ Two notifications listen on `csat.survey.submitted`:
 > `JavaAdapter requires at least one argument`. Notification records are used
 > instead.
 
-### 5.0 Customer-facing survey label
+### 4.3 Per-survey cooldown and send timing
+
+**The 90-day window runs per survey.** `getCooldown(userId, metricTypeId)`
+filters the execution log by survey, so each survey carries its own window and
+a recipient asked about a complex resolution can still receive the scheduled
+relationship survey. Called without a survey it falls back to the portal-wide
+behaviour, which the reporting probes still use.
+
+This is why the request form asks for the survey before the recipients:
+`getUsersByCompany` and `getPrimaryContact` both take the survey, and the
+widget reloads both lists whenever the company or the survey changes.
+
+**Recipients are checkboxes.** `u_recipient_mode` gained a third choice,
+`both`, and `createSurveyRequest` merges the primary contact with the named
+users, deduplicating in case the contact also appears in the list.
+
+**Scheduled sends wait for a good moment.** Recurring sends are held to
+Tue/Wed/Thu between 09:00 and 11:00 in the recipient's local time; Monday,
+Friday and the weekend are avoided. Immediate sends are never held, because the
+requester is asking for them to go now.
+
+| Method | Responsibility |
+|---|---|
+| `sendWindowTimeZone(requestGr)` | The recipient's timezone, falling back to the instance default |
+| `isWithinSendWindow(when, tz)` | Whether a moment is inside the window |
+| `nextSendWindow(when, tz)` | The first moment from `when` that is |
+| `scheduleNextRun(requestGr, from)` | Applies the window to recurring requests only |
+
+`processDueRequests` also re-checks on the way through, so a request that comes
+due outside the window — because it was scheduled before this rule existed, or
+the job was held up — is pushed to the next slot instead of sending.
+
+The scheduled job runs **hourly** rather than daily for this reason: a daily job
+cannot reliably land inside a two-hour window.
+
+> Only about 2% of user records carry a timezone, so the instance default
+> usually applies. Where recipients span timezones the window is judged in the
+> first one found, since `u_next_run` is a single value on the request.
+
+## 5.0 Customer-facing survey label
 
 The survey definitions are named for internal use — **Managed Network Services
 Survey - Manual** and **- Automatic** — and that split describes how the survey

@@ -57,32 +57,10 @@ Only **active** accounts appear, so if an account is missing it is either
 inactive or spelled differently to what you typed. Use the small **×** to clear
 your choice and start again.
 
-### 3.2 Recipients
+### 3.2 Survey Template
 
-Two options:
-
-**Account Primary Contact** — the main contact recorded against the account.
-The note under this option reads *"Account Primary Contact must have an active
-portal account."* If that person cannot be surveyed, the portal says why
-instead of silently skipping them. Common reasons:
-
-- the account has no primary contact recorded;
-- the contact has no email address;
-- the contact's account is locked out or inactive.
-
-**Selected Users only** — pick specific people from that account. A filter box
-narrows a long list, and each person you tick appears as a small chip above so
-you can see your selection at a glance. The note reads *"More than one user can
-be sent the survey."*
-
-Some people will be listed separately as **ineligible**, with the reason shown.
-The most common is the 90-day rule described in section 5 — for those, the
-portal tells you the date they were last surveyed and when they become
-available again.
-
-### 3.3 Survey Template
-
-Choose the survey to send. Two are available:
+Choose the survey **before** picking recipients, because who can be contacted
+depends on it. Two are available:
 
 - **Managed Network Services Survey - Manual** — after a significant or complex incident.
 - **Managed Network Services Survey - Automatic** — for regular, ongoing feedback.
@@ -95,8 +73,38 @@ That refers to the separate survey sent automatically when a case closes. If
 you are concerned about contacting someone too often, check the Close Case
 Survey report before sending.
 
-If a survey ever appears greyed out, it has not been published yet and cannot
-be sent. That needs a survey administrator, not you.
+If a survey appears greyed out, it has not been published yet and cannot be
+sent. That needs a survey administrator, not you.
+
+### 3.3 Recipients
+
+Two tick boxes, and you can use **either or both** — some situations call for
+the account contact and named individuals on the same request.
+
+**Account Primary Contact** — the main contact recorded against the account.
+The note under this option reads *"Account Primary Contact must have an active
+portal account."* If that person cannot be surveyed, the portal says why
+instead of silently skipping them. Common reasons:
+
+- the account has no primary contact recorded;
+- the contact has no email address;
+- the contact's account is locked out or inactive.
+
+**Selected Users** — pick specific people from that account. A filter box
+narrows a long list, and each person you tick appears as a small chip above so
+you can see your selection at a glance.
+
+An **All** box at the top of the list selects everyone eligible. If you have
+typed something in the filter, it selects just the people currently shown, so
+it never quietly picks someone you cannot see.
+
+If you tick both boxes, anyone who appears in both is still only sent one
+survey.
+
+Some people will be listed separately as **ineligible**, with the reason shown.
+The most common is the 90-day rule described in section 5 — for those, the
+portal tells you the date they were last surveyed and when they become
+available again.
 
 ### 3.4 Schedule
 

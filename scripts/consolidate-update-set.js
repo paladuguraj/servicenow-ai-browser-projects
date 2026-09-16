@@ -502,9 +502,12 @@ async function main() {
     }
     console.log(`  ${result.written} copied, ${result.total} present in the set.`);
 
-    const expected = rows.length + result.forcedCount;
-    if (result.total !== expected)
-      throw new Error(`expected ${expected} entries in "${name}" but found ${result.total}`);
+    // Forced records are not necessarily additions: once a change to one has
+    // been captured in a source set it is copied like anything else, and
+    // saveRecord then updates that entry rather than adding a second. So the
+    // total is at least the copied rows, never fewer.
+    if (result.total < rows.length)
+      throw new Error(`expected at least ${rows.length} entries in "${name}" but found ${result.total}`);
 
     built.push({ name, label, sysId: targetSysId, total: result.total });
   }

@@ -57,6 +57,11 @@ must confirm how many people will be emailed before anything is sent.
 | FR-27 | Customers see the survey called **How did we do?**, never the internal template name | Met |
 | FR-28 | Internal notifications still name the template, so a response stays identifiable | Met |
 | FR-29 | The invitation carries no duration claim and no NOC coaching wording | Met |
+| FR-30 | Recipients are **checkboxes**, so one request can go to the contact and named users | Met |
+| FR-31 | The **90-day limit runs per survey**, not across the portal | Met |
+| FR-32 | The survey is chosen **first**, and the eligible-user list follows from it | Met |
+| FR-33 | An **All** checkbox selects the eligible users currently listed | Met |
+| FR-34 | Scheduled sends wait for **Tue-Thu mid-morning** in the recipient's local time | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -64,8 +69,11 @@ must confirm how many people will be emailed before anything is sent.
 locked out, not a system integration account) and an email address. Anyone who
 fails these is listed separately as ineligible with the reason.
 
-**How often.** Once per 90 days per person across the whole portal, regardless of
-which survey. The list shows exactly when someone becomes eligible again, for
+**How often.** Once per 90 days per person **per survey**. Somebody asked about
+a complex resolution can still receive the scheduled relationship survey, but
+not the same survey twice inside the window. Because of this, who can be
+contacted depends on which survey is chosen, which is why the survey is picked
+before the recipients. The list shows exactly when someone becomes eligible again, for
 example *"Surveyed on 2026-08-01. Eligible again in 89 days."*
 
 **Which surveys can be scheduled.** Case-outcome surveys relate to a single
@@ -231,6 +239,25 @@ invitation body at the same time.
 > The separate **Survey User Invite v2- Manually Created** notification, which
 > serves the case-triggered Closed Case Survey, still carries both sentences.
 > It belongs to the case flow rather than this portal and was left alone.
+
+### 4.2e Recipient selection and send timing — passed
+
+| Check | Covers | Observed |
+|---|---|---|
+| Both recipient types at once | FR-30 | `primary_user` -> contact only; `selected_users` -> the two chosen; `both` -> all three, deduplicated |
+| Window is per survey | FR-31 | A recipient just sent the Automatic survey is blocked for it and still eligible for the Manual one |
+| Eligible list follows the survey | FR-32 | Same account returned 69 eligible / 8 blocked for Manual and 68 / 9 for Automatic |
+| All checkbox | FR-33 | Selects the eligible users currently listed, and respects the filter |
+| Send window | FR-34 | Mon, Fri, Sat, Sun held; Tue/Wed/Thu 09:00-11:00 local allowed; 07:00 and 12:00 held |
+| Deferral | FR-34 | Monday to Tue 09:00; Friday to the following Tue 09:00; Wednesday evening to Thu 09:00 |
+
+The runner moved from daily to hourly, since a daily job cannot land inside a
+two-hour window.
+
+> Only about 2% of user records carry a timezone, so in practice the window is
+> judged in the instance default (US/Eastern here). The recipient's own
+> timezone is used wherever it is set. A request with recipients in different
+> timezones is judged in the first one found.
 
 ### 4.3 Rules proven with live data
 

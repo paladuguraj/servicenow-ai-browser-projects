@@ -46,6 +46,42 @@ const PROBE_SCRIPT = `(function process(request, response) {
     };
   } else if (action === 'cooldown_days') {
     out.result = { days: svc.COOLDOWN_DAYS };
+  } else if (action === 'cooldown_scope') {
+    var manual = new GlideRecord('asmt_metric_type');
+    manual.addQuery('name', 'Managed Network Services Survey - Manual');
+    manual.query(); manual.next();
+    var auto = new GlideRecord('asmt_metric_type');
+    auto.addQuery('name', 'Managed Network Services Survey - Automatic');
+    auto.query(); auto.next();
+
+    var ex = new GlideRecord('u_x_csat_survey_execution');
+    ex.addQuery('u_status', 'success');
+    ex.orderByDesc('u_executed_on');
+    ex.setLimit(1);
+    ex.query();
+    if (!ex.next()) {
+      out.result = { tested: false };
+    } else {
+      var sentType = ex.getValue('u_metric_type');
+      var otherType = sentType === manual.getUniqueValue() ? auto.getUniqueValue() : manual.getUniqueValue();
+      out.result = {
+        tested: true,
+        same: svc.getCooldown(ex.getValue('u_user'), sentType).blocked,
+        other: svc.getCooldown(ex.getValue('u_user'), otherType).blocked
+      };
+    }
+  } else if (action === 'send_window') {
+    var tz = 'US/Eastern';
+    out.result = {
+      monday: svc.isWithinSendWindow('2026-09-14 14:00:00', tz),
+      tuesday: svc.isWithinSendWindow('2026-09-15 14:00:00', tz),
+      wednesday: svc.isWithinSendWindow('2026-09-16 14:00:00', tz),
+      thursday: svc.isWithinSendWindow('2026-09-17 14:00:00', tz),
+      friday: svc.isWithinSendWindow('2026-09-18 14:00:00', tz),
+      saturday: svc.isWithinSendWindow('2026-09-19 14:00:00', tz),
+      early: svc.isWithinSendWindow('2026-09-16 11:00:00', tz),
+      afternoon: svc.isWithinSendWindow('2026-09-16 18:00:00', tz)
+    };
   } else if (action === 'link') {
     out.result = {
       domain: svc.getWhitelabelDomain(param('company_id')),
@@ -180,6 +216,27 @@ async function main() {
         );
       }
     }
+
+    console.log('\nRule 7 — the 90-day window runs per survey');
+    const scope = await probe({ probe: 'cooldown_scope' });
+    if (!scope.tested) {
+      check('a recent send exists to test against', false, 'no successful sends found');
+    } else {
+      check('blocked for the survey just sent', scope.same === true);
+      check('still eligible for the other survey', scope.other === false);
+    }
+
+    console.log('\nRule 8 — scheduled sends wait for a midweek mid-morning slot');
+    const win = await probe({ probe: 'send_window' });
+    check(
+      'Monday, Friday and the weekend are avoided',
+      win.monday === false && win.friday === false && win.saturday === false
+    );
+    check(
+      'Tuesday, Wednesday and Thursday mid-morning are allowed',
+      win.tuesday === true && win.wednesday === true && win.thursday === true
+    );
+    check('outside mid-morning is held', win.early === false && win.afternoon === false);
 
     console.log('\nUser eligibility metadata');
     const anyCompany = (await snGet(
