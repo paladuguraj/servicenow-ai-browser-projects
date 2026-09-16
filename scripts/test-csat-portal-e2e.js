@@ -110,24 +110,29 @@ async function main() {
       console.log(`  ${ok ? 'OK  ' : 'FAIL'} ${name}: ${schedules.length} schedule option(s)${restricted ? ' (expected 1)' : ' (expected 3)'}`);
     }
 
-    // Requirement 3: recipient modes.
-    const modes = await page.locator('input[name][type=radio], .radio input[type=radio]').count();
-    console.log(`Recipient modes offered: ${modes}`);
-    const recipientText = await page.locator('.form-group:has(.radio)').first().innerText();
+    // Requirement 3: recipients are checkboxes, so both can be picked at once.
+    const primaryBox = page.locator('input[ng-model="c.form.send_to_primary"]');
+    const selectedBox = page.locator('input[ng-model="c.form.send_to_selected"]');
+    console.log(`Recipient checkboxes present: ${(await primaryBox.count()) === 1 && (await selectedBox.count()) === 1}`);
+    const recipientText = await page.locator('.form-group:has(input[ng-model="c.form.send_to_primary"])').first().innerText();
     console.log(`  Account Primary Contact note: ${/active portal account/i.test(recipientText)}`);
     console.log(`  Selected Users note: ${/more than one user/i.test(recipientText)}`);
+    console.log(`  Both can be ticked together: ${/either or both/i.test(recipientText)}`);
 
-    await page.check('input[type="radio"][value="selected_users"]');
+    await selectedBox.check();
     await page.waitForTimeout(1500);
 
-    const eligible = await page.locator('.csat-users-panel .checkbox').count();
+    // The select-all row sits inside the same panel, so discount it.
+    const eligible = (await page.locator('.csat-users-panel .checkbox').count()) - 1;
+    const selectAll = await page.locator('.csat-select-all input[type="checkbox"]').count();
+    console.log(`Select-all control present: ${selectAll === 1}`);
     console.log(`Eligible users listed: ${eligible}`);
     if (!eligible) {
       console.log('No eligible recipients for this company; stopping before submit.');
       return;
     }
 
-    await page.locator('.csat-users-panel input[type="checkbox"]').first().check();
+    await page.locator('.csat-users-panel .checkbox:not(.csat-select-all) input[type="checkbox"]').first().check();
     await page.selectOption('#csat-template', { label: sendable[0] });
     await page.fill('#csat-notes', 'Portal end-to-end test');
 

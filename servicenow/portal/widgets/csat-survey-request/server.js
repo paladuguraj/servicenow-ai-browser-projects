@@ -7,9 +7,12 @@
             return;
         }
 
-        if (input.action === 'loadCompany') {
-            data.users = service.getUsersByCompany(input.company_id);
-            data.primaryContact = service.getPrimaryContact(input.company_id);
+        // Eligibility depends on the survey, because the 90-day window runs
+        // per survey. The client reloads recipients whenever either the
+        // company or the survey changes.
+        if (input.action === 'loadRecipients') {
+            data.users = service.getUsersByCompany(input.company_id, input.metric_type);
+            data.primaryContact = service.getPrimaryContact(input.company_id, input.metric_type);
             return;
         }
 
@@ -24,6 +27,7 @@
             data.result = service.createSurveyRequest({
                 company: input.company,
                 metric_type: input.metric_type,
+                // primary_user | selected_users | both
                 recipient_mode: input.recipient_mode || 'primary_user',
                 schedule_frequency: input.schedule_frequency || 'immediate',
                 notes: input.notes || '',

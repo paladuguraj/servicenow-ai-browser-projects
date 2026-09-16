@@ -82,3 +82,10 @@
 .csat-survey-request .csat-typeahead li:hover {
   background: #f0f6ff;
 }
+
+/* Keeps the select-all visually attached to the list it controls. */
+.csat-survey-request .csat-select-all {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #dfe5ea;
+}

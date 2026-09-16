@@ -1,7 +1,7 @@
 <div class="panel panel-default csat-survey-request">
   <div class="panel-heading">
     <h2 class="panel-title">CSAT Survey Request</h2>
-    <p class="text-muted m-t-xs m-b-none">Select a company, choose recipients and survey template, then schedule delivery.</p>
+    <p class="text-muted m-t-xs m-b-none">Choose a company and survey, pick who receives it, then schedule delivery.</p>
   </div>
   <div class="panel-body">
     <div class="alert alert-{{c.data.messageType}}" ng-if="c.data.message">
@@ -37,12 +37,35 @@
         <p class="help-block" ng-if="c.form.company">Selected: <strong>{{c.form.companyName}}</strong></p>
       </div>
 
-      <div class="form-group" ng-if="c.form.company">
-        <label>Recipients</label>
+      <div class="form-group">
+        <div class="alert alert-info csat-precheck">
+          It is possible that these users could have received a Closed Case Survey.
+          If that is a concern, please check the Closed Case Survey Report.
+        </div>
 
-        <div class="radio">
+        <label for="csat-template">Survey Template</label>
+        <select id="csat-template" class="form-control" ng-model="c.form.metric_type" ng-change="c.onTemplateChange()">
+          <option value="">-- Select survey template --</option>
+          <option ng-repeat="template in c.data.templates track by template.sys_id"
+                  value="{{template.sys_id}}"
+                  ng-disabled="!template.published">{{template.name}}{{template.published ? '' : ' (Draft — cannot be sent)'}}</option>
+        </select>
+        <p class="help-block csat-note">
+          Each survey carries its own {{c.data.cooldownDays}}-day limit per person, so who can be
+          contacted depends on the survey chosen here.
+        </p>
+        <p class="text-danger csat-note" ng-if="c.draftTemplates().length">
+          {{c.draftTemplates().length}} survey(s) are still in Draft and cannot be sent until published in Survey Designer.
+        </p>
+      </div>
+
+      <div class="form-group" ng-if="c.form.company &amp;&amp; c.templateChosen()">
+        <label>Recipients</label>
+        <p class="help-block csat-note">Tick either or both &mdash; a request can go to the contact and to named users.</p>
+
+        <div class="checkbox">
           <label>
-            <input type="radio" ng-model="c.form.recipient_mode" value="primary_user"/>
+            <input type="checkbox" ng-model="c.form.send_to_primary"/>
             Account Primary Contact
             <span class="text-muted" ng-if="c.primaryEligible()">&mdash; {{c.primaryName()}}</span>
           </label>
@@ -52,18 +75,18 @@
           </p>
         </div>
 
-        <div class="radio">
+        <div class="checkbox">
           <label>
-            <input type="radio" ng-model="c.form.recipient_mode" value="selected_users"/>
-            Selected Users only
+            <input type="checkbox" ng-model="c.form.send_to_selected"/>
+            Selected Users
             <span class="text-muted" ng-if="c.getSelectedUserIds().length">({{c.getSelectedUserIds().length}} selected)</span>
           </label>
           <p class="help-block csat-note">More than one user can be sent the survey.</p>
         </div>
       </div>
 
-      <div class="form-group" ng-if="c.form.company &amp;&amp; c.form.recipient_mode === 'selected_users'">
-        <label>Choose recipients from {{c.form.companyName}}</label>
+      <div class="form-group" ng-if="c.form.company &amp;&amp; c.templateChosen() &amp;&amp; c.form.send_to_selected">
+        <label>Select Eligible Users from {{c.form.companyName}}</label>
         <p class="help-block" ng-if="c.loadingCompany">Loading users...</p>
 
         <div ng-if="!c.loadingCompany &amp;&amp; c.eligibleUsers().length">
@@ -82,6 +105,15 @@
                  placeholder="Filter {{c.eligibleUsers().length}} eligible users by name or email"/>
 
           <div class="well well-sm csat-users-panel">
+            <div class="checkbox csat-select-all" ng-if="c.visibleUsers().length">
+              <label>
+                <input type="checkbox" ng-checked="c.allVisibleSelected()" ng-click="c.toggleAllVisible()"/>
+                <strong>All</strong>
+                <span class="text-muted">
+                  &mdash; {{c.userFilter ? 'the ' + c.visibleUsers().length + ' shown' : 'everyone eligible'}}
+                </span>
+              </label>
+            </div>
             <div class="checkbox" ng-repeat="user in c.visibleUsers() track by user.sys_id">
               <label>
                 <input type="checkbox" ng-checked="c.isUserSelected(user.sys_id)" ng-click="c.toggleUser(user)"/>
@@ -113,24 +145,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="form-group">
-        <div class="alert alert-info csat-precheck">
-          It is possible that these users could have received a Closed Case Survey.
-          If that is a concern, please check the Closed Case Survey Report.
-        </div>
-
-        <label for="csat-template">Survey Template</label>
-        <select id="csat-template" class="form-control" ng-model="c.form.metric_type" ng-change="c.onTemplateChange()">
-          <option value="">-- Select survey template --</option>
-          <option ng-repeat="template in c.data.templates track by template.sys_id"
-                  value="{{template.sys_id}}"
-                  ng-disabled="!template.published">{{template.name}}{{template.published ? '' : ' (Draft — cannot be sent)'}}</option>
-        </select>
-        <p class="text-danger csat-note" ng-if="c.draftTemplates().length">
-          {{c.draftTemplates().length}} survey(s) are still in Draft and cannot be sent until published in Survey Designer.
-        </p>
       </div>
 
       <div class="form-group">

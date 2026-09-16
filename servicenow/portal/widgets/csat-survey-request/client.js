@@ -9,7 +9,10 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         company: '',
         companyName: '',
         metric_type: '',
-        recipient_mode: 'primary_user',
+        // Independent checkboxes: a request can go to the primary contact, to
+        // named users, or to both at once.
+        send_to_primary: true,
+        send_to_selected: false,
         schedule_frequency: 'immediate',
         notes: '',
         selected_users: {}
@@ -41,7 +44,7 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         c.form.companyName = company.name;
         c.companySearch = company.name;
         c.showCompanyList = false;
-        c.loadCompany();
+        c.loadRecipients();
     };
 
     c.clearCompany = function() {
@@ -54,10 +57,27 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         c.showCompanyList = false;
     };
 
-    c.loadCompany = function() {
-        if (!c.form.company) return;
+    c.templateChosen = function() {
+        return !!c.form.metric_type;
+    };
+
+    /**
+     * Who can be surveyed depends on the survey as well as the company, since
+     * the 90-day window runs per survey. Called whenever either changes.
+     */
+    c.loadRecipients = function() {
+        if (!c.form.company || !c.form.metric_type) {
+            c.data.users = [];
+            c.data.primaryContact = null;
+            c.form.selected_users = {};
+            return;
+        }
         c.loadingCompany = true;
-        c.server.get({ action: 'loadCompany', company_id: c.form.company }).then(function(r) {
+        c.server.get({
+            action: 'loadRecipients',
+            company_id: c.form.company,
+            metric_type: c.form.metric_type
+        }).then(function(r) {
             c.data.users = r.data.users || [];
             c.data.primaryContact = r.data.primaryContact || null;
             c.form.selected_users = {};
@@ -89,6 +109,8 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         // Case-outcome surveys are one-off, so drop any recurring choice.
         if (c.isImmediateOnly()) c.form.schedule_frequency = 'immediate';
         c.applyNotesPrefix();
+        // Eligibility is per survey, so the recipient lists have to be rebuilt.
+        c.loadRecipients();
     };
 
     /**
@@ -171,6 +193,24 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         c.form.selected_users = {};
     };
 
+    /**
+     * Select-all acts on the eligible users currently in view, so it respects
+     * the filter rather than quietly picking people the requester cannot see.
+     */
+    c.allVisibleSelected = function() {
+        var visible = c.visibleUsers();
+        if (!visible.length) return false;
+        return visible.every(function(u) { return !!c.form.selected_users[u.sys_id]; });
+    };
+
+    c.toggleAllVisible = function() {
+        var select = !c.allVisibleSelected();
+        c.visibleUsers().forEach(function(u) {
+            if (select) c.form.selected_users[u.sys_id] = true;
+            else delete c.form.selected_users[u.sys_id];
+        });
+    };
+
     c.blockedUsers = function() {
         return (c.data.users || []).filter(function(u) { return !u.eligible; });
     };
@@ -191,9 +231,29 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         });
     };
 
+    /**
+     * The primary contact may also appear in the user list, so count them once
+     * when both boxes are ticked.
+     */
+    c.recipientIds = function() {
+        var ids = [];
+        if (c.form.send_to_primary && c.primaryEligible())
+            ids.push(c.data.primaryContact.user.sys_id);
+        if (c.form.send_to_selected) {
+            c.getSelectedUserIds().forEach(function(id) {
+                if (ids.indexOf(id) === -1) ids.push(id);
+            });
+        }
+        return ids;
+    };
+
     c.recipientCount = function() {
-        if (c.form.recipient_mode === 'primary_user') return c.primaryEligible() ? 1 : 0;
-        return c.getSelectedUserIds().length;
+        return c.recipientIds().length;
+    };
+
+    c.recipientMode = function() {
+        if (c.form.send_to_primary && c.form.send_to_selected) return 'both';
+        return c.form.send_to_selected ? 'selected_users' : 'primary_user';
     };
 
     /* ---------- submit ---------- */
@@ -213,12 +273,18 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         if (template && !template.published) {
             return c.fail('"' + template.name + '" is still in Draft. Publish it in Survey Designer before sending.');
         }
-        if (c.form.recipient_mode === 'primary_user' && !c.primaryEligible()) {
-            var p = c.data.primaryContact;
-            return c.fail(p && p.reason ? p.reason : 'This company has no eligible primary user.');
+        if (!c.form.send_to_primary && !c.form.send_to_selected) {
+            return c.fail('Choose who to send to.');
         }
-        if (c.form.recipient_mode === 'selected_users' && !c.getSelectedUserIds().length) {
-            return c.fail('Select at least one user.');
+        if (c.form.send_to_primary && !c.form.send_to_selected && !c.primaryEligible()) {
+            var p = c.data.primaryContact;
+            return c.fail(p && p.reason ? p.reason : 'This company has no eligible Account Primary Contact.');
+        }
+        if (c.form.send_to_selected && !c.getSelectedUserIds().length) {
+            return c.fail('Select at least one user, or untick Selected Users.');
+        }
+        if (!c.recipientCount()) {
+            return c.fail('Nobody eligible is selected.');
         }
 
         c.pendingConfirmation = true;
@@ -243,7 +309,7 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
             action: 'createRequest',
             company: c.form.company,
             metric_type: c.form.metric_type,
-            recipient_mode: c.form.recipient_mode,
+            recipient_mode: c.recipientMode(),
             schedule_frequency: c.form.schedule_frequency,
             notes: c.form.notes,
             selected_users: c.getSelectedUserIds().join(',')
