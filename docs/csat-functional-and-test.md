@@ -35,7 +35,7 @@ must confirm how many people will be emailed before anything is sent.
 | FR-05 | Alternatively the requester can pick **one or more specific users** from that account | Met |
 | FR-06 | Both options carry on-screen guidance | Met |
 | FR-07 | Survey template is chosen from the surveys configured on the platform | Met |
-| FR-08 | **Closed Case Survey** and **Complex Resolution Survey** may only be sent immediately | Met |
+| FR-08 | **Closed Case Survey** and **Managed Network Services Survey - Manual** may only be sent immediately | Met |
 | FR-09 | All other surveys may be sent immediately, every 30 days, or every 60 days | Met |
 | FR-10 | A user may receive a CSAT survey through this portal **once every 90 days** | Met |
 | FR-11 | No internal implementation detail is shown to the user | Met |
@@ -54,6 +54,9 @@ must confirm how many people will be emailed before anything is sent.
 | FR-24 | The portal is branded **Network Operations CSAT Survey** with a `#011B58` header | Met |
 | FR-25 | Recipients land **directly on the first question**, with no Get Started page | Met |
 | FR-26 | Branding and landing-page changes affect **only this portal and these surveys** | Met |
+| FR-27 | Customers see the survey called **How did we do?**, never the internal template name | Met |
+| FR-28 | Internal notifications still name the template, so a response stays identifiable | Met |
+| FR-29 | The invitation carries no duration claim and no NOC coaching wording | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -115,8 +118,8 @@ Run: `npm run test:csat:rules` against adcomsolutionsdev
 | 1 | Company list excludes inactive accounts | FR-01 | Pass — 500 returned, 0 inactive |
 | 2 | Search filters the company list | FR-02 | Pass — "Bank" returned 116 matches |
 | 3 | Closed Case Survey is immediate-only | FR-08 | Pass |
-| 4 | Complex Resolution Survey is immediate-only | FR-08 | Pass |
-| 5 | Generic Schedule Survey allows scheduling | FR-09 | Pass |
+| 4 | Managed Network Services Survey - Manual is immediate-only | FR-08 | Pass |
+| 5 | Managed Network Services Survey - Automatic allows scheduling | FR-09 | Pass |
 | 6 | Cooldown window is 90 days | FR-10 | Pass |
 | 7 | Primary Billing Contact resolves to a user | FR-03, FR-04 | Pass — resolved to a named, eligible user |
 | 8 | Account without a contact explains why | FR-03 | Pass — "This company has no Primary Billing Contact set." |
@@ -147,7 +150,7 @@ of the run).
 
 | Check | Covers | Observed |
 |---|---|---|
-| Survey filter offers portal surveys only | FR-19 | Complex Resolution Survey, Generic Schedule Survey |
+| Survey filter offers portal surveys only | FR-19 | Managed Network Services Survey - Manual, Managed Network Services Survey - Automatic |
 | Account filter | FR-18 | 12 accounts drawn from the audit trail |
 | Report run, unfiltered | FR-18 | 48 rows, 12 account groups |
 | Report run, awaiting reply only | FR-18 | 48 rows |
@@ -191,7 +194,43 @@ Case-triggered surveys were re-checked and are unchanged.
 | Other portals unaffected | FR-26 | `/sp`, `/kb`, `/tao`, `/sp_config` still on the Stock theme, none resolving to `#011B58` |
 | No Get Started page | FR-25 | Loading a real survey as its recipient returns `not_show_intro_note = true`, so the widget opens on the first question |
 | Other surveys unaffected | FR-26 | Closed Case Survey still shows its landing page |
-| Survey rename applied everywhere | — | Definition, description, category and the `csat.portal.survey_names` allow-list all read *Generic Schedule Survey*; the request form and report filter both offer it |
+| Survey rename applied everywhere | — | Definition, description, category and the `csat.portal.survey_names` allow-list all read *Managed Network Services Survey - Automatic*; the request form and report filter both offer it |
+
+### 4.2d Customer-facing email label — passed
+
+The survey definitions are named for internal use — *Managed Network Services
+Survey - Manual* and *- Automatic* — and that Manual/Automatic split means
+nothing to a recipient. Customers see **How did we do?** instead.
+
+| Email | Audience | Shows |
+|---|---|---|
+| CSAT Survey Invitation | Customer | *How did we do? - we would value your feedback* |
+| CSAT Survey Submitted - Thank You | Customer | *Thank you for completing our How did we do? survey* |
+| CSAT Survey Submitted - Requestor | Internal | The real template name, so the response is identifiable |
+
+The label reaches the body through the note as well as the subject: the request
+form seeds the note with it rather than the template name, because the note is
+printed in the invitation.
+
+Verified by rendering the invitation, mail scripts included, against a real
+survey instance:
+
+```
+Subject: How did we do? - we would value your feedback
+
+As part of our continued efforts to improve the support we provide, your
+feedback is greatly appreciated. ... Click here to take your survey: ...
+
+leaks internal survey name: false
+still contains the removed copy: false
+```
+
+The duration claim and the NOC coaching sentence were removed from the
+invitation body at the same time.
+
+> The separate **Survey User Invite v2- Manually Created** notification, which
+> serves the case-triggered Closed Case Survey, still carries both sentences.
+> It belongs to the case flow rather than this portal and was left alone.
 
 ### 4.3 Rules proven with live data
 
@@ -199,7 +238,7 @@ Case-triggered surveys were re-checked and are unchanged.
 |---|---|
 | First survey to a new recipient | Sent, assessment instance created, invitation queued |
 | Same recipient again immediately | **Blocked** — "Surveyed on 2026-08-01 09:13:50. Eligible again in 90 day(s)." |
-| Draft survey attempted | **Blocked** — "Survey 'Complex Resolution Survey' is still in Draft. Publish it in Survey Designer before sending." |
+| Draft survey attempted | **Blocked** — "Survey 'Managed Network Services Survey - Manual' is still in Draft. Publish it in Survey Designer before sending." |
 | Published survey to a Primary User | Sent — instance created, invitation queued |
 | Selecting 2 of 28 users | Exactly 2 recipients, confirmed in the audit table |
 | Filtering the picker | 28 narrowed to 1; only that person received it |
@@ -235,8 +274,8 @@ are created and visible to recipients in **My Surveys**, but no email arrives.
 | Survey | Published | Questions |
 |---|---|---|
 | Closed Case Survey | Yes | 1 |
-| Complex Resolution Survey | **No** | **0** |
-| Generic Schedule Survey | **No** | **0** |
+| Managed Network Services Survey - Manual | **No** | **0** |
+| Managed Network Services Survey - Automatic | **No** | **0** |
 
 Two of the three surveys cannot be sent. They need questions adding and then
 publishing in Survey Designer. Only Closed Case Survey is usable today, and with

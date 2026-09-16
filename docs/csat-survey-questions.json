@@ -1,7 +1,7 @@
 [
   {
-    "survey": "Complex Resolution Survey",
-    "category": "Complex Resolution Survey",
+    "survey": "Managed Network Services Survey - Manual",
+    "category": "Managed Network Services Survey - Manual",
     "questions": [
       {
         "name": "Overall Service Quality",
@@ -28,8 +28,8 @@
     ]
   },
   {
-    "survey": "Generic Schedule Survey",
-    "category": "Generic Schedule Survey",
+    "survey": "Managed Network Services Survey - Automatic",
+    "category": "Managed Network Services Survey - Automatic",
     "questions": [
       {
         "name": "Overall Service Quality",

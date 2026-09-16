@@ -1,7 +1,7 @@
 [
   {
-    "survey": "Complex Resolution Survey",
-    "category": "Complex Resolution Survey",
+    "survey": "Managed Network Services Survey - Manual",
+    "category": "Managed Network Services Survey - Manual",
     "questions": [
       {
         "question": "How satisfied were you with the resolution of your issue?",
@@ -40,8 +40,8 @@
     ]
   },
   {
-    "survey": "Generic Schedule Survey",
-    "category": "Generic Schedule Survey",
+    "survey": "Managed Network Services Survey - Automatic",
+    "category": "Managed Network Services Survey - Automatic",
     "questions": [
       {
         "question": "Overall, how satisfied are you with our service this quarter?",

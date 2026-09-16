@@ -158,7 +158,7 @@ two invitations. It cannot simply be dropped, and it cannot be made global: it
 edits a record the store app owns.
 
 > It also cannot be avoided by turning off the platform invitation on these
-> surveys. Both Complex Resolution Survey and Generic Schedule Survey have
+> surveys. Both Managed Network Services Survey - Manual and Managed Network Services Survey - Automatic have
 > active trigger conditions on `sn_customerservice_case`, so they are raised by
 > the case flow as well as by the portal; suppressing their platform
 > notification would stop the case-triggered invitations too. Filtering on
@@ -191,7 +191,7 @@ One other set is deliberately left in Complete state:
 
 > ### CSAT Survey Portal - Rebrand and survey intro
 > 6 changes · the portal rename and `#011B58` header, its dedicated theme, the
-> Generic Schedule Survey rename and the two surveys skipping their Get Started
+> Managed Network Services Survey - Automatic rename and the two surveys skipping their Get Started
 > page
 
 That is a delta, for an instance that already runs the solution and only needs

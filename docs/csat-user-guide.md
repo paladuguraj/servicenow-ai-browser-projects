@@ -84,8 +84,8 @@ available again.
 
 Choose the survey to send. Two are available:
 
-- **Complex Resolution Survey** — after a significant or complex incident.
-- **Generic Schedule Survey** — for regular, ongoing feedback.
+- **Managed Network Services Survey - Manual** — after a significant or complex incident.
+- **Managed Network Services Survey - Automatic** — for regular, ongoing feedback.
 
 Above this field is a reminder:
 
@@ -109,14 +109,18 @@ Three choices:
 | **Every 60 days** | Sends now, then repeats every two months |
 
 Some surveys can only be sent immediately, because they relate to a single
-event rather than an ongoing relationship. **Complex Resolution Survey** is one
+event rather than an ongoing relationship. **Managed Network Services Survey - Manual** is one
 of these, so when you pick it the repeat options disappear. This is expected.
 
 ### 3.5 Notes
 
-When you pick a survey, this box fills in with the survey name to start you
+When you pick a survey, this box fills in with **How did we do? -** to start you
 off. Add anything that gives the recipient context — it is included in the
 email they receive.
+
+That prefix is deliberate. Customers are never shown the internal template
+name, so the note leads with the label they know the survey by. Leave the
+prefix in place and type your context after it.
 
 ### 3.6 Confirm and send
 
@@ -149,9 +153,15 @@ Two buttons:
 
 ## 4. What the customer receives
 
-Recipients get an email invitation with a link to the survey. Clicking it takes
-them **straight to the first question** — there is no welcome screen to click
+Recipients get an email invitation subject-lined **"How did we do? - we would
+value your feedback"**, with a link to the survey. Clicking it takes them
+**straight to the first question** — there is no welcome screen to click
 through.
+
+Customers only ever see the survey called **How did we do?**. The template
+names you pick from — *Managed Network Services Survey - Manual* and
+*- Automatic* — are internal, and the Manual/Automatic distinction is not
+something a customer needs to know about.
 
 The survey has two questions:
 
@@ -163,8 +173,10 @@ The survey has two questions:
 Customers of partners who resell under their own brand see the survey on that
 partner's own web address, so the branding stays consistent for them.
 
-When the survey is submitted, the customer gets a thank-you email and the
-person who raised the request is notified that a response has come in.
+When the survey is submitted, the customer gets a thank-you email — also using
+the **How did we do?** label — and the person who raised the request is
+notified that a response has come in. That internal alert names the actual
+template, so you can tell which survey was answered.
 
 ---
 

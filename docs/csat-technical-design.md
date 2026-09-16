@@ -180,6 +180,31 @@ Two notifications listen on `csat.survey.submitted`:
 > `JavaAdapter requires at least one argument`. Notification records are used
 > instead.
 
+### 5.0 Customer-facing survey label
+
+The survey definitions are named for internal use — **Managed Network Services
+Survey - Manual** and **- Automatic** — and that split describes how the survey
+was raised, which means nothing to a recipient. Customer-facing email therefore
+uses a fixed label, **How did we do?**, instead of `${metric_type}`:
+
+| Notification | Audience | Label |
+|---|---|---|
+| CSAT Survey Invitation | Customer | How did we do? |
+| CSAT Survey Submitted - Thank You | Customer | How did we do? |
+| CSAT Survey Submitted - Requestor | Internal | `${metric_type}` |
+
+The internal alert deliberately keeps `${metric_type}`: without it a requester
+cannot tell which survey a response belongs to.
+
+The label has to be applied in two places, because the template name reached
+the email by two routes. The subject used `${metric_type}` directly. The body
+picked it up through the note, which the request form seeds — so
+`applyNotesPrefix` now seeds **How did we do? -** and recognises previously
+seeded template names, so switching survey never strands an old label.
+
+`CUSTOMER_FACING_LABEL` is defined in `deploy-csat-email-template.js`,
+`deploy-csat-notifications.js` and the request widget's client script.
+
 ### 5.1 White-label survey links
 
 Many partners resell the service under their own brand and their customers reach

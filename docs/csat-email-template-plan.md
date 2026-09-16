@@ -237,8 +237,8 @@ These block a live send regardless of the email template:
 |---|---|
 | Outbound email enabled | **Off** |
 | Closed Case Survey | Published, 1 question |
-| Complex Resolution Survey | **Draft, 0 questions** |
-| Generic Schedule Survey | **Draft, 0 questions** |
+| Managed Network Services Survey - Manual | **Draft, 0 questions** |
+| Managed Network Services Survey - Automatic | **Draft, 0 questions** |
 | Primary Billing Contact populated | **1 company only** |
 
 A survey with one question will produce a very thin invitation. Content should
