@@ -70,6 +70,26 @@ const PROBE_SCRIPT = `(function process(request, response) {
         other: svc.getCooldown(ex.getValue('u_user'), otherType).blocked
       };
     }
+  } else if (action === 'template_fallback') {
+    var prop = new GlideRecord('sys_properties');
+    prop.addQuery('name', 'csat.portal.survey_names');
+    prop.query();
+    prop.next();
+    var original = prop.getValue('value');
+    try {
+      prop.setValue('value', 'A Survey That Does Not Exist');
+      prop.update();
+      gs.getProperties();
+      var fallback = new CSATSurveyService().getSurveyTemplates();
+      out.result = {
+        offered: fallback.length,
+        flagged: fallback.length > 0 && fallback.every(function(t) { return t.outside_filter === true; })
+      };
+    } finally {
+      prop.setValue('value', original);
+      prop.update();
+      gs.getProperties();
+    }
   } else if (action === 'send_window') {
     var tz = 'US/Eastern';
     out.result = {
@@ -237,6 +257,11 @@ async function main() {
       win.tuesday === true && win.wednesday === true && win.thursday === true
     );
     check('outside mid-morning is held', win.early === false && win.afternoon === false);
+
+    console.log('\nRule 9 — an allow-list that matches nothing must not empty the form');
+    const fb = await probe({ probe: 'template_fallback' });
+    check('surveys are still offered', fb.offered > 0, `${fb.offered} offered instead of none`);
+    check('they are flagged so the form can explain why', fb.flagged === true);
 
     console.log('\nUser eligibility metadata');
     const anyCompany = (await snGet(
