@@ -62,6 +62,8 @@ must confirm how many people will be emailed before anything is sent.
 | FR-32 | The survey is chosen **first**, and the eligible-user list follows from it | Met |
 | FR-33 | An **All** checkbox selects the eligible users currently listed | Met |
 | FR-34 | Scheduled sends wait for **Tue-Thu mid-morning** in the recipient's local time | Met |
+| FR-35 | Every survey invitation copies the **IEM escalation mailbox** | Met |
+| FR-36 | The copied address is configurable, and can be switched off, without a deploy | Met |
 
 ### 2.1 Business rules in plain terms
 
@@ -258,6 +260,15 @@ two-hour window.
 > judged in the instance default (US/Eastern here). The recipient's own
 > timezone is used wherever it is set. A request with recipients in different
 > timezones is judged in the first one found.
+
+### 4.2f IEM escalation copy — passed
+
+| Check | Covers | Observed |
+|---|---|---|
+| Copy applied | FR-35 | A generated invitation shows `CC: iem_escalation@appdirect.com` |
+| Body unchanged | FR-35 | The mail script prints nothing |
+| Configurable | FR-36 | Address read from `csat.iem.cc_email`; clearing it adds no copy |
+| Not overwritten | FR-36 | The deploy seeds the property only when it is absent |
 
 ### 4.3 Rules proven with live data
 

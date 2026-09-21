@@ -244,6 +244,32 @@ seeded template names, so switching survey never strands an old label.
 `CUSTOMER_FACING_LABEL` is defined in `deploy-csat-email-template.js`,
 `deploy-csat-notifications.js` and the request widget's client script.
 
+### 5.0.1 Copying the IEM escalation mailbox
+
+Every survey invitation copies `iem_escalation@appdirect.com`.
+
+Notifications have no CC field — `recipient_users`, `recipient_fields` and
+`recipient_groups` all address To — so the copy is added through the email
+object from a mail script, `csat_add_iem_cc`, referenced in the invitation
+body. It prints nothing, so the body is unchanged.
+
+The address is read from the **`csat.iem.cc_email`** property rather than
+hardcoded, so it can be changed, extended to several comma-separated
+addresses, or emptied to switch the copy off, without a deployment. The deploy
+seeds it only when absent, so a later run never overwrites what the business
+has set.
+
+Verified on a generated message rather than in the script alone:
+
+```
+Subject: How did we do? - we would value your feedback
+To     : <recipient>
+CC     : iem_escalation@appdirect.com
+```
+
+> The copy is on the invitation only. The submission thank-you and the internal
+> requestor alert are separate notifications and are not copied.
+
 ### 5.1 White-label survey links
 
 Many partners resell the service under their own brand and their customers reach
