@@ -54,6 +54,13 @@
           Each survey carries its own {{c.data.cooldownDays}}-day limit per person, so who can be
           contacted depends on the survey chosen here.
         </p>
+        <p class="text-warning csat-note" ng-if="c.templateFilterUnmatched()">
+          <strong>Showing every active survey.</strong>
+          The configured list of portal surveys does not match any survey on this instance,
+          so the filter has been ignored rather than leaving you with nothing to choose.
+          Ask an administrator to align the <code>csat.portal.survey_names</code> property
+          with the survey names here.
+        </p>
         <p class="text-danger csat-note" ng-if="c.draftTemplates().length">
           {{c.draftTemplates().length}} survey(s) are still in Draft and cannot be sent until published in Survey Designer.
         </p>

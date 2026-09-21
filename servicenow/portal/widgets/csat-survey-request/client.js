@@ -105,6 +105,16 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         return (c.data.templates || []).filter(function(t) { return !t.published; });
     };
 
+    /**
+     * True when the configured allow-list matched nothing and the server fell
+     * back to every active survey. Usually means the surveys were renamed on
+     * one instance but csat.portal.survey_names was not, or the two arrived
+     * separately in an update set.
+     */
+    c.templateFilterUnmatched = function() {
+        return (c.data.templates || []).some(function(t) { return t.outside_filter; });
+    };
+
     c.onTemplateChange = function() {
         // Case-outcome surveys are one-off, so drop any recurring choice.
         if (c.isImmediateOnly()) c.form.schedule_frequency = 'immediate';

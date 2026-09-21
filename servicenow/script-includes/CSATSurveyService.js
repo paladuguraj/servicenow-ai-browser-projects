@@ -193,10 +193,35 @@ CSATSurveyService.prototype = {
         });
     },
 
+    /**
+     * The surveys the portal offers.
+     *
+     * The allow-list matches on name, which does not survive a survey being
+     * renamed without the property following, or the two arriving separately
+     * on another instance. That used to leave the form with an empty dropdown
+     * and nothing to explain it, so a filter that matches nothing now falls
+     * back to every active survey and says so. Offering too many is wrong but
+     * obvious; offering none just looks broken.
+     */
     getSurveyTemplates: function() {
-        var templates = [];
         var allowed = this.getPortalSurveyNames();
+        var templates = this._findSurveys(allowed);
 
+        if (allowed.length && !templates.length) {
+            gs.warn('CSAT: csat.portal.survey_names lists "' + allowed.join(', ') +
+                '" but no active survey has those names, so every active survey is being offered. ' +
+                'Align the property with the survey names on this instance.');
+
+            templates = this._findSurveys([]);
+            for (var i = 0; i < templates.length; i++)
+                templates[i].outside_filter = true;
+        }
+
+        return templates;
+    },
+
+    _findSurveys: function(allowed) {
+        var templates = [];
         var gr = new GlideRecord('asmt_metric_type');
         gr.addQuery('active', true);
         gr.addQuery('evaluation_method', 'survey');
@@ -213,7 +238,8 @@ CSATSurveyService.prototype = {
                 immediate_only: this.isImmediateOnly(name),
                 // An unpublished survey cannot generate instances, so the
                 // portal has to keep it out of reach rather than fail on send.
-                published: gr.getValue('publish_state') === 'published'
+                published: gr.getValue('publish_state') === 'published',
+                outside_filter: false
             });
         }
         return templates;
