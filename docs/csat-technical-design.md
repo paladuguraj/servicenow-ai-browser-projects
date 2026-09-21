@@ -180,7 +180,22 @@ Two notifications listen on `csat.survey.submitted`:
 > `JavaAdapter requires at least one argument`. Notification records are used
 > instead.
 
-### 4.3 Per-survey cooldown and send timing
+### 4.2.1 Why the survey list can fall back
+
+The portal offers the surveys named in `csat.portal.survey_names`, matched on
+name. Names are what the business configures, but they are a weak join across
+instances: a migration that carries the property without the renamed survey
+definitions leaves the filter matching nothing.
+
+That used to render an empty dropdown with nothing to explain it. Now a filter
+that matches no active survey is ignored — every active survey is offered, each
+flagged `outside_filter`, and the form shows a warning naming the property. The
+condition is also logged with `gs.warn`.
+
+`scripts/diagnose-csat.js` reports the mismatch directly, listing the
+configured names that are missing and the surveys actually present.
+
+## 4.3 Per-survey cooldown and send timing
 
 **The 90-day window runs per survey.** `getCooldown(userId, metricTypeId)`
 filters the execution log by survey, so each survey carries its own window and

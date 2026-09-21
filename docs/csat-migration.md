@@ -222,6 +222,27 @@ global set works on its own and the scoped one can follow.
 Read [what does not transfer](#what-does-not-transfer) first — companies, users,
 SMTP and `survey.link.whitelabel` are instance data and are not in the set.
 
+### If the survey dropdown is empty after a commit
+
+The portal decides which surveys to offer by matching survey **names** against
+the `csat.portal.survey_names` property. If the property arrives on an instance
+but the survey definitions do not — because they were skipped on preview, or
+already existed there under different names — nothing matches.
+
+Run the diagnostic against the instance:
+
+```bash
+ENV_FILE=.env.target node scripts/diagnose-csat.js
+```
+
+It reports which configured names are missing and lists the surveys actually
+present, so the fix is either to rename the surveys or to point the property at
+the names that are there.
+
+The form no longer goes blank in this situation: an allow-list matching nothing
+falls back to offering every active survey and shows a warning explaining why.
+Offering too many is wrong but visible; offering none just looks broken.
+
 ### Rebuilding the consolidated set
 
 If more changes are made, re-run:
