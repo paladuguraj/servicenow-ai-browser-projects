@@ -1,0 +1,177 @@
+<div class="csat-report">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">CSAT Survey Results</h2>
+      <p class="text-muted m-t-xs m-b-none">Filter the surveys sent from this portal and see who has replied.</p>
+    </div>
+    <div class="panel-body">
+
+      <div class="alert alert-danger" ng-if="c.error">{{c.error}}</div>
+
+      <div class="row">
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="rep-survey">Type of Survey</label>
+          <select id="rep-survey" class="form-control" ng-model="c.filters.metric_type">
+            <option value="">All surveys</option>
+            <option ng-repeat="s in c.data.options.surveys track by s.sys_id" value="{{s.sys_id}}">{{s.name}}</option>
+          </select>
+        </div>
+
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="rep-account">Account</label>
+          <select id="rep-account" class="form-control" ng-model="c.filters.company">
+            <option value="">All accounts</option>
+            <option ng-repeat="a in c.data.options.accounts track by a.sys_id" value="{{a.sys_id}}">{{a.name}}</option>
+          </select>
+        </div>
+
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="rep-from">Survey sent from</label>
+          <input id="rep-from" type="date" class="form-control" ng-model="c.filters.sent_from"/>
+        </div>
+
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="rep-to">Survey sent to</label>
+          <input id="rep-to" type="date" class="form-control" ng-model="c.filters.sent_to"/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="rep-response">Sent vs Replied</label>
+          <select id="rep-response" class="form-control" ng-model="c.filters.response">
+            <option ng-repeat="o in c.responseOptions track by o.value" value="{{o.value}}">{{o.label}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-toolbar">
+        <button type="button" class="btn btn-primary" ng-click="c.run()" ng-disabled="c.running">
+          <span ng-if="!c.running">Run report</span>
+          <span ng-if="c.running">Running...</span>
+        </button>
+        <button type="button" class="btn btn-default" ng-click="c.reset()">Reset</button>
+      </div>
+
+      <div class="btn-toolbar csat-exports" ng-if="c.rows().length">
+        <span class="csat-export-label">Export</span>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportPdf()" ng-disabled="c.pdfBusy">
+          <span ng-if="!c.pdfBusy">PDF</span>
+          <span ng-if="c.pdfBusy">Preparing PDF...</span>
+        </button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportExcel()">Excel</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportCsv()">CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="c.hasRun &amp;&amp; c.summary()">
+    <div class="row csat-tiles">
+      <div class="col-sm-3">
+        <div class="panel panel-default csat-tile">
+          <div class="csat-tile-value">{{c.summary().sent}}</div>
+          <div class="csat-tile-label">Surveys sent</div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="panel panel-default csat-tile">
+          <div class="csat-tile-value">{{c.summary().replied}}</div>
+          <div class="csat-tile-label">Replied</div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="panel panel-default csat-tile">
+          <div class="csat-tile-value">{{c.summary().response_rate}}%</div>
+          <div class="csat-tile-label">Response rate</div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="panel panel-default csat-tile">
+          <div class="csat-tile-value">{{c.summary().average_score === null ? '-' : c.summary().average_score}}</div>
+          <div class="csat-tile-label">Average score</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-muted csat-note" ng-if="c.summary().skipped || c.summary().failed">
+      Excluded from the totals: {{c.summary().skipped}} skipped and {{c.summary().failed}} failed send(s),
+      which never reached a recipient.
+    </p>
+
+    <div class="row" ng-if="c.data.breakdown">
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">By account</h3></div>
+          <table class="table table-condensed">
+            <thead><tr><th>Account</th><th class="text-right">Sent</th><th class="text-right">Replied</th><th class="text-right">Rate</th></tr></thead>
+            <tbody>
+              <tr ng-repeat="a in c.data.breakdown.by_account track by a.name">
+                <td>{{a.name}}</td><td class="text-right">{{a.sent}}</td>
+                <td class="text-right">{{a.replied}}</td><td class="text-right">{{a.response_rate}}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">By survey</h3></div>
+          <table class="table table-condensed">
+            <thead><tr><th>Survey</th><th class="text-right">Sent</th><th class="text-right">Replied</th><th class="text-right">Rate</th></tr></thead>
+            <tbody>
+              <tr ng-repeat="s in c.data.breakdown.by_survey track by s.name">
+                <td>{{s.name}}</td><td class="text-right">{{s.sent}}</td>
+                <td class="text-right">{{s.replied}}</td><td class="text-right">{{s.response_rate}}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Detail ({{c.rows().length}} row<span ng-if="c.rows().length !== 1">s</span>)</h3>
+      </div>
+      <div class="csat-table-scroll">
+        <table class="table table-condensed table-hover">
+          <thead>
+            <tr>
+              <th>Account</th><th>Survey</th><th>Recipient</th>
+              <th>Sent on</th><th>Status</th><th>Replied on</th>
+              <th class="text-right">Score</th><th>Comments</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="r in c.rows() track by $index">
+              <td>{{r.account}}</td>
+              <td>{{r.survey}}</td>
+              <td>{{r.recipient}}<br/><small class="text-muted">{{r.email}}</small></td>
+              <td>{{r.sent_on}}</td>
+              <td>
+                <span class="label label-success" ng-if="r.replied">Replied</span>
+                <span class="label label-default" ng-if="!r.replied">Awaiting</span>
+              </td>
+              <td>{{r.replied_on}}</td>
+              <td class="text-right">{{r.score === null ? '' : r.score}}</td>
+              <td>{{r.comments}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-body" ng-if="!c.rows().length">
+        <p class="text-muted m-b-none">No surveys match these filters.</p>
+      </div>
+      <div class="panel-body" ng-if="c.data.results.truncated">
+        <p class="text-danger m-b-none">
+          Showing the first {{c.data.results.max_rows}} rows. Narrow the filters to see the rest.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <p class="csat-links">
+    <a href="?id=csat_home">New survey request</a> &nbsp;&middot;&nbsp;
+    <a href="?id=csat_requests">All survey requests</a>
+  </p>
+</div>

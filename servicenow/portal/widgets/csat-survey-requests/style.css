@@ -1,0 +1,23 @@
+.csat-survey-requests .csat-requests-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.csat-survey-requests .csat-requests-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.csat-survey-requests .csat-requests-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+
+.csat-survey-requests .csat-requests-links {
+  margin-top: 12px;
+  font-size: 13px;
+}

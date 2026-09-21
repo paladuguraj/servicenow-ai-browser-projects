@@ -1,0 +1,39 @@
+{
+  "name": "servicenow-ai-browser-projects",
+  "version": "1.0.0",
+  "description": "ServiceNow AI browser automation with Cursor MCP",
+  "scripts": {
+    "test:connection": "node scripts/test-connection.js",
+    "verify:login": "node scripts/verify-login-page.js",
+    "test:login": "node scripts/login-test.js",
+    "docs:build": "node scripts/build-docs.js",
+    "preflight:csat": "node scripts/preflight-csat.js",
+    "updateset:begin": "node scripts/update-set.js begin",
+    "updateset:status": "node scripts/update-set.js status",
+    "updateset:adopt": "node scripts/update-set.js adopt",
+    "updateset:complete": "node scripts/update-set.js complete",
+    "updateset:consolidate": "node scripts/consolidate-update-set.js",
+    "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/deploy-csat-portal.js && node scripts/deploy-csat-notifications.js",
+    "deploy:csat:portal": "node scripts/deploy-csat-portal.js",
+    "deploy:csat:notifications": "node scripts/deploy-csat-notifications.js",
+    "test:csat": "node scripts/test-csat-portal-e2e.js && node scripts/test-csat-notifications.js",
+    "test:csat:portal": "node scripts/test-csat-portal-e2e.js",
+    "test:csat:email": "node scripts/test-csat-notifications.js",
+    "survey:landing": "node scripts/configure-survey-landing.js",
+    "survey:rename": "node scripts/rename-survey.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paladuguraj/servicenow-ai-browser-projects.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paladuguraj/servicenow-ai-browser-projects/issues"
+  },
+  "homepage": "https://github.com/paladuguraj/servicenow-ai-browser-projects#readme",
+  "dependencies": {
+    "playwright": "^1.62.0"
+  }
+}
