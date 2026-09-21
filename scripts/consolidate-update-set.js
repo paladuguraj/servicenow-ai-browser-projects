@@ -12,6 +12,12 @@
  * Usage:
  *   node scripts/consolidate-update-set.js [--name "..."] [--dry-run]
  *                                          [--retire-sources] [--keep "A,B"]
+ *                                          [--since YYYY-MM-DD]
+ *
+ * --since builds a delta from the sets captured on or after that date, for an
+ * instance that already runs the solution and only needs recent work. A delta
+ * carries exactly what changed, so the forced records and the source retiring
+ * that the full set needs are both skipped.
  *
  * --retire-sources marks the sets it consolidated as Ignore, so the migration
  * set is the obvious one to export. It is reversible: set them back to
@@ -56,6 +62,9 @@ const retireSources = args.includes('--retire-sources');
 // Sets to leave in Complete state even when retiring the rest. A dated set of
 // one round of changes is worth keeping usable on its own, so it can be
 // applied to an instance that already has the solution.
+const sinceFlag = args.indexOf('--since');
+const since = sinceFlag !== -1 ? args[sinceFlag + 1] : '';
+
 const keepFlag = args.indexOf('--keep');
 const keepComplete = (keepFlag !== -1 ? args[keepFlag + 1] || '' : '')
   .split(',')
@@ -163,11 +172,13 @@ async function dropRetiredQuestions(entries) {
  * marked Ignore rather than emptied, so a re-run has to keep reading them.
  */
 async function findSourceSets() {
+  const query = since
+    ? `nameSTARTSWITH${SOURCE_PREFIX}^sys_created_on>=${since} 00:00:00`
+    : `nameSTARTSWITH${SOURCE_PREFIX}`;
+
   const sets = await snGet(
     'sys_update_set',
-    `sysparm_query=${encodeURIComponent(
-      `nameSTARTSWITH${SOURCE_PREFIX}`
-    )}&sysparm_fields=sys_id,name,state,sys_created_on&sysparm_orderby=sys_created_on`
+    `sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id,name,state,sys_created_on&sysparm_orderby=sys_created_on`
   );
 
   // Exclude the sets this script builds. That means the target and its
@@ -485,8 +496,9 @@ async function main() {
           body: {
             target_set: targetSysId,
             fields: COPIED_FIELDS,
-            // Forced records are all global, so only the global set takes them.
-            force: isGlobal ? FORCE_CAPTURE : [],
+            // Forced records are all global, and a delta should carry only
+            // what actually changed in its window.
+            force: isGlobal && !since ? FORCE_CAPTURE : [],
             ids: rows.map((row) => row.sys_id),
           },
         }),
@@ -512,7 +524,10 @@ async function main() {
     built.push({ name, label, sysId: targetSysId, total: result.total });
   }
 
-  if (retireSources) {
+  if (retireSources && since)
+    console.log('\n--since builds a delta, so the sources it read are left as they are.');
+
+  if (retireSources && !since) {
     const retired = sources.filter((s) => keepComplete.indexOf(s.name) === -1);
     for (const set of retired) await snPatch('sys_update_set', set.sys_id, { state: 'ignore' });
     console.log(`\nMarked ${retired.length} superseded set(s) as Ignore.`);
