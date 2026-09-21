@@ -33,10 +33,41 @@ const MAIL_SCRIPTS = [
   ['set_survey_partners_from', 'mail-scripts/set_survey_partners_from.js', 'Resolves the survey invitation sender from the case or CSAT survey request'],
   ['asmt_assessment_instance_script_for_partners', 'mail-scripts/asmt_assessment_instance_script_for_partners.js', 'Prints the survey link for case-triggered or portal-raised surveys'],
   ['csat_survey_portal_notes', 'mail-scripts/csat_survey_portal_notes.js', 'Prints the note captured on the CSAT survey request'],
+  ['csat_add_iem_cc', 'mail-scripts/csat_add_iem_cc.js', 'Copies the IEM escalation mailbox on the CSAT survey invitation'],
 ];
+
+// Notifications have no CC field, so the copy is added by a mail script that
+// reads this. Emptying the property switches the copy off without a deploy.
+const IEM_CC_PROPERTY = 'csat.iem.cc_email';
+const IEM_CC_DEFAULT = 'iem_escalation@appdirect.com';
 
 // Superseded by the shared scripts above.
 const RETIRED_MAIL_SCRIPTS = ['csat_survey_portal_from', 'csat_survey_portal_link'];
+
+/**
+ * Seeded on first deploy only. A later run leaves whatever the business has
+ * set, so changing or clearing the address on an instance is not undone.
+ */
+async function ensureIemCopyProperty() {
+  const existing = await snGet(
+    'sys_properties',
+    `sysparm_query=name=${IEM_CC_PROPERTY}&sysparm_fields=sys_id,value`
+  );
+
+  if (existing.length) {
+    console.log(`IEM copy address already set: ${existing[0].value || '(empty - copy disabled)'}`);
+    return;
+  }
+
+  await snPost('sys_properties', {
+    name: IEM_CC_PROPERTY,
+    value: IEM_CC_DEFAULT,
+    type: 'string',
+    description:
+      'Address copied on every CSAT survey invitation. Comma-separate for several. Leave empty to send no copy.',
+  });
+  console.log(`Set ${IEM_CC_PROPERTY} = ${IEM_CC_DEFAULT}`);
+}
 
 async function ensureMailScript(name, artifact, description) {
   const script = readArtifact(artifact);
@@ -171,6 +202,8 @@ async function reportState() {
 
 async function main() {
   announceTarget('Deploy CSAT survey invitation email');
+
+  await ensureIemCopyProperty();
 
   for (const [name, artifact, description] of MAIL_SCRIPTS)
     await ensureMailScript(name, artifact, description);
