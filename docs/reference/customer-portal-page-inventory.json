@@ -1,0 +1,498 @@
+[
+  {
+    "id": "customer_homepage",
+    "title": "Customer Homepage",
+    "public": "true",
+    "roles": "snc_external,snc_internal,public,admin",
+    "updated": "2026-06-26 12:26:47",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Customer Homepage - Container 2",
+        "col": "12",
+        "widget_id": "ad-login",
+        "widget_name": "Adcom Login",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Homepage - Container 1",
+        "col": "4",
+        "widget_id": "appdirect_bar_graph_v3",
+        "widget_name": "Appdirect Bar Graph v3",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Homepage - Container 1",
+        "col": "4",
+        "widget_id": "case_resolution",
+        "widget_name": "Case Resolution",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Homepage - Container 1",
+        "col": "4",
+        "widget_id": "case_activity",
+        "widget_name": "case activity",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Homepage - Container 1",
+        "col": "12",
+        "widget_id": "81fe597633028390f4c08dc91e5c7bed",
+        "widget_name": "Appdirect Leafleft Map - Customer",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Homepage - Container 1",
+        "col": "12",
+        "widget_id": "case_summary_portal",
+        "widget_name": "case summary",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "customer_locations",
+    "title": "Locations",
+    "public": "true",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-24 07:20:49",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Locations - Container 1",
+        "col": "12",
+        "widget_id": "breadcrumbs",
+        "widget_name": "breadcrumbs",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Locations - Container 1",
+        "col": "12",
+        "widget_id": "nr-title",
+        "widget_name": "RocketFuel Title",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Locations - Container 2",
+        "col": "12",
+        "widget_id": null,
+        "widget_name": null,
+        "instance_title": null,
+        "active": "false"
+      }
+    ]
+  },
+  {
+    "id": "customer_sites",
+    "title": "Customer Locations",
+    "public": "true",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-01-27 14:47:28",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Customer Locations - Container 1",
+        "col": "12",
+        "widget_id": "breadcrumbs",
+        "widget_name": "breadcrumbs",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Locations - Container 1",
+        "col": "12",
+        "widget_id": "nr-title",
+        "widget_name": "RocketFuel Title",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Customer Locations - Container 2",
+        "col": "12",
+        "widget_id": null,
+        "widget_name": null,
+        "instance_title": null,
+        "active": "false"
+      },
+      {
+        "container": "Customer Locations - Container 2",
+        "col": "12",
+        "widget_id": "38df67badb935d507573c13913961917",
+        "widget_name": "Copy of Adcom Sites",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "customer_circuits",
+    "title": "Circuits",
+    "public": "true",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-14 11:31:04",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Circuits - Container 1",
+        "col": "12",
+        "widget_id": "nr-title",
+        "widget_name": "RocketFuel Title",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 1",
+        "col": "12",
+        "widget_id": "breadcrumbs",
+        "widget_name": "breadcrumbs",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "12",
+        "widget_id": "b1e7da4233460f50f4c08dc91e5c7bb0",
+        "widget_name": "Customer Circuit List Filter",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "8",
+        "widget_id": "f033ee0a33860f50f4c08dc91e5c7b85",
+        "widget_name": "Appdirect Circuits List",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "4",
+        "widget_id": "adcom-stacked-bar-graph",
+        "widget_name": "Adcom Stacked Bar Graph",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "4",
+        "widget_id": "adcom-table",
+        "widget_name": "Adcom Table",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "4",
+        "widget_id": "adcom-table",
+        "widget_name": "Adcom Table",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "4",
+        "widget_id": "adcom-table",
+        "widget_name": "Adcom Table",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Circuits - Container 2",
+        "col": "4",
+        "widget_id": "adcom-table",
+        "widget_name": "Adcom Table",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "customer_hardware",
+    "title": "Hardware",
+    "public": "false",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-14 12:46:54",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Hardware - Container 3",
+        "col": "8",
+        "widget_id": "customer-hardware-list",
+        "widget_name": "Customer Hardware List",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Hardware - Container 3",
+        "col": "4",
+        "widget_id": "adcom-table",
+        "widget_name": "Adcom Table",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Hardware - Container 2",
+        "col": "12",
+        "widget_id": "customer-hardware-list-filter",
+        "widget_name": "Customer Hardware List Filter",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Hardware - Container 1",
+        "col": "12",
+        "widget_id": "nr-title",
+        "widget_name": "RocketFuel Title",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Hardware - Container 1",
+        "col": "12",
+        "widget_id": "breadcrumbs",
+        "widget_name": "breadcrumbs",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "appdirect_cat_item",
+    "title": "Appdirect Catalog Item",
+    "public": "false",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-24 08:46:08",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Appdirect Catalog Item - Container 2",
+        "col": "12",
+        "widget_id": "related_catalog_item",
+        "widget_name": "Related Catalog Item",
+        "instance_title": "Related Items",
+        "active": "true"
+      },
+      {
+        "container": "Appdirect Catalog Item - Container 2",
+        "col": "12",
+        "widget_id": "kb_related_articles",
+        "widget_name": "Knowledge Related Articles",
+        "instance_title": "Related Articles",
+        "active": "true"
+      },
+      {
+        "container": "Appdirect Catalog Item - Container 1",
+        "col": "12",
+        "widget_id": "widget-sc-cat-item-v2",
+        "widget_name": "SC Catalog Item",
+        "instance_title": "SC Catalog Item",
+        "active": "true"
+      },
+      {
+        "container": "Appdirect Catalog Item - Container 1",
+        "col": "12",
+        "widget_id": "sc_scroll_to_top",
+        "widget_name": "SC Scroll to top",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "appdirect_kb_home",
+    "title": "Knowledge Home",
+    "public": "false",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-24 07:06:07",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Knowledge Home - Container 1",
+        "col": "12",
+        "widget_id": "kb-bases-browse",
+        "widget_name": "Knowledge Bases Browse",
+        "instance_title": "Explore our Knowledge Bases",
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "appdirect_kb_search",
+    "title": "Knowledge Search",
+    "public": "false",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-07-23 20:32:53",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-query-facet",
+        "widget_name": "Knowledge Query Facet",
+        "instance_title": "Rating",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-query-facet",
+        "widget_name": "Knowledge Query Facet",
+        "instance_title": "View Count",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb_language_facet",
+        "widget_name": "Knowledge Language Facet",
+        "instance_title": "Language",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-field-facet",
+        "widget_name": "knowledge Field Facet",
+        "instance_title": "Knowledge Bases",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-field-facet",
+        "widget_name": "knowledge Field Facet",
+        "instance_title": "Author",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-query-facet",
+        "widget_name": "Knowledge Query Facet",
+        "instance_title": "Last Modified",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-field-facet",
+        "widget_name": "knowledge Field Facet",
+        "instance_title": "Category",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-facet-header",
+        "widget_name": "Knowledge Facet Header",
+        "instance_title": null,
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-tags-facet",
+        "widget_name": "knowledge Tags Facet",
+        "instance_title": "Tags",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 2",
+        "col": "3",
+        "widget_id": "kb-resource-facet",
+        "widget_name": "Knowledge Resource Facet",
+        "instance_title": "Resource",
+        "active": "true"
+      },
+      {
+        "container": "Knowledge Search - Container 1",
+        "col": "12",
+        "widget_id": "knowledge_fixed_facet_header",
+        "widget_name": "Knowledge Fixed Facet Header",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "macd_request_page",
+    "title": "MACD Request Page",
+    "public": "false",
+    "roles": "snc_external,snc_internal",
+    "updated": "2026-03-10 09:33:02",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "MACD Request Page - Container 1",
+        "col": "12",
+        "widget_id": "appdirect-sc-catalog-item",
+        "widget_name": "Appdirect SC Catalog Item",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "macd_case",
+    "title": "MACD Case",
+    "public": "false",
+    "roles": "",
+    "updated": "2026-03-10 08:50:05",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "MACD Case - Container 1",
+        "col": "12",
+        "widget_id": "de56cd9f2b97fa14efa0f95ed891bff8",
+        "widget_name": "Redirect to MACD",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "sso_redirect",
+    "title": "sso_redirect",
+    "public": "false",
+    "roles": "",
+    "updated": "2026-05-29 15:33:02",
+    "created_by": "psharma",
+    "widgets": [
+      {
+        "container": "sso_redirect - Container 1",
+        "col": "12",
+        "widget_id": "sso_redirect",
+        "widget_name": "SSO Redirect",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  },
+  {
+    "id": "sso_initiate",
+    "title": "SSO Initiate",
+    "public": "true",
+    "roles": "",
+    "updated": "2026-05-27 11:58:02",
+    "created_by": "pankaj.sharma",
+    "widgets": [
+      {
+        "container": "SSO Initiate - Container 1",
+        "col": "12",
+        "widget_id": "sso_initiate",
+        "widget_name": "SSO Initiate",
+        "instance_title": null,
+        "active": "true"
+      }
+    ]
+  }
+]

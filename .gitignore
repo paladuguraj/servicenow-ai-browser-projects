@@ -13,3 +13,4 @@ error-screenshot.png
 # OS files
 .DS_Store
 Thumbs.db
+docs/build/*.stripped.md
