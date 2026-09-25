@@ -1,0 +1,114 @@
+[
+  {
+    "label": "Documents",
+    "order": null,
+    "type": "URL",
+    "page": "",
+    "url": "?id=appdirect_kb_home",
+    "condition": ""
+  },
+  {
+    "label": "Managed Services",
+    "order": 100,
+    "type": "Page",
+    "page": "customer_homepage",
+    "url": "",
+    "condition": ""
+  },
+  {
+    "label": "Home",
+    "order": 100,
+    "type": "Page",
+    "page": "customer_homepage",
+    "url": "",
+    "condition": ""
+  },
+  {
+    "label": "Locations",
+    "order": 200,
+    "type": "URL",
+    "page": "",
+    "url": "?id=customer_locations",
+    "condition": ""
+  },
+  {
+    "label": "Locations",
+    "order": 200,
+    "type": "URL",
+    "page": "",
+    "url": "?id=customer_sites",
+    "condition": "javascript: new x_admso_adcom_serv.LogicMonitorDashboardUtils().isLocations() && gs.getUser().getCompanyRecord().u_servi"
+  },
+  {
+    "label": "Hardware",
+    "order": 300,
+    "type": "Page",
+    "page": "ad_hardware_old_31_10_2024",
+    "url": "",
+    "condition": "javascript: new x_admso_adcom_serv.LogicMonitorDashboardUtils().isHardware() && gs.getUser().getCompanyRecord().u_servic"
+  },
+  {
+    "label": "Infrastructure",
+    "order": 300,
+    "type": "Page",
+    "page": "customer_hardware",
+    "url": "",
+    "condition": ""
+  },
+  {
+    "label": "Case Insights",
+    "order": 450,
+    "type": "URL",
+    "page": "",
+    "url": "javascript:void(0)",
+    "condition": ""
+  },
+  {
+    "label": "Enable/Disable Demo",
+    "order": null,
+    "type": "Page",
+    "page": "429926443bb87210d91af97a25e45ad2",
+    "url": "",
+    "condition": "gs.getUser().isMemberOf(\"b207a2403bb87210d91af97a25e45a14\");"
+  },
+  {
+    "label": "Links",
+    "order": null,
+    "type": "Scripted List",
+    "page": "",
+    "url": "",
+    "condition": ""
+  },
+  {
+    "label": "Connectivity",
+    "order": 400,
+    "type": "Page",
+    "page": "customer_circuits",
+    "url": "",
+    "condition": ""
+  },
+  {
+    "label": "Circuits",
+    "order": 400,
+    "type": "Page",
+    "page": "ad_circuits_old_31_10_2024",
+    "url": "",
+    "condition": "javascript: new x_admso_adcom_serv.LogicMonitorDashboardUtils().isCircuits() && gs.getUser().getCompanyRecord().u_servic"
+  },
+  {
+    "label": "Network Insights",
+    "order": 500,
+    "type": "URL",
+    "page": "",
+    "url": "https://nocportal.logicmonitor.com/santaba/saml/login?userDomain=catalogsandbox.byappdirect.com&url=%2Fuiv3%2Fdevice%2F%23data-tab",
+    "condition": ""
+  },
+  {
+    "label": "Links",
+    "order": null,
+    "type": "URL",
+    "page": "",
+    "url": "",
+    "condition": ""
+  }
+]

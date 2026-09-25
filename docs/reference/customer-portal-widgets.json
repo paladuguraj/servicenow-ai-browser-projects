@@ -1,0 +1,505 @@
+{
+  "ad-login": {
+    "id": "ad-login",
+    "name": "Adcom Login",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "e1855962dbe3270014cec7ec0b96190d",
+    "lengths": {
+      "template": 1,
+      "script": 187,
+      "client_script": 142,
+      "css": 0,
+      "link": 0
+    },
+    "scope": "ADCom Service Portal"
+  },
+  "appdirect_bar_graph_v3": {
+    "id": "appdirect_bar_graph_v3",
+    "name": "Appdirect Bar Graph v3",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "ed55ee6b33798710f4c08dc91e5c7be3",
+    "lengths": {
+      "template": 1182,
+      "script": 3291,
+      "client_script": 8703,
+      "css": 2508,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "case_resolution": {
+    "id": "case_resolution",
+    "name": "Case Resolution",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "7a81422333758710f4c08dc91e5c7bd4",
+    "lengths": {
+      "template": 2890,
+      "script": 2481,
+      "client_script": 1322,
+      "css": 2668,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "case_activity": {
+    "id": "case_activity",
+    "name": "case activity",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "d55095913b9eba10d91af97a25e45a76",
+    "lengths": {
+      "template": 3325,
+      "script": 1251,
+      "client_script": 1383,
+      "css": 2663,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "81fe597633028390f4c08dc91e5c7bed": {
+    "id": "",
+    "name": "Appdirect Leafleft Map - Customer",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "81fe597633028390f4c08dc91e5c7bed",
+    "lengths": {
+      "template": 1147,
+      "script": 7224,
+      "client_script": 12833,
+      "css": 566,
+      "link": 53
+    },
+    "scope": "Global"
+  },
+  "case_summary_portal": {
+    "id": "case_summary_portal",
+    "name": "case summary",
+    "pages": [
+      "customer_homepage"
+    ],
+    "sys_id": "f98b059d3b1eba10d91af97a25e45a31",
+    "lengths": {
+      "template": 798,
+      "script": 738,
+      "client_script": 72,
+      "css": 1102,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "breadcrumbs": {
+    "id": "breadcrumbs",
+    "name": "breadcrumbs",
+    "pages": [
+      "customer_locations",
+      "customer_sites",
+      "customer_circuits",
+      "customer_hardware"
+    ],
+    "sys_id": "0fb269305b3212000d7ec7ad31f91ae2",
+    "lengths": {
+      "template": 1122,
+      "script": 0,
+      "client_script": 306,
+      "css": 317,
+      "link": 0
+    },
+    "scope": "Global"
+  },
+  "nr-title": {
+    "id": "nr-title",
+    "name": "RocketFuel Title",
+    "pages": [
+      "customer_locations",
+      "customer_sites",
+      "customer_circuits",
+      "customer_hardware"
+    ],
+    "sys_id": "2ec0a9d30f0e03006034943be1050e00",
+    "lengths": {
+      "template": 408,
+      "script": 6134,
+      "client_script": 294,
+      "css": 398,
+      "link": 0
+    },
+    "scope": "RocketFuel for Service Portal"
+  },
+  "38df67badb935d507573c13913961917": {
+    "id": "",
+    "name": "Copy of Adcom Sites",
+    "pages": [
+      "customer_sites"
+    ],
+    "sys_id": "38df67badb935d507573c13913961917",
+    "lengths": {
+      "template": 7308,
+      "script": 14666,
+      "client_script": 1524,
+      "css": 1001,
+      "link": 53
+    },
+    "scope": "ADCom Service Portal"
+  },
+  "b1e7da4233460f50f4c08dc91e5c7bb0": {
+    "id": "",
+    "name": "Customer Circuit List Filter",
+    "pages": [
+      "customer_circuits"
+    ],
+    "sys_id": "b1e7da4233460f50f4c08dc91e5c7bb0",
+    "lengths": {
+      "template": 2401,
+      "script": 1035,
+      "client_script": 1447,
+      "css": 4754,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "f033ee0a33860f50f4c08dc91e5c7b85": {
+    "id": "",
+    "name": "Appdirect Circuits List",
+    "pages": [
+      "customer_circuits"
+    ],
+    "sys_id": "f033ee0a33860f50f4c08dc91e5c7b85",
+    "lengths": {
+      "template": 2414,
+      "script": 2166,
+      "client_script": 2303,
+      "css": 10398,
+      "link": 53
+    },
+    "scope": "Global"
+  },
+  "adcom-stacked-bar-graph": {
+    "id": "adcom-stacked-bar-graph",
+    "name": "Adcom Stacked Bar Graph",
+    "pages": [
+      "customer_circuits"
+    ],
+    "sys_id": "25206031db6342147573c13913961941",
+    "lengths": {
+      "template": 604,
+      "script": 3133,
+      "client_script": 5362,
+      "css": 423,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "adcom-table": {
+    "id": "adcom-table",
+    "name": "Adcom Table",
+    "pages": [
+      "customer_circuits",
+      "customer_hardware"
+    ],
+    "sys_id": "5784737087f78654921d21f6cebb353c",
+    "lengths": {
+      "template": 2098,
+      "script": 2917,
+      "client_script": 2891,
+      "css": 1265,
+      "link": 53
+    },
+    "scope": "Global"
+  },
+  "customer-hardware-list": {
+    "id": "customer-hardware-list",
+    "name": "Customer Hardware List",
+    "pages": [
+      "customer_hardware"
+    ],
+    "sys_id": "15c4bd0633020f50f4c08dc91e5c7b64",
+    "lengths": {
+      "template": 2988,
+      "script": 2670,
+      "client_script": 4223,
+      "css": 6071,
+      "link": 53
+    },
+    "scope": "Global"
+  },
+  "customer-hardware-list-filter": {
+    "id": "customer-hardware-list-filter",
+    "name": "Customer Hardware List Filter",
+    "pages": [
+      "customer_hardware"
+    ],
+    "sys_id": "551c790a33420f50f4c08dc91e5c7bb8",
+    "lengths": {
+      "template": 3626,
+      "script": 1525,
+      "client_script": 2417,
+      "css": 6761,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "related_catalog_item": {
+    "id": "related_catalog_item",
+    "name": "Related Catalog Item",
+    "pages": [
+      "appdirect_cat_item"
+    ],
+    "sys_id": "806f40990fab2300b7b2c8337a767e6f",
+    "lengths": {
+      "template": 2309,
+      "script": 3518,
+      "client_script": 644,
+      "css": 796,
+      "link": 53
+    },
+    "scope": "Global"
+  },
+  "kb_related_articles": {
+    "id": "kb_related_articles",
+    "name": "Knowledge Related Articles",
+    "pages": [
+      "appdirect_cat_item"
+    ],
+    "sys_id": "a8874e5bdb18330076e757a0cf961939",
+    "lengths": {
+      "template": 326,
+      "script": 3210,
+      "client_script": 434,
+      "css": 85,
+      "link": 53
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "widget-sc-cat-item-v2": {
+    "id": "widget-sc-cat-item-v2",
+    "name": "SC Catalog Item",
+    "pages": [
+      "appdirect_cat_item"
+    ],
+    "sys_id": "3c29786e87133200e0ef0cf888cb0bdf",
+    "lengths": {
+      "template": 28024,
+      "script": 35620,
+      "client_script": 90086,
+      "css": 5900,
+      "link": 668
+    },
+    "scope": "Global"
+  },
+  "sc_scroll_to_top": {
+    "id": "sc_scroll_to_top",
+    "name": "SC Scroll to top",
+    "pages": [
+      "appdirect_cat_item"
+    ],
+    "sys_id": "9cfd91940b4103002600425663673a31",
+    "lengths": {
+      "template": 265,
+      "script": 77,
+      "client_script": 929,
+      "css": 464,
+      "link": 0
+    },
+    "scope": "Global"
+  },
+  "kb-bases-browse": {
+    "id": "kb-bases-browse",
+    "name": "Knowledge Bases Browse",
+    "pages": [
+      "appdirect_kb_home"
+    ],
+    "sys_id": "abe00f1bdb50320099f93691f0b8f57b",
+    "lengths": {
+      "template": 10146,
+      "script": 2944,
+      "client_script": 1040,
+      "css": 3322,
+      "link": 1922
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb-query-facet": {
+    "id": "kb-query-facet",
+    "name": "Knowledge Query Facet",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "72e1a6cbdb83220099f93691f0b8f549",
+    "lengths": {
+      "template": 2603,
+      "script": 2409,
+      "client_script": 3983,
+      "css": 1662,
+      "link": 665
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb_language_facet": {
+    "id": "kb_language_facet",
+    "name": "Knowledge Language Facet",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "074be90453231300cc376512a2dc34ec",
+    "lengths": {
+      "template": 3984,
+      "script": 2862,
+      "client_script": 3352,
+      "css": 1720,
+      "link": 667
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb-field-facet": {
+    "id": "kb-field-facet",
+    "name": "knowledge Field Facet",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "aa0afab1db12220099f93691f0b8f578",
+    "lengths": {
+      "template": 4054,
+      "script": 2642,
+      "client_script": 9524,
+      "css": 2746,
+      "link": 980
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb-facet-header": {
+    "id": "kb-facet-header",
+    "name": "Knowledge Facet Header",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "7cb8fab1db12220099f93691f0b8f535",
+    "lengths": {
+      "template": 967,
+      "script": 69,
+      "client_script": 547,
+      "css": 452,
+      "link": 0
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb-tags-facet": {
+    "id": "kb-tags-facet",
+    "name": "knowledge Tags Facet",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "c315f09adb00320099f93691f0b8f538",
+    "lengths": {
+      "template": 4572,
+      "script": 983,
+      "client_script": 4318,
+      "css": 2201,
+      "link": 665
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "kb-resource-facet": {
+    "id": "kb-resource-facet",
+    "name": "Knowledge Resource Facet",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "28c358d2db00320099f93691f0b8f51c",
+    "lengths": {
+      "template": 5044,
+      "script": 987,
+      "client_script": 3327,
+      "css": 1696,
+      "link": 665
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "knowledge_fixed_facet_header": {
+    "id": "knowledge_fixed_facet_header",
+    "name": "Knowledge Fixed Facet Header",
+    "pages": [
+      "appdirect_kb_search"
+    ],
+    "sys_id": "15d364db0b20320026eba6c125673abd",
+    "lengths": {
+      "template": 1431,
+      "script": 101,
+      "client_script": 940,
+      "css": 1038,
+      "link": 317
+    },
+    "scope": "Knowledge Management - Service Portal"
+  },
+  "appdirect-sc-catalog-item": {
+    "id": "appdirect-sc-catalog-item",
+    "name": "Appdirect SC Catalog Item",
+    "pages": [
+      "macd_request_page"
+    ],
+    "sys_id": "a3e205e52ba73a10efa0f95ed891bf31",
+    "lengths": {
+      "template": 24203,
+      "script": 29322,
+      "client_script": 77983,
+      "css": 4852,
+      "link": 668
+    },
+    "scope": "Global"
+  },
+  "de56cd9f2b97fa14efa0f95ed891bff8": {
+    "id": "",
+    "name": "Redirect to MACD",
+    "pages": [
+      "macd_case"
+    ],
+    "sys_id": "de56cd9f2b97fa14efa0f95ed891bff8",
+    "lengths": {
+      "template": 42,
+      "script": 105,
+      "client_script": 168,
+      "css": 0,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "sso_redirect": {
+    "id": "sso_redirect",
+    "name": "SSO Redirect",
+    "pages": [
+      "sso_redirect"
+    ],
+    "sys_id": "f6c6131f3bc3fa50d91af97a25e45af7",
+    "lengths": {
+      "template": 228,
+      "script": 373,
+      "client_script": 3577,
+      "css": 396,
+      "link": 55
+    },
+    "scope": "Global"
+  },
+  "sso_initiate": {
+    "id": "sso_initiate",
+    "name": "SSO Initiate",
+    "pages": [
+      "sso_initiate"
+    ],
+    "sys_id": "8fab8d763bcff250d91af97a25e45a32",
+    "lengths": {
+      "template": 269,
+      "script": 179,
+      "client_script": 1828,
+      "css": 397,
+      "link": 55
+    },
+    "scope": "Global"
+  }
+}
