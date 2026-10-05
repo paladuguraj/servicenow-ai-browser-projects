@@ -6,10 +6,13 @@
  * stable URL, then wires it into:
  *   - the CSAT Survey Invitation email
  *   - the CSAT Survey Submitted - Thank You email
- *   - the header of both CSAT survey definitions
+ *
+ * The survey page shows the logo through the csat-survey-logo-header widget
+ * on the csat_take_survey page, so the logo appears above the question form
+ * without bringing back the Get Started landing page.
  *
  * The image is referenced by name (csat_logo.png). ServiceNow resolves that
- * name to the db_image when rendering emails and survey pages.
+ * name to the db_image when rendering emails and portal pages.
  */
 const fs = require('fs');
 const path = require('path');
@@ -17,9 +20,6 @@ const { base, snGet, snPost, snPatch, readArtifact, announceTarget } = require('
 
 const IMAGE_NAME = 'csat_logo.png';
 const IMAGE_FILE = path.join(__dirname, '..', 'servicenow', 'assets', 'csat-logo.png');
-const IMAGE_MIME = 'image/png';
-
-const SURVEYS = ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'];
 
 async function ensureDbImage() {
   const image = fs.readFileSync(IMAGE_FILE);
@@ -70,38 +70,12 @@ async function updateEmailNotification(name) {
   console.log(`Updated notification: ${name}`);
 }
 
-async function updateSurveyHeaders() {
-  const header = readArtifact('surveys/csat-header.html');
-
-  for (const name of SURVEYS) {
-    const survey = (await snGet(
-      'asmt_metric_type',
-      `sysparm_query=${encodeURIComponent(`name=${name}`)}&sysparm_fields=sys_id,name,publish_state,header`
-    ))[0];
-
-    if (!survey) {
-      console.log(`${name}: not found`);
-      continue;
-    }
-
-    const current = (survey.header || '').trim();
-    if (current === header.trim()) {
-      console.log(`${name}: header already up to date`);
-      continue;
-    }
-
-    await snPatch('asmt_metric_type', survey.sys_id, { header });
-    console.log(`${name} [${survey.publish_state}]: updated header with logo`);
-  }
-}
-
 async function main() {
   announceTarget('Deploy CSAT logo');
 
   await ensureDbImage();
   await updateEmailNotification('CSAT Survey Invitation');
   await updateEmailNotification('CSAT Survey Submitted - Thank You');
-  await updateSurveyHeaders();
 
   console.log('\nLogo deployment complete.');
   console.log(`Image record: ${base}/${IMAGE_NAME}.iix`);

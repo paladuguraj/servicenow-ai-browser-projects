@@ -17,6 +17,9 @@ const HOME_PAGE_ID = 'csat_home';
 const LIST_PAGE_ID = 'csat_requests';
 const REPORT_WIDGET_ID = 'csat-survey-report';
 const REPORT_PAGE_ID = 'csat_report';
+const LOGO_HEADER_WIDGET_ID = 'csat-survey-logo-header';
+const TAKE_SURVEY_PAGE_ID = 'csat_take_survey';
+const STOCK_SURVEY_WIDGET_ID = 'take_assessment';
 
 // The login page is inherited from the stock Service Portal ('/sp'), resolved
 // at deploy time because the sys_id differs between instances. The theme is
@@ -126,6 +129,59 @@ async function placeWidgetOnPage(pageSysId, widgetSysId, title) {
   });
 
   console.log(`Placed widget on page ${pageSysId}`);
+}
+
+async function placeWidgetsOnPage(pageSysId, widgets, title) {
+  await clearPageLayout(pageSysId);
+
+  const container = await snPost('sp_container', {
+    sp_page: pageSysId,
+    name: `${title} Container`,
+    width: 'container',
+    order: 1,
+  });
+
+  const row = await snPost('sp_row', {
+    sp_container: container.sys_id,
+    order: 1,
+  });
+
+  const column = await snPost('sp_column', {
+    sp_row: row.sys_id,
+    size: 12,
+    order: 1,
+  });
+
+  for (let i = 0; i < widgets.length; i++) {
+    await snPost('sp_instance', {
+      sp_column: column.sys_id,
+      sp_widget: widgets[i].sysId,
+      order: i + 1,
+      title: widgets[i].title,
+      active: true,
+    });
+  }
+
+  console.log(`Placed ${widgets.length} widget(s) on page ${pageSysId}`);
+}
+
+async function resolveStockWidget(widgetId) {
+  const existing = await snGet('sp_widget', `sysparm_query=id=${widgetId}&sysparm_fields=sys_id`);
+  if (!existing.length) throw new Error(`Stock widget not found: ${widgetId}`);
+  return existing[0].sys_id;
+}
+
+async function ensureTakeSurveyPage(logoHeaderWidgetSysId, stockSurveyWidgetSysId) {
+  const pageSysId = await ensurePage(TAKE_SURVEY_PAGE_ID, 'CSAT Take Survey');
+  await placeWidgetsOnPage(
+    pageSysId,
+    [
+      { sysId: logoHeaderWidgetSysId, title: 'CSAT Survey Logo Header' },
+      { sysId: stockSurveyWidgetSysId, title: 'Survey' },
+    ],
+    'CSAT Take Survey'
+  );
+  return pageSysId;
 }
 
 async function ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageSysId) {
@@ -303,6 +359,14 @@ async function main() {
   );
   const reportPageSysId = await ensurePage(REPORT_PAGE_ID, 'CSAT Survey Results');
   await placeWidgetOnPage(reportPageSysId, reportWidgetSysId, 'CSAT Survey Results');
+
+  const logoHeaderWidgetSysId = await ensureWidget(
+    LOGO_HEADER_WIDGET_ID,
+    'CSAT Survey Logo Header',
+    'Shows the CSAT logo above surveys raised from the CSAT portal'
+  );
+  const stockSurveyWidgetSysId = await resolveStockWidget(STOCK_SURVEY_WIDGET_ID);
+  await ensureTakeSurveyPage(logoHeaderWidgetSysId, stockSurveyWidgetSysId);
 
   const portalSysId = await ensurePortal(homePageSysId);
   await ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageSysId);

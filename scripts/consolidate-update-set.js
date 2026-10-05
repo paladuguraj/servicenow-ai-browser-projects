@@ -52,8 +52,10 @@ const LAYOUT_TYPES = ['Container', 'Row', 'Column', 'Instance'];
 // times the portal has been redeployed.
 const FORCE_CAPTURE = [
   { table: 'sysauto_script', query: 'name=CSAT Survey Request - Scheduled Runner', label: 'scheduled job' },
-  { layout: true, pages: ['csat_home', 'csat_requests', 'csat_report'], label: 'portal layout' },
+  { layout: true, pages: ['csat_home', 'csat_requests', 'csat_report', 'csat_take_survey'], label: 'portal layout' },
   { table: 'db_image', query: 'name=csat_logo.png', label: 'CSAT logo' },
+  { table: 'sys_script_include', query: 'name=CSATSurveyService', label: 'CSATSurveyService' },
+  { table: 'sp_widget', query: 'id=csat-survey-logo-header', label: 'logo header widget' },
 ];
 
 const args = process.argv.slice(2);

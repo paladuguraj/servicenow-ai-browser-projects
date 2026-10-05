@@ -38,7 +38,7 @@ CSATSurveyService.prototype = {
     WHITELABEL_PROPERTY: 'survey.link.whitelabel',
 
     // Page the invitation email points a recipient at.
-    SURVEY_PAGE: 'csat?id=take_survey',
+    SURVEY_PAGE: 'csat?id=csat_take_survey',
 
     // Surveys offered in the portal. Override without a deploy by setting the
     // csat.portal.survey_names property to a comma-separated list, or to an
