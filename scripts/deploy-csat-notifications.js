@@ -154,11 +154,7 @@ async function main() {
     event_name: 'csat.survey.submitted',
     recipient_fields: 'user',
     subject: `Thank you for completing our ${CUSTOMER_FACING_LABEL} survey`,
-    message_html: [
-      '<p>Hi ${user},</p>',
-      `<p>Thank you for completing our <strong>${CUSTOMER_FACING_LABEL}</strong> survey.</p>`,
-      '<p>Your feedback helps us improve the services we deliver to you.</p>',
-    ].join('\n'),
+    message_html: readArtifact('notifications/csat-survey-thank-you.html'),
   });
 
   await ensureNotification({

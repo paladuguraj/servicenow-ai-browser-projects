@@ -68,6 +68,7 @@ Runs, in order:
 2. `patch-csat-app.js` — re-pushes server-side scripts
 3. `deploy-csat-portal.js` — widget, page, layout, portal, menu
 4. `deploy-csat-notifications.js` — event, notifications, submission rule
+5. `deploy-csat-logo.js` — logo db_image, email headers, survey headers
 
 Outbound email is left untouched. Once you are ready to actually deliver mail:
 
@@ -183,6 +184,7 @@ both survey definitions with the two questions each actually asks.
 | Portal, pages, widgets, menu, layout, theme | 26 |
 | System properties | 2 |
 | Survey definitions, questions, choices | 18 |
+| Logo image (db_image) | 1 |
 
 Every entry is an insert or update of a record that exists and is in use. There
 are no deletions and no superseded artefacts.
