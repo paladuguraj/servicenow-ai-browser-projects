@@ -1,5 +1,6 @@
 (function() {
   data.showLogo = false;
+  data.logoUrl = (gs.getProperty('glide.servlet.uri') || '').replace(/\/+$/, '') + '/csat_logo.png.iix';
 
   var instanceId = $sp.getParameter('instance_id');
   if (!instanceId)
