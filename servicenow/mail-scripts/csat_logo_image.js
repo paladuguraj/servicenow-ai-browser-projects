@@ -4,12 +4,18 @@
     /* Optional GlideRecord */
     event) {
 
-    // Prints the CSAT logo as a centered email header using the db_image URL.
-    // The image is stored in the db_image table as 'csat_logo.png' and is
-    // served from the instance URL so it renders in email clients regardless
-    // of any white-label partner domain used for the survey link.
+    // Prints the CSAT logo as a centered email header using the sys_attachment URL.
+    // The attachment sys_id is stored in the csat.logo.attachment_sys_id property
+    // so the same image can be referenced from email and the Service Portal.
 
-    var url = (gs.getProperty('glide.servlet.uri') || '').replace(/\/+$/, '') + '/csat_logo.png.iix';
+    var attachmentId = (gs.getProperty('csat.logo.attachment_sys_id') || '').trim();
+    if (!attachmentId) {
+        gs.warn('CSAT logo attachment sys_id is not set in csat.logo.attachment_sys_id');
+        return;
+    }
+
+    var url = (gs.getProperty('glide.servlet.uri') || '').replace(/\/+$/, '') +
+        '/sys_attachment.do?sys_id=' + attachmentId;
 
     template.print(
         '<div style="text-align:center;margin-bottom:24px;">' +

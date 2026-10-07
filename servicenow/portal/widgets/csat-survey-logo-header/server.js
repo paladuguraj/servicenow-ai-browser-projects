@@ -1,6 +1,11 @@
 (function() {
   data.showLogo = false;
-  data.logoUrl = (gs.getProperty('glide.servlet.uri') || '').replace(/\/+$/, '') + '/csat_logo.png.iix';
+
+  var attachmentId = (gs.getProperty('csat.logo.attachment_sys_id') || '').trim();
+  if (attachmentId) {
+    data.logoUrl = (gs.getProperty('glide.servlet.uri') || '').replace(/\/+$/, '') +
+      '/sys_attachment.do?sys_id=' + attachmentId;
+  }
 
   var instanceId = $sp.getParameter('instance_id');
   if (!instanceId)

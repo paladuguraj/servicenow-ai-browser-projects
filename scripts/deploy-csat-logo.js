@@ -2,24 +2,21 @@
 /**
  * Deploy the Network Operations CSAT Survey logo.
  *
- * Stores the logo as a db_image record so ServiceNow can serve it from a
- * stable URL, then wires it into:
- *   - the CSAT Survey Invitation email
- *   - the CSAT Survey Submitted - Thank You email
+ * Stores the logo as both a db_image record and a sys_attachment record,
+ * then stores the attachment sys_id in the csat.logo.attachment_sys_id
+ * property so email and portal widgets can reference the attachment URL.
  *
- * The survey page shows the logo through the csat-survey-logo-header widget
- * on the csat_take_survey page, so the logo appears above the question form
- * without bringing back the Get Started landing page.
- *
- * The image is referenced by name (csat_logo.png). ServiceNow resolves that
- * name to the db_image when rendering emails and portal pages.
+ * Sys_attachment is used for rendering because it is accessible to portal
+ * guests and email clients, whereas db_image can be restricted.
  */
 const fs = require('fs');
 const path = require('path');
-const { base, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
+const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const IMAGE_NAME = 'csat_logo.png';
-const IMAGE_FILE = path.join(__dirname, '..', 'servicenow', 'assets', 'csat-logo.png');
+const IMAGE_FILE_NAME = 'csat-logo.png';
+const IMAGE_FILE = path.join(__dirname, '..', 'servicenow', 'assets', IMAGE_FILE_NAME);
+const ATTACHMENT_PROPERTY = 'csat.logo.attachment_sys_id';
 
 async function ensureDbImage() {
   const image = fs.readFileSync(IMAGE_FILE);
@@ -48,6 +45,67 @@ async function ensureDbImage() {
   return created.sys_id;
 }
 
+async function uploadAttachment(parentTable, parentSysId) {
+  const image = fs.readFileSync(IMAGE_FILE);
+
+  const existing = await snGet(
+    'sys_attachment',
+    `sysparm_query=${encodeURIComponent(`table_name=${parentTable}^table_sys_id=${parentSysId}^file_name=${IMAGE_FILE_NAME}`)}&sysparm_fields=sys_id`
+  );
+
+  for (const att of existing) {
+    await fetch(`${base}/api/now/attachment/${att.sys_id}`, {
+      method: 'DELETE',
+      headers: { Authorization: headers.Authorization },
+    });
+  }
+
+  const form = new FormData();
+  const blob = new Blob([image], { type: 'image/png' });
+  form.append('uploadFile', blob, IMAGE_FILE_NAME);
+
+  const uploadHeaders = {
+    Authorization: headers.Authorization,
+    Accept: 'application/json',
+  };
+
+  const res = await fetch(
+    `${base}/api/now/attachment/file?table_name=${parentTable}&table_sys_id=${parentSysId}&file_name=${encodeURIComponent(IMAGE_FILE_NAME)}`,
+    {
+      method: 'POST',
+      headers: uploadHeaders,
+      body: form,
+    }
+  );
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Attachment upload failed (${res.status}): ${text}`);
+
+  const body = JSON.parse(text);
+  const sysId = body.result.sys_id;
+  console.log(`Uploaded attachment: ${IMAGE_FILE_NAME} (${(image.length / 1024).toFixed(1)} KB) -> ${sysId}`);
+  return sysId;
+}
+
+async function ensureAttachmentProperty(sysId) {
+  const existing = await snGet('sys_properties', `sysparm_query=name=${ATTACHMENT_PROPERTY}&sysparm_fields=sys_id,value`);
+  const payload = {
+    name: ATTACHMENT_PROPERTY,
+    value: sysId,
+    type: 'string',
+    description: 'sys_id of the CSAT logo attachment in sys_attachment. Used by email and portal widgets.',
+  };
+
+  if (existing.length) {
+    await snPatch('sys_properties', existing[0].sys_id, payload);
+    console.log(`Updated property: ${ATTACHMENT_PROPERTY} = ${sysId}`);
+    return;
+  }
+
+  await snPost('sys_properties', payload);
+  console.log(`Created property: ${ATTACHMENT_PROPERTY} = ${sysId}`);
+}
+
 async function updateEmailNotification(name) {
   const existing = await snGet(
     'sysevent_email_action',
@@ -73,12 +131,14 @@ async function updateEmailNotification(name) {
 async function main() {
   announceTarget('Deploy CSAT logo');
 
-  await ensureDbImage();
+  const dbImageSysId = await ensureDbImage();
+  const attachmentSysId = await uploadAttachment('db_image', dbImageSysId);
+  await ensureAttachmentProperty(attachmentSysId);
   await updateEmailNotification('CSAT Survey Invitation');
   await updateEmailNotification('CSAT Survey Submitted - Thank You');
 
   console.log('\nLogo deployment complete.');
-  console.log(`Image record: ${base}/${IMAGE_NAME}.iix`);
+  console.log(`Attachment: ${base}/sys_attachment.do?sys_id=${attachmentSysId}`);
 }
 
 main().catch((err) => {
