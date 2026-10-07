@@ -60,21 +60,16 @@ async function uploadAttachment(parentTable, parentSysId) {
     });
   }
 
-  const form = new FormData();
-  const blob = new Blob([image], { type: 'image/png' });
-  form.append('uploadFile', blob, IMAGE_FILE_NAME);
-
-  const uploadHeaders = {
-    Authorization: headers.Authorization,
-    Accept: 'application/json',
-  };
-
   const res = await fetch(
     `${base}/api/now/attachment/file?table_name=${parentTable}&table_sys_id=${parentSysId}&file_name=${encodeURIComponent(IMAGE_FILE_NAME)}`,
     {
       method: 'POST',
-      headers: uploadHeaders,
-      body: form,
+      headers: {
+        Authorization: headers.Authorization,
+        'Content-Type': 'image/png',
+        Accept: 'application/json',
+      },
+      body: image,
     }
   );
 

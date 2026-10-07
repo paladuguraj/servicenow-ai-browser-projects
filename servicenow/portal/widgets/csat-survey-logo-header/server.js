@@ -2,14 +2,20 @@
   data.showLogo = false;
   data.logoSrc = '';
 
-  var gr = new GlideRecord('db_image');
-  gr.addQuery('name', 'csat_logo.png');
-  gr.addQuery('active', true);
-  gr.query();
-  if (gr.next()) {
-    var base64 = gr.getValue('image');
-    if (base64) {
-      data.logoSrc = 'data:image/png;base64,' + base64;
+  var attachmentId = (gs.getProperty('csat.logo.attachment_sys_id') || '').trim();
+  if (attachmentId) {
+    try {
+      var attGr = new GlideRecord('sys_attachment');
+      if (attGr.get(attachmentId)) {
+        var att = new GlideSysAttachment();
+        var bytes = att.getBytes(attGr);
+        if (bytes && bytes.length > 0) {
+          data.logoSrc = 'data:image/png;base64,' +
+            Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
+        }
+      }
+    } catch (e) {
+      gs.warn('CSAT logo header could not read attachment ' + attachmentId + ': ' + e.message);
     }
   }
 
@@ -17,11 +23,11 @@
   if (!instanceId)
     return;
 
-  var instanceGr = new GlideRecord('asmt_assessment_instance');
-  if (!instanceGr.get(instanceId))
+  var gr = new GlideRecord('asmt_assessment_instance');
+  if (!gr.get(instanceId))
     return;
 
-  var metricTypeName = instanceGr.metric_type.name.toString();
+  var metricTypeName = gr.metric_type.name.toString();
   data.showLogo =
     metricTypeName === 'Managed Network Services Survey - Manual' ||
     metricTypeName === 'Managed Network Services Survey - Automatic';

@@ -4,30 +4,35 @@
     /* Optional GlideRecord */
     event) {
 
-    // Prints the CSAT logo as a centered email header using a base64 data URI.
-    // The image is read from the db_image table and embedded directly in the
-    // HTML, so it does not depend on external URLs, authentication, or the
-    // recipient's access to the instance.
+    try {
+        var attachmentId = (gs.getProperty('csat.logo.attachment_sys_id') || '').trim();
+        if (!attachmentId) {
+            gs.warn('CSAT logo attachment sys_id is not set in csat.logo.attachment_sys_id');
+            return;
+        }
 
-    var gr = new GlideRecord('db_image');
-    gr.addQuery('name', 'csat_logo.png');
-    gr.addQuery('active', true);
-    gr.query();
-    if (!gr.next()) {
-        gs.warn('CSAT logo db_image "csat_logo.png" not found');
-        return;
+        var attGr = new GlideRecord('sys_attachment');
+        if (!attGr.get(attachmentId)) {
+            gs.warn('CSAT logo attachment not found: ' + attachmentId);
+            return;
+        }
+
+        var att = new GlideSysAttachment();
+        var bytes = att.getBytes(attGr);
+        if (!bytes || bytes.length === 0) {
+            gs.warn('CSAT logo attachment has no data: ' + attachmentId);
+            return;
+        }
+
+        var base64 = Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
+
+        template.print(
+            '<div style="text-align:center;margin-bottom:24px;">' +
+            '<img src="data:image/png;base64,' + base64 + '" alt="Network Operations CSAT Survey" style="max-width:280px;height:auto;" />' +
+            '</div>'
+        );
+    } catch (e) {
+        gs.error('CSAT logo image mail script failed: ' + e.message);
     }
-
-    var base64 = gr.getValue('image');
-    if (!base64) {
-        gs.warn('CSAT logo db_image has no image data');
-        return;
-    }
-
-    template.print(
-        '<div style="text-align:center;margin-bottom:24px;">' +
-        '<img src="data:image/png;base64,' + base64 + '" alt="Network Operations CSAT Survey" style="max-width:280px;height:auto;" />' +
-        '</div>'
-    );
 
 })(current, template, email, email_action, event);
