@@ -56,6 +56,7 @@ const FORCE_CAPTURE = [
   { table: 'db_image', query: 'name=csat_logo.png', label: 'CSAT logo' },
   { table: 'sys_script_include', query: 'name=CSATSurveyService', label: 'CSATSurveyService' },
   { table: 'sp_widget', query: 'id=csat-survey-logo-header', label: 'logo header widget' },
+  { table: 'asmt_metric_definition', query: 'metric.metric_type.name=Managed Network Services Survey - Manual^ORmetric.metric_type.name=Managed Network Services Survey - Automatic^active=true', label: 'CSAT survey answer choices' },
 ];
 
 const args = process.argv.slice(2);

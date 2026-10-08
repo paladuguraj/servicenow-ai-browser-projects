@@ -21,7 +21,8 @@
     "test:csat:portal": "node scripts/test-csat-portal-e2e.js",
     "test:csat:email": "node scripts/test-csat-notifications.js",
     "survey:landing": "node scripts/configure-survey-landing.js",
-    "survey:rename": "node scripts/rename-survey.js"
+    "survey:rename": "node scripts/rename-survey.js",
+    "survey:reorder-answers": "node scripts/reorder-csat-survey-answers.js"
   },
   "repository": {
     "type": "git",
@@ -35,7 +36,6 @@
   },
   "homepage": "https://github.com/paladuguraj/servicenow-ai-browser-projects#readme",
   "dependencies": {
-    "form-data": "^4.0.6",
     "playwright": "^1.62.0"
   }
 }

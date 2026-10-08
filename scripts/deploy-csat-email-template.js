@@ -34,7 +34,8 @@ const MAIL_SCRIPTS = [
   ['asmt_assessment_instance_script_for_partners', 'mail-scripts/asmt_assessment_instance_script_for_partners.js', 'Prints the survey link for case-triggered or portal-raised surveys'],
   ['csat_survey_portal_notes', 'mail-scripts/csat_survey_portal_notes.js', 'Prints the note captured on the CSAT survey request'],
   ['csat_add_iem_cc', 'mail-scripts/csat_add_iem_cc.js', 'Copies the IEM escalation mailbox on the CSAT survey invitation'],
-  ['csat_logo_image', 'mail-scripts/csat_logo_image.js', 'Prints the CSAT logo header image for email notifications'],
+  ['csat_logo_image', 'mail-scripts/csat_logo_image.js', 'Prints the CSAT logo header image for email notifications (legacy single logo)'],
+  ['csat_partner_logo_image', 'mail-scripts/csat_partner_logo_image.js', 'Prints the partner-specific or default logo header image for email notifications'],
 ];
 
 // Notifications have no CC field, so the copy is added by a mail script that

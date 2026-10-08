@@ -1,25 +1,30 @@
 #!/usr/bin/env node
 /**
- * Deploy the Network Operations CSAT Survey logo.
+ * Deploy the Network Operations CSAT Survey logo assets.
  *
- * Stores the logo as both a db_image record and a sys_attachment record,
- * then stores the attachment sys_id in the csat.logo.attachment_sys_id
- * property so email and portal widgets can reference the attachment URL.
- *
- * Sys_attachment is used for rendering because it is accessible to portal
- * guests and email clients, whereas db_image can be restricted.
+ * - Stores the default logo as a db_image and as a sys_attachment.
+ * - Stores the default logo attachment sys_id in
+ *   csat.logo.default_attachment_sys_id.
+ * - Creates an ACR Solutions placeholder attachment and seeds
+ *   csat.logo.whitelabel with the mapping so Take 5 Oil customers see the
+ *   partner logo path. Replace the ACR attachment image in ServiceNow once the
+ *   real banner is available.
  */
 const fs = require('fs');
 const path = require('path');
 const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const IMAGE_NAME = 'csat_logo.png';
-const IMAGE_FILE_NAME = 'csat-logo.png';
-const IMAGE_FILE = path.join(__dirname, '..', 'servicenow', 'assets', IMAGE_FILE_NAME);
-const ATTACHMENT_PROPERTY = 'csat.logo.attachment_sys_id';
+const DEFAULT_LOGO_FILE_NAME = 'appdirect-logo.png';
+const PARTNER_PLACEHOLDER_FILE_NAME = 'csat-logo.png';
+const DEFAULT_LOGO_FILE = path.join(__dirname, '..', 'servicenow', 'assets', DEFAULT_LOGO_FILE_NAME);
+const PARTNER_PLACEHOLDER_FILE = path.join(__dirname, '..', 'servicenow', 'assets', PARTNER_PLACEHOLDER_FILE_NAME);
+const DEFAULT_PROPERTY = 'csat.logo.default_attachment_sys_id';
+const PARTNER_PROPERTY = 'csat.logo.whitelabel';
+const LEGACY_PROPERTY = 'csat.logo.attachment_sys_id';
 
 async function ensureDbImage() {
-  const image = fs.readFileSync(IMAGE_FILE);
+  const image = fs.readFileSync(DEFAULT_LOGO_FILE);
   const base64 = image.toString('base64');
 
   const existing = await snGet(
@@ -45,12 +50,12 @@ async function ensureDbImage() {
   return created.sys_id;
 }
 
-async function uploadAttachment(parentTable, parentSysId) {
-  const image = fs.readFileSync(IMAGE_FILE);
+async function uploadAttachment(parentTable, parentSysId, filePath, fileName) {
+  const image = fs.readFileSync(filePath);
 
   const existing = await snGet(
     'sys_attachment',
-    `sysparm_query=${encodeURIComponent(`table_name=${parentTable}^table_sys_id=${parentSysId}^file_name=${IMAGE_FILE_NAME}`)}&sysparm_fields=sys_id`
+    `sysparm_query=${encodeURIComponent(`table_name=${parentTable}^table_sys_id=${parentSysId}^file_name=${fileName}`)}&sysparm_fields=sys_id`
   );
 
   for (const att of existing) {
@@ -61,7 +66,7 @@ async function uploadAttachment(parentTable, parentSysId) {
   }
 
   const res = await fetch(
-    `${base}/api/now/attachment/file?table_name=${parentTable}&table_sys_id=${parentSysId}&file_name=${encodeURIComponent(IMAGE_FILE_NAME)}`,
+    `${base}/api/now/attachment/file?table_name=${parentTable}&table_sys_id=${parentSysId}&file_name=${encodeURIComponent(fileName)}`,
     {
       method: 'POST',
       headers: {
@@ -78,27 +83,22 @@ async function uploadAttachment(parentTable, parentSysId) {
 
   const body = JSON.parse(text);
   const sysId = body.result.sys_id;
-  console.log(`Uploaded attachment: ${IMAGE_FILE_NAME} (${(image.length / 1024).toFixed(1)} KB) -> ${sysId}`);
+  console.log(`Uploaded attachment: ${fileName} (${(image.length / 1024).toFixed(1)} KB) -> ${sysId}`);
   return sysId;
 }
 
-async function ensureAttachmentProperty(sysId) {
-  const existing = await snGet('sys_properties', `sysparm_query=name=${ATTACHMENT_PROPERTY}&sysparm_fields=sys_id,value`);
-  const payload = {
-    name: ATTACHMENT_PROPERTY,
-    value: sysId,
-    type: 'string',
-    description: 'sys_id of the CSAT logo attachment in sys_attachment. Used by email and portal widgets.',
-  };
+async function ensureProperty(name, value, description) {
+  const existing = await snGet('sys_properties', `sysparm_query=name=${name}&sysparm_fields=sys_id,value`);
+  const payload = { name, value, type: 'string', description };
 
   if (existing.length) {
     await snPatch('sys_properties', existing[0].sys_id, payload);
-    console.log(`Updated property: ${ATTACHMENT_PROPERTY} = ${sysId}`);
+    console.log(`Updated property: ${name}`);
     return;
   }
 
   await snPost('sys_properties', payload);
-  console.log(`Created property: ${ATTACHMENT_PROPERTY} = ${sysId}`);
+  console.log(`Created property: ${name}`);
 }
 
 async function updateEmailNotification(name) {
@@ -127,13 +127,35 @@ async function main() {
   announceTarget('Deploy CSAT logo');
 
   const dbImageSysId = await ensureDbImage();
-  const attachmentSysId = await uploadAttachment('db_image', dbImageSysId);
-  await ensureAttachmentProperty(attachmentSysId);
+  const defaultAttachmentSysId = await uploadAttachment('db_image', dbImageSysId, DEFAULT_LOGO_FILE, DEFAULT_LOGO_FILE_NAME);
+  const acrAttachmentSysId = await uploadAttachment('db_image', dbImageSysId, PARTNER_PLACEHOLDER_FILE, 'ACR-Solutions-logo.png');
+
+  await ensureProperty(
+    DEFAULT_PROPERTY,
+    defaultAttachmentSysId,
+    'sys_id of the default CSAT/AppDirect logo attachment in sys_attachment.'
+  );
+
+  await ensureProperty(
+    PARTNER_PROPERTY,
+    JSON.stringify({ 'ACR Solutions': acrAttachmentSysId }),
+    'JSON map of white-label partner name -> sys_attachment sys_id for partner-branded CSAT logos.'
+  );
+
+  // Keep legacy property in sync so older widget references continue to work
+  // until the next portal deploy replaces them.
+  await ensureProperty(
+    LEGACY_PROPERTY,
+    defaultAttachmentSysId,
+    'Legacy sys_id of the CSAT logo attachment. Kept for backward compatibility.'
+  );
+
   await updateEmailNotification('CSAT Survey Invitation');
   await updateEmailNotification('CSAT Survey Submitted - Thank You');
 
   console.log('\nLogo deployment complete.');
-  console.log(`Attachment: ${base}/sys_attachment.do?sys_id=${attachmentSysId}`);
+  console.log(`Default attachment: ${base}/sys_attachment.do?sys_id=${defaultAttachmentSysId}`);
+  console.log(`ACR placeholder attachment: ${base}/sys_attachment.do?sys_id=${acrAttachmentSysId}`);
 }
 
 main().catch((err) => {

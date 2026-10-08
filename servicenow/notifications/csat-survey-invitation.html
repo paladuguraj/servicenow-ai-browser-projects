@@ -1,5 +1,11 @@
-${mail_script:csat_logo_image}
+<style type="text/css">
+  .csat-logo { text-align: left !important; }
+  .csat-logo img { max-width: 180px !important; width: 180px !important; height: auto !important; }
+  div[style*="display:inline"] { font-size: 10px !important; color: #999999 !important; display: block !important; text-align: center !important; margin-top: 24px !important; }
+</style>
+${mail_script:csat_partner_logo_image}
 <p style="text-align: left;">${mail_script:set_survey_partners_from}${mail_script:csat_add_iem_cc}<br>As part of our continued efforts to improve the support we provide, your feedback is greatly appreciated.</p>
 ${mail_script:csat_survey_portal_notes}
-<p style="text-align: left;">Click here to take your survey:</p>
+<p style="text-align: left;">It takes less than a minute. Please let us know how we did:</p>
 <div>${mail_script:asmt_assessment_instance_script_for_partners}</div>
+<p style="text-align: left;">Thank you,<br>Network Operations Center</p>
