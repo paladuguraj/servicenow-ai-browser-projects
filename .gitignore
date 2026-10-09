@@ -13,3 +13,6 @@ error-screenshot.png
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated document build artifacts
+docs/build/

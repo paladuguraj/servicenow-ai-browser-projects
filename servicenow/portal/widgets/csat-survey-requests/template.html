@@ -1,0 +1,15 @@
+<div class="csat-survey-requests">
+  <div class="csat-requests-header">
+    <div>
+      <h2 class="csat-requests-title">CSAT Survey Requests</h2>
+      <p class="text-muted csat-requests-sub">Every survey request raised through this portal.</p>
+    </div>
+    <a href="?id={{::data.newRequestPage}}" class="btn btn-primary">New Survey Request</a>
+  </div>
+
+  <sp-widget widget="data.listWidget"></sp-widget>
+
+  <p class="csat-requests-links">
+    <a href="?id=list&amp;table={{::data.executionTable}}">View execution log</a>
+  </p>
+</div>
