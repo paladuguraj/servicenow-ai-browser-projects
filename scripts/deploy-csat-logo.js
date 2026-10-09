@@ -2,13 +2,11 @@
 /**
  * Deploy the Network Operations CSAT Survey logo assets.
  *
- * - Stores the default logo as a db_image and as a sys_attachment.
- * - Stores the default logo attachment sys_id in
- *   csat.logo.default_attachment_sys_id.
- * - Creates an ACR Solutions placeholder attachment and seeds
- *   csat.logo.whitelabel with the mapping so Take 5 Oil customers see the
- *   partner logo path. Replace the ACR attachment image in ServiceNow once the
- *   real banner is available.
+ * - Stores the default AppDirect logo as a db_image and as a sys_attachment.
+ * - Stores the default logo attachment sys_id in csat.logo.default_attachment_sys_id.
+ * - Seeds csat.logo.whitelabel as an empty JSON map. The mail script and widget
+ *   read partner logos from core_company.banner_image by default; this property
+ *   is only used when you need to override a specific partner logo.
  */
 const fs = require('fs');
 const path = require('path');
@@ -16,9 +14,7 @@ const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = 
 
 const IMAGE_NAME = 'csat_logo.png';
 const DEFAULT_LOGO_FILE_NAME = 'appdirect-logo.png';
-const PARTNER_PLACEHOLDER_FILE_NAME = 'csat-logo.png';
 const DEFAULT_LOGO_FILE = path.join(__dirname, '..', 'servicenow', 'assets', DEFAULT_LOGO_FILE_NAME);
-const PARTNER_PLACEHOLDER_FILE = path.join(__dirname, '..', 'servicenow', 'assets', PARTNER_PLACEHOLDER_FILE_NAME);
 const DEFAULT_PROPERTY = 'csat.logo.default_attachment_sys_id';
 const PARTNER_PROPERTY = 'csat.logo.whitelabel';
 const LEGACY_PROPERTY = 'csat.logo.attachment_sys_id';
@@ -128,7 +124,6 @@ async function main() {
 
   const dbImageSysId = await ensureDbImage();
   const defaultAttachmentSysId = await uploadAttachment('db_image', dbImageSysId, DEFAULT_LOGO_FILE, DEFAULT_LOGO_FILE_NAME);
-  const acrAttachmentSysId = await uploadAttachment('db_image', dbImageSysId, PARTNER_PLACEHOLDER_FILE, 'ACR-Solutions-logo.png');
 
   await ensureProperty(
     DEFAULT_PROPERTY,
@@ -138,12 +133,10 @@ async function main() {
 
   await ensureProperty(
     PARTNER_PROPERTY,
-    JSON.stringify({ 'ACR Solutions': acrAttachmentSysId }),
-    'JSON map of white-label partner name -> sys_attachment sys_id for partner-branded CSAT logos.'
+    '{}',
+    'Optional JSON map of white-label partner name -> sys_attachment sys_id. If empty, partner logos are read from core_company.banner_image.'
   );
 
-  // Keep legacy property in sync so older widget references continue to work
-  // until the next portal deploy replaces them.
   await ensureProperty(
     LEGACY_PROPERTY,
     defaultAttachmentSysId,
@@ -155,7 +148,6 @@ async function main() {
 
   console.log('\nLogo deployment complete.');
   console.log(`Default attachment: ${base}/sys_attachment.do?sys_id=${defaultAttachmentSysId}`);
-  console.log(`ACR placeholder attachment: ${base}/sys_attachment.do?sys_id=${acrAttachmentSysId}`);
 }
 
 main().catch((err) => {

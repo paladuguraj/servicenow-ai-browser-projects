@@ -6,11 +6,13 @@
 
     // Prints the partner-branded logo for the CSAT email header.
     //
-    // For surveys raised from the CSAT portal, the customer's account parent is
-    // treated as the partner. If that partner appears in the white-label list
-    // (survey.link.whitelabel) and a logo is configured for them in
-    // csat.logo.whitelabel, that logo is used. Otherwise the AppDirect logo is
-    // shown.
+    // For surveys raised from the CSAT portal, the customer's parent company is
+    // treated as the partner. If that partner is a white-label partner (listed
+    // in survey.link.whitelabel) and has a banner_image on core_company, that
+    // banner is used. Otherwise the default AppDirect logo is shown.
+    //
+    // The csat.logo.whitelabel property can still override the partner logo by
+    // mapping partner name -> sys_attachment sys_id.
     //
     // The image is embedded as a base64 data URI so it renders without any
     // external URL that guests or email clients might not reach.
@@ -19,27 +21,37 @@
         return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
     }
 
-    function resolvePartnerName() {
+    function resolvePartner() {
+        var result = { name: '', companyId: '', requestId: '' };
         if (current.getValue('trigger_table') != 'u_x_csat_survey_request')
-            return '';
+            return result;
 
         var requestGr = new GlideRecord('u_x_csat_survey_request');
         if (!requestGr.get(current.getValue('trigger_id') + ''))
-            return '';
+            return result;
 
+        result.requestId = requestGr.sys_id.toString();
         var companyId = requestGr.getValue('u_company');
         if (!companyId)
-            return '';
+            return result;
 
-        var accountGr = new GlideRecord('customer_account');
+        var accountGr = new GlideRecord('core_company');
         if (!accountGr.get(companyId))
-            return '';
+            return result;
 
-        var parent = accountGr.account_parent.name + '';
-        if (parent && parent != 'null' && parent != 'Direct')
-            return parent;
+        result.companyId = companyId;
+        var parentId = accountGr.getValue('parent');
+        if (parentId) {
+            var parentGr = new GlideRecord('core_company');
+            if (parentGr.get(parentId)) {
+                result.name = parentGr.getValue('name') + '';
+                result.companyId = parentId;
+                return result;
+            }
+        }
 
-        return accountGr.getValue('name') + '';
+        result.name = accountGr.getValue('name') + '';
+        return result;
     }
 
     function isWhitelabelPartner(partnerName) {
@@ -49,19 +61,25 @@
             var map = JSON.parse(prop);
             return map.hasOwnProperty(partnerName);
         } catch (e) {
-            gs.warn('survey.link.whitelabel could not be parsed: ' + e.message);
             return false;
         }
     }
 
-    function getPartnerLogoAttachmentId(partnerName) {
+    function getBannerAttachmentId(companyId) {
+        var companyGr = new GlideRecord('core_company');
+        if (!companyGr.get(companyId))
+            return '';
+        var banner = companyGr.getValue('banner_image');
+        return banner ? banner.toString() : '';
+    }
+
+    function getPropertyOverrideAttachmentId(partnerName) {
         var prop = (gs.getProperty('csat.logo.whitelabel') || '').trim();
         if (!prop) return '';
         try {
             var map = JSON.parse(prop);
             return (map[partnerName] || '').trim();
         } catch (e) {
-            gs.warn('csat.logo.whitelabel could not be parsed: ' + e.message);
             return '';
         }
     }
@@ -82,18 +100,20 @@
     }
 
     try {
-        var partnerName = resolvePartnerName();
+        var partner = resolvePartner();
         var attachmentId = '';
 
-        if (partnerName && isWhitelabelPartner(partnerName)) {
-            attachmentId = getPartnerLogoAttachmentId(partnerName);
+        if (partner.name && isWhitelabelPartner(partner.name)) {
+            attachmentId = getPropertyOverrideAttachmentId(partner.name);
+            if (!attachmentId)
+                attachmentId = getBannerAttachmentId(partner.companyId);
         }
 
         if (!attachmentId)
             attachmentId = getDefaultAttachmentId();
 
         if (!attachmentId) {
-            gs.warn('No CSAT logo attachment configured. Set csat.logo.default_attachment_sys_id and csat.logo.whitelabel.');
+            gs.warn('No CSAT logo attachment configured. Set csat.logo.default_attachment_sys_id.');
             return;
         }
 
@@ -103,7 +123,7 @@
 
         template.print(
             '<div class="csat-logo" style="text-align:left;margin-bottom:24px;">' +
-            '<img src="data:image/png;base64,' + base64 + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" style="width:180px;max-width:180px;height:auto;" />' +
+            '<img src="data:image/png;base64,' + base64 + '" alt="' + GlideStringUtil.escapeHTML(partner.name || 'Network Operations CSAT Survey') + '" style="width:180px;max-width:180px;height:auto;" />' +
             '</div>'
         );
     } catch (e) {

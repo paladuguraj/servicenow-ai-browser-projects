@@ -7,7 +7,7 @@
     return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
   }
 
-  function getPartnerLogoAttachmentId(partnerName) {
+  function getPropertyOverrideAttachmentId(partnerName) {
     var prop = (gs.getProperty('csat.logo.whitelabel') || '').trim();
     if (!prop) return '';
     try {
@@ -29,26 +29,43 @@
     }
   }
 
-  function resolvePartnerName(instanceGr) {
-    if (instanceGr.getValue('trigger_table') != 'u_x_csat_survey_request')
+  function getBannerAttachmentId(companyId) {
+    var companyGr = new GlideRecord('core_company');
+    if (!companyGr.get(companyId))
       return '';
+    var banner = companyGr.getValue('banner_image');
+    return banner ? banner.toString() : '';
+  }
+
+  function resolvePartner(instanceGr) {
+    var result = { name: '', companyId: '' };
+    if (instanceGr.getValue('trigger_table') != 'u_x_csat_survey_request')
+      return result;
 
     var requestGr = new GlideRecord('u_x_csat_survey_request');
     if (!requestGr.get(instanceGr.getValue('trigger_id') + ''))
-      return '';
+      return result;
 
     var companyId = requestGr.getValue('u_company');
-    if (!companyId) return '';
+    if (!companyId) return result;
 
-    var accountGr = new GlideRecord('customer_account');
+    var accountGr = new GlideRecord('core_company');
     if (!accountGr.get(companyId))
-      return '';
+      return result;
 
-    var parent = accountGr.account_parent.name + '';
-    if (parent && parent != 'null' && parent != 'Direct')
-      return parent;
+    var parentId = accountGr.getValue('parent');
+    if (parentId) {
+      var parentGr = new GlideRecord('core_company');
+      if (parentGr.get(parentId)) {
+        result.name = parentGr.getValue('name') + '';
+        result.companyId = parentId;
+        return result;
+      }
+    }
 
-    return accountGr.getValue('name') + '';
+    result.name = accountGr.getValue('name') + '';
+    result.companyId = companyId;
+    return result;
   }
 
   function attachmentToBase64(attachmentId) {
@@ -73,11 +90,13 @@
 
   if (!data.showLogo) return;
 
-  var partnerName = resolvePartnerName(instanceGr);
+  var partner = resolvePartner(instanceGr);
   var attachmentId = '';
 
-  if (partnerName && isWhitelabelPartner(partnerName)) {
-    attachmentId = getPartnerLogoAttachmentId(partnerName);
+  if (partner.name && isWhitelabelPartner(partner.name)) {
+    attachmentId = getPropertyOverrideAttachmentId(partner.name);
+    if (!attachmentId)
+      attachmentId = getBannerAttachmentId(partner.companyId);
   }
 
   if (!attachmentId)
@@ -86,5 +105,5 @@
   if (!attachmentId) return;
 
   data.logoSrc = 'data:image/png;base64,' + attachmentToBase64(attachmentId);
-  data.logoAlt = partnerName || 'Network Operations CSAT Survey';
+  data.logoAlt = partner.name || 'Network Operations CSAT Survey';
 })();
