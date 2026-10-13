@@ -3,7 +3,11 @@ const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 const data = require('/tmp/test-banner-report.json');
 
-const withBanner = data.withBanner.map((a) => ({
+const EXCLUDE_ACCOUNTS = ['tututut33333555', 'jkjkjkjkjj', 'Tester', 'Testering'];
+
+const withBanner = data.withBanner
+  .filter((a) => !EXCLUDE_ACCOUNTS.includes(a.name))
+  .map((a) => ({
   Account: a.name,
   'File Type': a.content_type,
   'File Size (bytes)': parseInt(a.size_bytes, 10),
@@ -12,7 +16,9 @@ const withBanner = data.withBanner.map((a) => ({
   'Has Banner': 'Yes',
 }));
 
-const withoutBanner = data.withoutBanner.map((a) => ({
+const withoutBanner = data.withoutBanner
+  .filter((a) => !EXCLUDE_ACCOUNTS.includes(a.name))
+  .map((a) => ({
   Account: a.name,
   'File Type': '',
   'File Size (bytes)': '',
