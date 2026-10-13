@@ -8,24 +8,99 @@ const EXCLUDE_ACCOUNTS = ['tututut33333555', 'jkjkjkjkjj', 'Tester', 'Testering'
 const withBanner = data.withBanner
   .filter((a) => !EXCLUDE_ACCOUNTS.includes(a.name))
   .map((a) => ({
-  Account: a.name,
-  'File Type': a.content_type,
-  'File Size (bytes)': parseInt(a.size_bytes, 10),
-  'Dimensions / Description': a.file_type_description,
-  'Attachment SysID': a.banner_attachment,
-  'Has Banner': 'Yes',
-}));
+    Account: a.name,
+    'File Type': a.content_type,
+    'File Size (bytes)': parseInt(a.size_bytes, 10),
+    'Dimensions / Description': a.file_type_description,
+    'Attachment SysID': a.banner_attachment,
+    'Has Banner': 'Yes',
+  }));
 
 const withoutBanner = data.withoutBanner
   .filter((a) => !EXCLUDE_ACCOUNTS.includes(a.name))
   .map((a) => ({
-  Account: a.name,
-  'File Type': '',
-  'File Size (bytes)': '',
-  'Dimensions / Description': '',
-  'Attachment SysID': a.sys_id,
-  'Has Banner': 'No',
-}));
+    Account: a.name,
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': a.sys_id,
+    'Has Banner': 'No',
+  }));
+
+// Accounts from the uploaded CSV that were not returned by the instance query
+// but are confirmed to have banner images. Dimensions were fetched for reporting.
+const ADDITIONAL_WITH_BANNER = [
+  {
+    Account: 'WarpSpeed Group LLC',
+    'File Type': 'image/png',
+    'File Size (bytes)': 11569,
+    'Dimensions / Description': 'PNG image data, 250 x 100, 8-bit/color RGBA, non-interlaced',
+    'Attachment SysID': '97a7e8cb3b69bed0a9d88aac24e45a11',
+    'Has Banner': 'Yes',
+  },
+  {
+    Account: 'Aurora Communications LLC',
+    'File Type': 'image/jpeg',
+    'File Size (bytes)': 6360,
+    'Dimensions / Description': 'JPEG image data, 326 x 65, components 3',
+    'Attachment SysID': '47bcd2ab3bcae2509f13571864e45a8b',
+    'Has Banner': 'Yes',
+  },
+  {
+    Account: 'Bedroc Partner',
+    'File Type': 'image/png',
+    'File Size (bytes)': 28288,
+    'Dimensions / Description': 'PNG image data, 194 x 175, 8-bit/color RGBA, non-interlaced',
+    'Attachment SysID': 'c8dc4a2adbd950100eea89584b96197c',
+    'Has Banner': 'Yes',
+  },
+];
+
+const ADDITIONAL_WITHOUT_BANNER = [
+  {
+    Account: 'Blue Plains Technology',
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': '7bfe925b3313c390d814e4b32d5c7b6f',
+    'Has Banner': 'No',
+  },
+  {
+    Account: 'Itecs',
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': '7f6f5adb3313c390d814e4b32d5c7b0e',
+    'Has Banner': 'No',
+  },
+  {
+    Account: 'Sora Partners',
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': '84ef529f3313c390d814e4b32d5c7b21',
+    'Has Banner': 'No',
+  },
+  {
+    Account: 'Triton Networks',
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': '7d106edf3313c390d814e4b32d5c7bf9',
+    'Has Banner': 'No',
+  },
+  {
+    Account: 'Xentegra',
+    'File Type': '',
+    'File Size (bytes)': '',
+    'Dimensions / Description': '',
+    'Attachment SysID': '559d5b963bd343509f13571864e45a0e',
+    'Has Banner': 'No',
+  },
+];
+
+withBanner.push(...ADDITIONAL_WITH_BANNER);
+withoutBanner.push(...ADDITIONAL_WITHOUT_BANNER);
 
 const allRows = [...withBanner, ...withoutBanner];
 
