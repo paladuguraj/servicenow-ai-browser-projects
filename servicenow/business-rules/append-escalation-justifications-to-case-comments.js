@@ -1,6 +1,10 @@
 /**
  * Append Customer Justification / De-escalation Justification to the source
  * case Additional Comments (customer-visible external notes).
+ *
+ * Customer Justification is posted only once. OOB EscalationUtils.appendNote()
+ * does a nested escalation.update() for work notes during the same escalate
+ * transaction; without a guard that re-fires this rule and duplicates the note.
  */
 (function executeRule(current, previous /*null when async*/) {
 	var sourceTable = current.getValue('source_table');
@@ -14,19 +18,44 @@
 
 	var notes = [];
 
-	// Escalate: surface Customer Justification when the escalation is first created
-	// (or when justification is first filled). Avoid re-posting on later state changes.
-	var postCustomerJustification =
-		!current.escalation_justification.nil() &&
-		(current.operation() == 'insert' ||
-			(current.escalation_justification.changes() && previous.escalation_justification.nil()));
-	if (postCustomerJustification) {
-		notes.push(gs.getMessage('Customer Justification: {0}', [current.getValue('escalation_justification')]));
+	/**
+	 * True when this transaction already posted a given marker to case comments.
+	 * Prevents duplicates when OOB rules nest an escalation.update().
+	 */
+	function alreadyPosted(marker) {
+		if (!marker) return false;
+		var j = new GlideRecord('sys_journal_field');
+		j.addQuery('element_id', sourceId);
+		j.addQuery('element', 'comments');
+		j.addQuery('value', 'CONTAINS', marker);
+		j.setLimit(1);
+		j.query();
+		return j.hasNext();
 	}
 
-	// De-escalate (Closed Escalated): surface De-escalation Justification
+	// Escalate: post Customer Justification once when first set (insert, or
+	// empty -> value). Skip re-entry from nested escalation updates.
+	var justification = current.getValue('escalation_justification');
+	var justificationFirstSet =
+		justification &&
+		(current.operation() == 'insert' ||
+			(current.escalation_justification.changes() &&
+				(previous.escalation_justification.nil() || previous.getValue('escalation_justification') == '')));
+
+	if (justificationFirstSet) {
+		var custMarker = 'Customer Justification: ' + justification;
+		if (!alreadyPosted(custMarker) && !alreadyPosted(justification)) {
+			notes.push(gs.getMessage('Customer Justification: {0}', [justification]));
+		}
+	}
+
+	// De-escalate (Closed Escalated): post De-escalation Justification once
 	if (current.state.changes() && current.state == 103 && !current.de_escalation_justification.nil()) {
-		notes.push(gs.getMessage('De-escalation Justification: {0}', [current.getValue('de_escalation_justification')]));
+		var deJust = current.getValue('de_escalation_justification');
+		var deMarker = 'De-escalation Justification: ' + deJust;
+		if (!alreadyPosted(deMarker) && !alreadyPosted(deJust)) {
+			notes.push(gs.getMessage('De-escalation Justification: {0}', [deJust]));
+		}
 	}
 
 	if (!notes.length) return;
