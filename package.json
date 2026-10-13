@@ -36,6 +36,8 @@
   },
   "homepage": "https://github.com/paladuguraj/servicenow-ai-browser-projects#readme",
   "dependencies": {
-    "playwright": "^1.62.0"
+    "pdfkit": "^0.20.2",
+    "playwright": "^1.62.0",
+    "xlsx": "^0.18.5"
   }
 }
