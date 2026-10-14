@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2026-10-14 15:43:38">
+<sys_remote_update_set action="INSERT_OR_UPDATE">
+<application display_value="Global">global</application>
+<application_name>Global</application_name>
+<application_scope>global</application_scope>
+<application_version/>
+<collisions/>
+<commit_date/>
+<deleted/>
+<description>Single migration set for escalation enhancements: 8 Request Escalation form fields (excl. Escalation Source), Customer Justification label rename, and append customer/de-escalation justifications to case Additional Comments (with duplicate-note guard).</description>
+<name>Escalation Enhancements - ALL CHANGES v1.0</name>
+<origin_sys_id>e5ca11a710000000e5ca11a7e5ca1101</origin_sys_id>
+<remote_base_update_set/>
+<remote_parent_id/>
+<remote_sys_id>e5ca11a710000000e5ca11a7e5ca1101</remote_sys_id>
+<state>loaded</state>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-14 15:43:38</sys_created_on>
+<sys_id>e5ca11a710000000e5ca11a7e5ca1101</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<update_set hid="e5ca11a710000000e5ca11a7e5ca1101"/>
+<update_source/>
+</sys_remote_update_set>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_escalation_level</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_escalation_level" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes/><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>1</choice><choice_field/><choice_table/><column_label>Escalation Level / Tier</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_escalation_level</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="Integer">integer</internal_type><mandatory>false</mandatory><max_length>40</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:04</sys_created_on><sys_id>d03d16c52b93cf9007a3fa95b891bfac</sys_id><sys_name>Escalation Level / Tier</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_escalation_level</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:04</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-2147034266</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:05</sys_created_on>
+<sys_id>e83d96092b93cf9007a3fa95b891bf48</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0915472dc0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Level / Tier</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_escalation_level_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_escalation_level" label="Escalation Level / Tier" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_escalation_level</element><help/><hint/><label>Escalation Level / Tier</label><language>en</language><name>sn_customerservice_escalation</name><plural>Escalation Level / Tiers</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:05</sys_created_on><sys_id>6c3d96092b93cf9007a3fa95b891bf1f</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Escalation Level / Tier</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_escalation_level_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:05</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>-1723782205</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:05</sys_created_on>
+<sys_id>683d96092b93cf9007a3fa95b891bf4c</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154732c0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Level / Tier</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_escalation_reason</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_escalation_reason" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes>list_collector=true</attributes><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>3</choice><choice_field/><choice_table/><column_label>Escalation Reason / Justification</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_escalation_reason</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>255</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:10</sys_created_on><sys_id>353dd2852b1f0f14efa0f95ed891bff1</sys_id><sys_name>Escalation Reason / Justification</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_escalation_reason</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:10</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-2136498462</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:10</sys_created_on>
+<sys_id>bd3d56852b1f0f14efa0f95ed891bf21</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0915486320000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Reason / Justification</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_escalation_reason_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_escalation_reason" label="Escalation Reason / Justification" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_escalation_reason</element><help/><hint/><label>Escalation Reason / Justification</label><language>en</language><name>sn_customerservice_escalation</name><plural>Escalation Reason / Justifications</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:10</sys_created_on><sys_id>313d56852b1f0f14efa0f95ed891bf12</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Escalation Reason / Justification</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_escalation_reason_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:10</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>-1560173219</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:10</sys_created_on>
+<sys_id>0a3d56852b1f0f14efa0f95ed891bf25</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154865f0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Reason / Justification</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_escalation_level</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_escalation_level" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_escalation_level</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:29</sys_created_on><sys_id>ea4d56852b1f0f14efa0f95ed891bfe9</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_escalation_level</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_escalation_level</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:29</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_level</element><hint/><inactive>false</inactive><label>Level 1</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:29</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>aa4d56852b1f0f14efa0f95ed891bfe8</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:29</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_level</element><hint/><inactive>false</inactive><label>Level 2</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:29</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>ee4d9ac53bd74f50c4e908ac24e45a2d</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:29</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_level</element><hint/><inactive>false</inactive><label>Level 3</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:31</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>324d96092b93cf9007a3fa95b891bf80</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:31</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_level</element><hint/><inactive>false</inactive><label>Level 4</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:31</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>874d1a092b93cf9007a3fa95b891bf0f</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:31</sys_updated_on><value>3</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>-491489507</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:29</sys_created_on>
+<sys_id>624d96852b1f0f14efa0f95ed891bff6</sys_id>
+<sys_mod_count>4</sys_mod_count>
+<sys_recorded_at>1a09154d8da0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Level / Tier</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_escalation_reason</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_escalation_reason" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_escalation_reason</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_id>4f4d1a092b93cf9007a3fa95b891bf26</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_escalation_reason</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_escalation_reason</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>SLO Breach</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>c34d1a092b93cf9007a3fa95b891bf26</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Repeated Issue</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>1f4dd6852b1f0f14efa0f95ed891bf06</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Recommended Fix Not Implemented</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>174dd6852b1f0f14efa0f95ed891bf68</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Carrier/Vendor Non-Responsive</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>1b4dd6c53bd74f50c4e908ac24e45a56</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on><value>3</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Technical Complexity</label><language>en</language><name>sn_customerservice_escalation</name><sequence>40</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:32</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>d74d9ac53bd74f50c4e908ac24e45a89</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:32</sys_updated_on><value>4</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Inactivity</label><language>en</language><name>sn_customerservice_escalation</name><sequence>50</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:33</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>d34d1a092b93cf9007a3fa95b891bf4a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:33</sys_updated_on><value>5</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_reason</element><hint/><inactive>false</inactive><label>Business Critical</label><language>en</language><name>sn_customerservice_escalation</name><sequence>60</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:33</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>134d1a092b93cf9007a3fa95b891bf6d</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:33</sys_updated_on><value>6</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>1922586545</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:32</sys_created_on>
+<sys_id>0f4d1a092b93cf9007a3fa95b891bf45</sys_id>
+<sys_mod_count>7</sys_mod_count>
+<sys_recorded_at>1a09154dec40000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Reason / Justification</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_documentation_accuracy</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_documentation_accuracy" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes/><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>1</choice><choice_field/><choice_table/><column_label>Documentation Accuracy Flag</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_documentation_accuracy</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>40</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:33</sys_created_on><sys_id>2f4d1a092b93cf9007a3fa95b891bf8f</sys_id><sys_name>Documentation Accuracy Flag</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_documentation_accuracy</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:33</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>1821596148</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:33</sys_created_on>
+<sys_id>674d1a092b93cf9007a3fa95b891bfae</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154e0a30000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Documentation Accuracy Flag</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_documentation_accuracy_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_documentation_accuracy" label="Documentation Accuracy Flag" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_documentation_accuracy</element><help/><hint/><label>Documentation Accuracy Flag</label><language>en</language><name>sn_customerservice_escalation</name><plural>Documentation Accuracy Flags</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:33</sys_created_on><sys_id>af4d1a092b93cf9007a3fa95b891bfa4</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Documentation Accuracy Flag</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_documentation_accuracy_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:33</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>1352721937</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:34</sys_created_on>
+<sys_id>ef4d1a092b93cf9007a3fa95b891bfb0</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154e0ea0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Documentation Accuracy Flag</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_documentation_accuracy</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_documentation_accuracy" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_documentation_accuracy</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:34</sys_created_on><sys_id>eb4d9ac53bd74f50c4e908ac24e45aae</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_documentation_accuracy</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_documentation_accuracy</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:34</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_documentation_accuracy</element><hint/><inactive>false</inactive><label>Case Notes Accurate</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:34</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>eb4d9ac53bd74f50c4e908ac24e45aac</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:34</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_documentation_accuracy</element><hint/><inactive>false</inactive><label>Documentation Error Identified</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:34</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>334dd6852b1f0f14efa0f95ed891bfc0</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:34</sys_updated_on><value>1</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>-1942929301</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:34</sys_created_on>
+<sys_id>a34d9ac53bd74f50c4e908ac24e45ac2</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>1a09154e3360000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Documentation Accuracy Flag</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_escalation_category</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_escalation_category" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes/><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>1</choice><choice_field/><choice_table/><column_label>Escalation Category / Type</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_escalation_category</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>40</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:35</sys_created_on><sys_id>334d9ac53bd74f50c4e908ac24e45ac7</sys_id><sys_name>Escalation Category / Type</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_escalation_category</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:35</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>1898072292</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:35</sys_created_on>
+<sys_id>c05ddac53bd74f50c4e908ac24e45a07</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154e8490000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Category / Type</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_escalation_category_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_escalation_category" label="Escalation Category / Type" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_escalation_category</element><help/><hint/><label>Escalation Category / Type</label><language>en</language><name>sn_customerservice_escalation</name><plural>Escalation Category / Types</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:35</sys_created_on><sys_id>bb4d9ac53bd74f50c4e908ac24e45af8</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Escalation Category / Type</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_escalation_category_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:35</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>2082740523</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:36</sys_created_on>
+<sys_id>485ddac53bd74f50c4e908ac24e45a61</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154e8820000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Category / Type</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_escalation_category</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_escalation_category" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_escalation_category</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:36</sys_created_on><sys_id>8c5ddac53bd74f50c4e908ac24e45a65</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_escalation_category</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_escalation_category</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:36</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Technical Investigation</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:36</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>845ddac53bd74f50c4e908ac24e45a65</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:36</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Performance Optimization</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:36</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>445d1a092b93cf9007a3fa95b891bfba</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:36</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Service Restoration</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:36</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>545d1a852b1f0f14efa0f95ed891bf00</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:36</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Carrier/Vendor Coordination</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:36</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>d05ddac53bd74f50c4e908ac24e45a88</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:36</sys_updated_on><value>3</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>On-Site Dispatch</label><language>en</language><name>sn_customerservice_escalation</name><sequence>40</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:37</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>d45d5a092b93cf9007a3fa95b891bf2a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:37</sys_updated_on><value>4</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Management Review &amp; Decision</label><language>en</language><name>sn_customerservice_escalation</name><sequence>50</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:37</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>1c5ddac53bd74f50c4e908ac24e45a9d</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:37</sys_updated_on><value>5</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Account Management/Billing</label><language>en</language><name>sn_customerservice_escalation</name><sequence>60</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:37</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>dc5d5a092b93cf9007a3fa95b891bf3f</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:37</sys_updated_on><value>6</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_category</element><hint/><inactive>false</inactive><label>Architecture/Design Review</label><language>en</language><name>sn_customerservice_escalation</name><sequence>70</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:37</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>285ddac53bd74f50c4e908ac24e45abf</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:37</sys_updated_on><value>7</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>997330635</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:36</sys_created_on>
+<sys_id>485ddac53bd74f50c4e908ac24e45a84</sys_id>
+<sys_mod_count>8</sys_mod_count>
+<sys_recorded_at>1a09154efc70000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Escalation Category / Type</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_escalation_owner</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_escalation_owner" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes/><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>1</choice><choice_field/><choice_table/><column_label>Owner</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_escalation_owner</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>40</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:38</sys_created_on><sys_id>ec5ddac53bd74f50c4e908ac24e45ad4</sys_id><sys_name>Owner</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_escalation_owner</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:38</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-612184054</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:38</sys_created_on>
+<sys_id>a45ddac53bd74f50c4e908ac24e45af2</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154f2770000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Owner</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_escalation_owner_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_escalation_owner" label="Owner" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_escalation_owner</element><help/><hint/><label>Owner</label><language>en</language><name>sn_customerservice_escalation</name><plural>Owners</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:38</sys_created_on><sys_id>ac5ddac53bd74f50c4e908ac24e45ae9</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Owner</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_escalation_owner_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:38</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>1645033139</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:38</sys_created_on>
+<sys_id>b85ddac53bd74f50c4e908ac24e45af4</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154f2a20000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Owner</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_escalation_owner</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_escalation_owner" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_escalation_owner</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:38</sys_created_on><sys_id>b05d5a092b93cf9007a3fa95b891bf66</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_escalation_owner</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_escalation_owner</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:38</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>NOC</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:38</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>345d5a092b93cf9007a3fa95b891bf64</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:38</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>Engineering Team</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:39</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>b05d1ec53bd74f50c4e908ac24e45a11</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:39</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>Customer Success / Account Management</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:39</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>785d1ec53bd74f50c4e908ac24e45a26</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:39</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>Finance / Billing</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:39</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>415d1a852b1f0f14efa0f95ed891bf19</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:39</sys_updated_on><value>3</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>Executive Management</label><language>en</language><name>sn_customerservice_escalation</name><sequence>40</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:39</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>0d5d1a852b1f0f14efa0f95ed891bf7a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:39</sys_updated_on><value>4</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_escalation_owner</element><hint/><inactive>false</inactive><label>Platform Team</label><language>en</language><name>sn_customerservice_escalation</name><sequence>50</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:39</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>095d1ec53bd74f50c4e908ac24e45a3b</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:39</sys_updated_on><value>5</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>713331361</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:38</sys_created_on>
+<sys_id>305d5a092b93cf9007a3fa95b891bf79</sys_id>
+<sys_mod_count>6</sys_mod_count>
+<sys_recorded_at>1a09154f8c60000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Owner</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_communication_channel</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_communication_channel" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes>list_collector=true</attributes><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>3</choice><choice_field/><choice_table/><column_label>Communication Channel Used for Escalation</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_communication_channel</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>255</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:40</sys_created_on><sys_id>4d5d5a092b93cf9007a3fa95b891bf7f</sys_id><sys_name>Communication Channel Used for Escalation</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_communication_channel</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:40</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-870999158</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:40</sys_created_on>
+<sys_id>055d5a092b93cf9007a3fa95b891bfc3</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154fabf0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Communication Channel Used for Escalation</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_communication_channel_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_communication_channel" label="Communication Channel Used for Escalation" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_communication_channel</element><help/><hint/><label>Communication Channel Used for Escalation</label><language>en</language><name>sn_customerservice_escalation</name><plural>Communication Channel Used for Escalations</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:40</sys_created_on><sys_id>c95d5a092b93cf9007a3fa95b891bfad</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Communication Channel Used for Escalation</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_communication_channel_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:40</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>-753513123</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:40</sys_created_on>
+<sys_id>495d5a092b93cf9007a3fa95b891bfc5</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09154fadc0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Communication Channel Used for Escalation</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_communication_channel</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_communication_channel" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_communication_channel</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:40</sys_created_on><sys_id>555d1a852b1f0f14efa0f95ed891bfaa</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_communication_channel</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_communication_channel</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:40</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_communication_channel</element><hint/><inactive>false</inactive><label>Email</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:40</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>115d1a852b1f0f14efa0f95ed891bf90</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:40</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_communication_channel</element><hint/><inactive>false</inactive><label>Phone Call</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:41</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>195d1ec53bd74f50c4e908ac24e45a54</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:41</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_communication_channel</element><hint/><inactive>false</inactive><label>Slack Channel</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:41</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>155d1ec53bd74f50c4e908ac24e45a90</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:41</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_communication_channel</element><hint/><inactive>false</inactive><label>Microsoft Teams</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:41</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>e15d1ec53bd74f50c4e908ac24e45aa5</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:41</sys_updated_on><value>3</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_communication_channel</element><hint/><inactive>false</inactive><label>Management Review Meeting</label><language>en</language><name>sn_customerservice_escalation</name><sequence>40</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:41</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>2d5d1a852b1f0f14efa0f95ed891bfbf</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:41</sys_updated_on><value>4</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>-2125337986</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:41</sys_created_on>
+<sys_id>915d1a852b1f0f14efa0f95ed891bfbc</sys_id>
+<sys_mod_count>5</sys_mod_count>
+<sys_recorded_at>1a09155004a0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Communication Channel Used for Escalation</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_customer_impact_status</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_customer_impact_status" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes>list_collector=true</attributes><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice>3</choice><choice_field/><choice_table/><column_label>Customer Impact Status</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_customer_impact_status</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>255</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:42</sys_created_on><sys_id>a15d5a092b93cf9007a3fa95b891bfcc</sys_id><sys_name>Customer Impact Status</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_customer_impact_status</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:42</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>662451042</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:42</sys_created_on>
+<sys_id>695d5a092b93cf9007a3fa95b891bfe9</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a09155025a0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Customer Impact Status</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_customer_impact_status_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_customer_impact_status" label="Customer Impact Status" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_customer_impact_status</element><help/><hint/><label>Customer Impact Status</label><language>en</language><name>sn_customerservice_escalation</name><plural>Customer Impact Status</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:42</sys_created_on><sys_id>ed5d5a092b93cf9007a3fa95b891bfe0</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Customer Impact Status</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_customer_impact_status_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:42</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>-437164454</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:42</sys_created_on>
+<sys_id>6d5d5a092b93cf9007a3fa95b891bfeb</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0915502760000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Customer Impact Status</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_choice_sn_customerservice_escalation_u_customer_impact_status</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_choice action="INSERT_OR_UPDATE" field="u_customer_impact_status" table="sn_customerservice_escalation" version="3"><sys_choice_set action="INSERT_OR_UPDATE"><element>u_customer_impact_status</element><name>sn_customerservice_escalation</name><sys_class_name>sys_choice_set</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:42</sys_created_on><sys_id>2d5d5a092b93cf9007a3fa95b891bfef</sys_id><sys_mod_count>0</sys_mod_count><sys_name>u_customer_impact_status</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_choice_sn_customerservice_escalation_u_customer_impact_status</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:42</sys_updated_on></sys_choice_set><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_customer_impact_status</element><hint/><inactive>false</inactive><label>Severity = Hard Down</label><language>en</language><name>sn_customerservice_escalation</name><sequence>0</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:42</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>255d5a092b93cf9007a3fa95b891bfef</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:42</sys_updated_on><value>0</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_customer_impact_status</element><hint/><inactive>false</inactive><label>Intermittent Issues</label><language>en</language><name>sn_customerservice_escalation</name><sequence>10</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:43</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>bd5d9a092b93cf9007a3fa95b891bf04</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:43</sys_updated_on><value>1</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_customer_impact_status</element><hint/><inactive>false</inactive><label>Degraded Performance</label><language>en</language><name>sn_customerservice_escalation</name><sequence>20</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:43</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>b15d9a092b93cf9007a3fa95b891bf1a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:43</sys_updated_on><value>2</value></sys_choice><sys_choice action="INSERT_OR_UPDATE"><dependent_value/><element>u_customer_impact_status</element><hint/><inactive>false</inactive><label>No Current Impact – Preventive Escalation</label><language>en</language><name>sn_customerservice_escalation</name><sequence>30</sequence><synonyms/><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:43</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>715d9a092b93cf9007a3fa95b891bf2f</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:43</sys_updated_on><value>3</value></sys_choice></sys_choice></record_update>]]></payload>
+<payload_hash>-1469929277</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:42</sys_created_on>
+<sys_id>355d9a092b93cf9007a3fa95b891bf01</sys_id>
+<sys_mod_count>4</sys_mod_count>
+<sys_recorded_at>1a0915505aa0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Customer Impact Status</target_name>
+<type>Choice list</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_u_additional_notes</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="u_additional_notes" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes/><audit>false</audit><calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation><choice/><choice_field/><choice_table/><column_label>Additional Notes</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>u_additional_notes</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>1000</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:43</sys_created_on><sys_id>4e5d1a852b1f0f14efa0f95ed891bfe4</sys_id><sys_name>Additional Notes</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_u_additional_notes</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:43</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-628398295</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:44</sys_created_on>
+<sys_id>4a5d5a852b1f0f14efa0f95ed891bf28</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0915507cb0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Additional Notes</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_u_additional_notes_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="u_additional_notes" label="Additional Notes" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>u_additional_notes</element><help/><hint/><label>Additional Notes</label><language>en</language><name>sn_customerservice_escalation</name><plural>Additional Notes</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:37:43</sys_created_on><sys_id>0a5d5a852b1f0f14efa0f95ed891bf13</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Additional Notes</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_u_additional_notes_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:37:43</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>-1263399878</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-11 16:37:44</sys_created_on>
+<sys_id>4e5d5a852b1f0f14efa0f95ed891bf2a</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0915507fd0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Additional Notes</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_section_4f590b0ab3600300b85d6e5f26a8dcab</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_ui_section caption="" section_id="4f590b0ab3600300b85d6e5f26a8dcab" sys_domain="global" table="sn_customerservice_escalation" version="3" view=""><sys_ui_element action="INSERT_OR_UPDATE"><element>.begin_split</element><position>0</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>66639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type>.begin_split</type></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>number</element><position>1</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>e6639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>source_record</element><position>2</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>6a639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>request_source</element><position>3</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>ea639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>reason</element><position>4</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>6e639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>.split</element><position>5</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>ee639899b3010300ba066e5f26a8dc90</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type>.split</type></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>escalation_severity</element><position>6</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>62639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>type</element><position>7</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>e2639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>watch_list</element><position>8</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>66639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>add_account_team_members</element><position>9</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>e6639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>assignment_group</element><position>10</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>6a639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>assigned_to</element><position>11</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>ea639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>.end_split</element><position>12</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>6e639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type>.end_split</type></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>escalation_justification</element><position>13</position><sys_created_by>admin</sys_created_by><sys_created_on>2017-09-05 17:53:52</sys_created_on><sys_id>ee639899b3010300ba066e5f26a8dc91</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>admin</sys_updated_by><sys_updated_on>2017-09-05 17:53:52</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_escalation_level</element><position>14</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:14</sys_created_on><sys_id>66ed96492b93cf9007a3fa95b891bf0a</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:14</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_escalation_reason</element><position>15</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:21</sys_created_on><sys_id>a8fd92493bd74f50c4e908ac24e45a3a</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:21</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_documentation_accuracy</element><position>16</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>6cfd56c52b1f0f14efa0f95ed891bf1d</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_escalation_category</element><position>17</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>60fd96492b93cf9007a3fa95b891bfa7</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_escalation_owner</element><position>18</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>a4fd96492b93cf9007a3fa95b891bfaa</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_communication_channel</element><position>19</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>74fd96492b93cf9007a3fa95b891bfb0</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_customer_impact_status</element><position>20</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>b8fd92493bd74f50c4e908ac24e45a76</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_element action="INSERT_OR_UPDATE"><element>u_additional_notes</element><position>21</position><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-09-11 16:40:22</sys_created_on><sys_id>78fd96492b93cf9007a3fa95b891bfb3</sys_id><sys_mod_count>0</sys_mod_count><sys_ui_formatter/><sys_ui_section caption="NULL" display_value="" name="sn_customerservice_escalation" sys_domain="global" view="0359470ab3600300b85d6e5f26a8dc28">4f590b0ab3600300b85d6e5f26a8dcab</sys_ui_section><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-11 16:40:22</sys_updated_on><sys_user/><type/></sys_ui_element><sys_ui_section action="INSERT_OR_UPDATE"><caption/><header>false</header><name>sn_customerservice_escalation</name><roles/><sys_class_name>sys_ui_section</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2017-08-14 18:32:51</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>4f590b0ab3600300b85d6e5f26a8dcab</sys_id><sys_mod_count>2</sys_mod_count><sys_name>sn_customerservice_escalation</sys_name><sys_overrides/><sys_package display_value="Customer Service" source="sn_customerservice">51d811fad7223100b7490ee60e61034f</sys_package><sys_policy/><sys_scope display_value="Customer Service">51d811fad7223100b7490ee60e61034f</sys_scope><sys_update_name>sys_ui_section_4f590b0ab3600300b85d6e5f26a8dcab</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-09-21 16:40:56</sys_updated_on><sys_user/><title>false</title><view display_value="Request Escalation " name="request_escalation">0359470ab3600300b85d6e5f26a8dc28</view><view_name/></sys_ui_section></sys_ui_section></record_update>]]></payload>
+<payload_hash>-618438783</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-09-21 16:40:56</sys_created_on>
+<sys_id>26fdf9d82ba34350efa0f95ed891bf47</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>1a0c4d793cb0000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation</target_name>
+<type>Form Layout</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_dictionary_sn_customerservice_escalation_escalation_justification</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_dictionary action="INSERT_OR_UPDATE" element="escalation_justification" table="sn_customerservice_escalation"><active>true</active><array>false</array><attributes>edge_encryption_enabled=true</attributes><audit>false</audit><calculation/><choice>0</choice><choice_field/><choice_table/><column_label>Customer Justification</column_label><comments/><create_roles/><default_value/><defaultsort/><delete_roles/><dependent/><dependent_on_field/><display>false</display><dynamic_creation>false</dynamic_creation><dynamic_creation_script/><dynamic_default_value/><dynamic_ref_qual/><element>escalation_justification</element><element_reference>false</element_reference><foreign_database/><formula/><function_definition/><function_field>false</function_field><internal_type display_value="String">string</internal_type><mandatory>false</mandatory><max_length>1000</max_length><name>sn_customerservice_escalation</name><next_element/><primary>false</primary><read_only>false</read_only><read_roles/><reference/><reference_cascade_rule/><reference_floats>false</reference_floats><reference_key/><reference_qual/><reference_qual_condition/><reference_type/><spell_check>false</spell_check><staged>false</staged><sys_class_name>sys_dictionary</sys_class_name><sys_created_by>system</sys_created_by><sys_created_on>2018-03-16 18:36:33</sys_created_on><sys_id>776e81cbdb701b00d3f336be3b96193c</sys_id><sys_name>Customer Justification</sys_name><sys_package display_value="Customer Service" source="sn_customerservice">51d811fad7223100b7490ee60e61034f</sys_package><sys_policy/><sys_scope display_value="Customer Service">51d811fad7223100b7490ee60e61034f</sys_scope><sys_update_name>sys_dictionary_sn_customerservice_escalation_escalation_justification</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-10-09 16:35:06</sys_updated_on><table_reference>false</table_reference><text_index>false</text_index><unique>false</unique><use_dependent_field>false</use_dependent_field><use_dynamic_default>false</use_dynamic_default><use_reference_qualifier>simple</use_reference_qualifier><virtual>false</virtual><virtual_type>script</virtual_type><widget/><write_roles/><xml_view>false</xml_view></sys_dictionary></record_update>]]></payload>
+<payload_hash>-1830722301</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-09 16:35:07</sys_created_on>
+<sys_id>784922863b330b50c4e908ac24e45ad2</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a12184b3450000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Customer Justification</target_name>
+<type>Dictionary</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_documentation_sn_customerservice_escalation_escalation_justification_en</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update><sys_documentation element="escalation_justification" label="Customer Justification" language="en" table="sn_customerservice_escalation"><sys_documentation action="INSERT_OR_UPDATE"><element>escalation_justification</element><help/><hint/><label>Customer Justification</label><language>en</language><name>sn_customerservice_escalation</name><plural>Customer Justifications</plural><sys_class_name>sys_documentation</sys_class_name><sys_created_by>system</sys_created_by><sys_created_on>2018-03-16 18:36:33</sys_created_on><sys_id>f36e81cbdb701b00d3f336be3b96193e</sys_id><sys_mod_count>1</sys_mod_count><sys_name>Customer Justification</sys_name><sys_package display_value="Customer Service" source="sn_customerservice">51d811fad7223100b7490ee60e61034f</sys_package><sys_policy/><sys_scope display_value="Customer Service">51d811fad7223100b7490ee60e61034f</sys_scope><sys_update_name>sys_documentation_sn_customerservice_escalation_escalation_justification_en</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-10-09 16:35:06</sys_updated_on><url/><url_target/></sys_documentation></sys_documentation></record_update>]]></payload>
+<payload_hash>1543300611</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-09 16:35:07</sys_created_on>
+<sys_id>384922863b330b50c4e908ac24e45ad5</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a12184b3640000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Escalation.Customer Justification</target_name>
+<type>Field Label</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_494966022bbfcb5007a3fa95b891bf10</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script"><sys_script action="INSERT_OR_UPDATE"><abort_action>false</abort_action><access>package_private</access><action_delete>false</action_delete><action_insert>true</action_insert><action_query>false</action_query><action_update>true</action_update><active>true</active><add_message>false</add_message><advanced>true</advanced><change_fields>false</change_fields><client_callable>false</client_callable><collection>sn_customerservice_escalation</collection><condition/><description>Appends Customer Justification on escalate and De-escalation Justification on de-escalate to the source case Additional Comments so customers can see them.</description><execute_function>false</execute_function><filter_condition/><is_rest>false</is_rest><message/><name>Append escalation justifications to case</name><order>200</order><priority>100</priority><rest_method/><rest_method_text/><rest_service/><rest_service_text/><rest_variables/><role_conditions/><script><![CDATA[/**
+ * Append Customer Justification / De-escalation Justification to the source
+ * case Additional Comments (customer-visible external notes).
+ *
+ * Customer Justification is posted only once. OOB EscalationUtils.appendNote()
+ * does a nested escalation.update() for work notes during the same escalate
+ * transaction; without a guard that re-fires this rule and duplicates the note.
+ */
+(function executeRule(current, previous /*null when async*/) {
+	var sourceTable = current.getValue('source_table');
+	var sourceId = current.getValue('source_record');
+	if (!sourceTable || !sourceId) return;
+	if (sourceTable != 'sn_customerservice_case' && sourceTable != 'csm_order_case') return;
+
+	var caseGr = new GlideRecord(sourceTable);
+	if (!caseGr.get(sourceId)) return;
+	if (!caseGr.isValidField('comments')) return;
+
+	var notes = [];
+
+	/**
+	 * True when this transaction already posted a given marker to case comments.
+	 * Prevents duplicates when OOB rules nest an escalation.update().
+	 */
+	function alreadyPosted(marker) {
+		if (!marker) return false;
+		var j = new GlideRecord('sys_journal_field');
+		j.addQuery('element_id', sourceId);
+		j.addQuery('element', 'comments');
+		j.addQuery('value', 'CONTAINS', marker);
+		j.setLimit(1);
+		j.query();
+		return j.hasNext();
+	}
+
+	// Escalate: post Customer Justification once when first set (insert, or
+	// empty -> value). Skip re-entry from nested escalation updates.
+	var justification = current.getValue('escalation_justification');
+	var justificationFirstSet =
+		justification &&
+		(current.operation() == 'insert' ||
+			(current.escalation_justification.changes() &&
+				(previous.escalation_justification.nil() || previous.getValue('escalation_justification') == '')));
+
+	if (justificationFirstSet) {
+		var custMarker = 'Customer Justification: ' + justification;
+		if (!alreadyPosted(custMarker) && !alreadyPosted(justification)) {
+			notes.push(gs.getMessage('Customer Justification: {0}', [justification]));
+		}
+	}
+
+	// De-escalate (Closed Escalated): post De-escalation Justification once
+	if (current.state.changes() && current.state == 103 && !current.de_escalation_justification.nil()) {
+		var deJust = current.getValue('de_escalation_justification');
+		var deMarker = 'De-escalation Justification: ' + deJust;
+		if (!alreadyPosted(deMarker) && !alreadyPosted(deJust)) {
+			notes.push(gs.getMessage('De-escalation Justification: {0}', [deJust]));
+		}
+	}
+
+	if (!notes.length) return;
+
+	caseGr.comments = notes.join('\n');
+	caseGr.update();
+})(current, previous);
+]]></script><sys_class_name>sys_script</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-10-09 16:35:07</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>494966022bbfcb5007a3fa95b891bf10</sys_id><sys_mod_count>1</sys_mod_count><sys_name>Append escalation justifications to case</sys_name><sys_overrides/><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_script_494966022bbfcb5007a3fa95b891bf10</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-10-13 19:54:42</sys_updated_on><template/><when>after</when></sys_script><sys_translated_text action="delete_multiple" query="documentkey=494966022bbfcb5007a3fa95b891bf10"/></record_update>]]></payload>
+<payload_hash>-1189865974</payload_hash>
+<remote_update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-13 19:54:42</sys_created_on>
+<sys_id>d74d77d32b330b1007a3fa95b891bfb8</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a136d4dee70000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-14 15:43:38</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Append escalation justifications to case</target_name>
+<type>Business Rule</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Enhancements - ALL CHANGES v1.0">e5ca11a710000000e5ca11a7e5ca1101</update_set>
+<view></view>
+</sys_update_xml>
+</unload>

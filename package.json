@@ -9,7 +9,8 @@
     "deploy:csat": "node scripts/deploy-csat-app.js && node scripts/patch-csat-app.js && node scripts/setup-csat-rest-api.js && node scripts/build-ui-page-simple.js",
     "deploy:escalation-fields": "node scripts/deploy-escalation-fields.js",
     "deploy:escalation-form": "node scripts/deploy-escalation-form.js",
-    "deploy:escalation-customer-notes": "node scripts/deploy-escalation-customer-notes.js"
+    "deploy:escalation-customer-notes": "node scripts/deploy-escalation-customer-notes.js",
+    "consolidate:escalation": "node scripts/consolidate-escalation-update-set.js"
   },
   "repository": {
     "type": "git",
