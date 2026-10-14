@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2026-10-13 19:54:43">
+<sys_remote_update_set action="INSERT_OR_UPDATE">
+<application display_value="Global">global</application>
+<application_name>Global</application_name>
+<application_scope>global</application_scope>
+<application_version/>
+<collisions/>
+<commit_date/>
+<deleted/>
+<description>Prevent duplicate Customer Justification external notes caused by nested escalation.update() from OOB EscalationUtils.</description>
+<name>Escalation Customer Notes Dedup v1.1</name>
+<origin_sys_id>9f4db39f3bbf0310c4e908ac24e45a2e</origin_sys_id>
+<remote_base_update_set/>
+<remote_parent_id/>
+<remote_sys_id>9f4db39f3bbf0310c4e908ac24e45a2e</remote_sys_id>
+<state>loaded</state>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-13 19:54:41</sys_created_on>
+<sys_id>9f4db39f3bbf0310c4e908ac24e45a2e</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-13 19:54:43</sys_updated_on>
+<update_set hid="9f4db39f3bbf0310c4e908ac24e45a2e"/>
+<update_source/>
+</sys_remote_update_set>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_494966022bbfcb5007a3fa95b891bf10</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script"><sys_script action="INSERT_OR_UPDATE"><abort_action>false</abort_action><access>package_private</access><action_delete>false</action_delete><action_insert>true</action_insert><action_query>false</action_query><action_update>true</action_update><active>true</active><add_message>false</add_message><advanced>true</advanced><change_fields>false</change_fields><client_callable>false</client_callable><collection>sn_customerservice_escalation</collection><condition/><description>Appends Customer Justification on escalate and De-escalation Justification on de-escalate to the source case Additional Comments so customers can see them.</description><execute_function>false</execute_function><filter_condition/><is_rest>false</is_rest><message/><name>Append escalation justifications to case</name><order>200</order><priority>100</priority><rest_method/><rest_method_text/><rest_service/><rest_service_text/><rest_variables/><role_conditions/><script><![CDATA[/**
+ * Append Customer Justification / De-escalation Justification to the source
+ * case Additional Comments (customer-visible external notes).
+ *
+ * Customer Justification is posted only once. OOB EscalationUtils.appendNote()
+ * does a nested escalation.update() for work notes during the same escalate
+ * transaction; without a guard that re-fires this rule and duplicates the note.
+ */
+(function executeRule(current, previous /*null when async*/) {
+	var sourceTable = current.getValue('source_table');
+	var sourceId = current.getValue('source_record');
+	if (!sourceTable || !sourceId) return;
+	if (sourceTable != 'sn_customerservice_case' && sourceTable != 'csm_order_case') return;
+
+	var caseGr = new GlideRecord(sourceTable);
+	if (!caseGr.get(sourceId)) return;
+	if (!caseGr.isValidField('comments')) return;
+
+	var notes = [];
+
+	/**
+	 * True when this transaction already posted a given marker to case comments.
+	 * Prevents duplicates when OOB rules nest an escalation.update().
+	 */
+	function alreadyPosted(marker) {
+		if (!marker) return false;
+		var j = new GlideRecord('sys_journal_field');
+		j.addQuery('element_id', sourceId);
+		j.addQuery('element', 'comments');
+		j.addQuery('value', 'CONTAINS', marker);
+		j.setLimit(1);
+		j.query();
+		return j.hasNext();
+	}
+
+	// Escalate: post Customer Justification once when first set (insert, or
+	// empty -> value). Skip re-entry from nested escalation updates.
+	var justification = current.getValue('escalation_justification');
+	var justificationFirstSet =
+		justification &&
+		(current.operation() == 'insert' ||
+			(current.escalation_justification.changes() &&
+				(previous.escalation_justification.nil() || previous.getValue('escalation_justification') == '')));
+
+	if (justificationFirstSet) {
+		var custMarker = 'Customer Justification: ' + justification;
+		if (!alreadyPosted(custMarker) && !alreadyPosted(justification)) {
+			notes.push(gs.getMessage('Customer Justification: {0}', [justification]));
+		}
+	}
+
+	// De-escalate (Closed Escalated): post De-escalation Justification once
+	if (current.state.changes() && current.state == 103 && !current.de_escalation_justification.nil()) {
+		var deJust = current.getValue('de_escalation_justification');
+		var deMarker = 'De-escalation Justification: ' + deJust;
+		if (!alreadyPosted(deMarker) && !alreadyPosted(deJust)) {
+			notes.push(gs.getMessage('De-escalation Justification: {0}', [deJust]));
+		}
+	}
+
+	if (!notes.length) return;
+
+	caseGr.comments = notes.join('\n');
+	caseGr.update();
+})(current, previous);
+]]></script><sys_class_name>sys_script</sys_class_name><sys_created_by>rajesh_cursor</sys_created_by><sys_created_on>2026-10-09 16:35:07</sys_created_on><sys_domain>global</sys_domain><sys_domain_path>/</sys_domain_path><sys_id>494966022bbfcb5007a3fa95b891bf10</sys_id><sys_mod_count>1</sys_mod_count><sys_name>Append escalation justifications to case</sys_name><sys_overrides/><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_script_494966022bbfcb5007a3fa95b891bf10</sys_update_name><sys_updated_by>rajesh_cursor</sys_updated_by><sys_updated_on>2026-10-13 19:54:42</sys_updated_on><template/><when>after</when></sys_script><sys_translated_text action="delete_multiple" query="documentkey=494966022bbfcb5007a3fa95b891bf10"/></record_update>]]></payload>
+<payload_hash>-1189865974</payload_hash>
+<remote_update_set display_value="Escalation Customer Notes Dedup v1.1">9f4db39f3bbf0310c4e908ac24e45a2e</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>rajesh_cursor</sys_created_by>
+<sys_created_on>2026-10-13 19:54:42</sys_created_on>
+<sys_id>d74d77d32b330b1007a3fa95b891bfb8</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a136d4dee70000001</sys_recorded_at>
+<sys_updated_by>rajesh_cursor</sys_updated_by>
+<sys_updated_on>2026-10-13 19:54:43</sys_updated_on>
+<table>sn_customerservice_escalation</table>
+<target_name>Append escalation justifications to case</target_name>
+<type>Business Rule</type>
+<update_domain>global</update_domain>
+<update_guid/>
+<update_guid_history/>
+<update_set display_value="Escalation Customer Notes Dedup v1.1">9f4db39f3bbf0310c4e908ac24e45a2e</update_set>
+<view></view>
+</sys_update_xml>
+</unload>
