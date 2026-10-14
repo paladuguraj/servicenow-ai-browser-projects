@@ -10,7 +10,8 @@
     "deploy:escalation-fields": "node scripts/deploy-escalation-fields.js",
     "deploy:escalation-form": "node scripts/deploy-escalation-form.js",
     "deploy:escalation-customer-notes": "node scripts/deploy-escalation-customer-notes.js",
-    "consolidate:escalation": "node scripts/consolidate-escalation-update-set.js"
+    "consolidate:escalation": "node scripts/consolidate-escalation-update-set.js",
+    "build:escalation-docs": "node scripts/build-escalation-docs.js"
   },
   "repository": {
     "type": "git",
