@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Escalation Process Enhancements — Technical Design</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="/workspace/docs/build/escalation-docs.css" />
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+h1 { font-size: 20pt; border-bottom: 2px solid #0b3d5c; padding-bottom: 0.25em; color: #0b3d5c; }
+h2 { font-size: 14pt; color: #0b3d5c; margin-top: 1.4em; border-bottom: 1px solid #c5d4de; padding-bottom: 0.15em; }
+h3, h4 { font-size: 12pt; color: #134e6f; margin-top: 1.1em; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0 1.2em; font-size: 10pt; }
+th, td { border: 1px solid #b8c4ce; padding: 6px 8px; vertical-align: top; }
+th { background: #e8f1f6; text-align: left; }
+code, pre { font-family: "Consolas", "Menlo", monospace; font-size: 9.5pt; }
+pre { background: #f4f6f8; padding: 10px 12px; border: 1px solid #d5dde3; overflow-x: auto; white-space: pre-wrap; }
+hr { border: none; border-top: 1px solid #c5d4de; margin: 1.5em 0; }
+blockquote { border-left: 3px solid #0b3d5c; margin-left: 0; padding-left: 1em; color: #333; }
+</style></head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Escalation Process Enhancements — Technical
+Design</h1>
+</header>
+<h1 id="escalation-process-enhancements-technical-design">Escalation
+Process Enhancements — Technical Design</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>Document type</strong></td>
+<td>Technical design &amp; change record</td>
+</tr>
+<tr class="even">
+<td><strong>Product / platform</strong></td>
+<td>ServiceNow Customer Service Management</td>
+</tr>
+<tr class="odd">
+<td><strong>Primary table</strong></td>
+<td><code>sn_customerservice_escalation</code></td>
+</tr>
+<tr class="even">
+<td><strong>Source instance</strong></td>
+<td><code>adcomsolutionsdev.service-now.com</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Version</strong></td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td><strong>Status</strong></td>
+<td>Deployed on Dev; packaged for migration</td>
+</tr>
+<tr class="odd">
+<td><strong>Related requirement</strong></td>
+<td>SNOW Escalation Widget update v2.1</td>
+</tr>
+<tr class="even">
+<td><strong>Consolidated update set</strong></td>
+<td>Escalation Enhancements - ALL CHANGES v1.0</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="purpose">1. Purpose</h2>
+<p>This document records all configuration and code changes made to the
+Case Escalation process so the work can be reviewed, migrated, and
+maintained later.</p>
+<p>The enhancements cover three themes:</p>
+<ol type="1">
+<li><strong>Request Escalation form fields</strong> — capture richer
+escalation metadata (level, reason, category, owner, channels, impact,
+notes).</li>
+<li><strong>Customer-visible wording</strong> — rename
+<strong>Escalation Justification</strong> to <strong>Customer
+Justification</strong>.</li>
+<li><strong>External case notes</strong> — append customer and
+de-escalation justifications to case <strong>Additional
+Comments</strong> so customers can see them, without duplicating notes
+when OOB escalation logic runs.</li>
+</ol>
+<hr />
+<h2 id="scope">2. Scope</h2>
+<h3 id="in-scope">In scope</h3>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Table</td>
+<td><code>sn_customerservice_escalation</code></td>
+</tr>
+<tr class="even">
+<td>Form view</td>
+<td><code>request_escalation</code> (Request Escalation) — opened by
+<strong>Escalate Case</strong></td>
+</tr>
+<tr class="odd">
+<td>Label change</td>
+<td><code>escalation_justification</code> → display label
+<strong>Customer Justification</strong></td>
+</tr>
+<tr class="even">
+<td>Automation</td>
+<td>Global business rule posting to case <code>comments</code>
+(Additional Comments)</td>
+</tr>
+<tr class="odd">
+<td>Migration</td>
+<td>Single consolidated update set XML</td>
+</tr>
+</tbody>
+</table>
+<h3 id="out-of-scope-intentionally-unchanged">Out of scope /
+intentionally unchanged</h3>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Field <strong>#2 Escalation Source</strong></td>
+<td>Already exists as OOB <code>request_source</code> (Customer /
+Internal)</td>
+</tr>
+<tr class="even">
+<td>OOB <code>sn_customerservice.EscalationUtils</code></td>
+<td>ACL-protected (<code>sys_policy=read</code>); not customized</td>
+</tr>
+<tr class="odd">
+<td>De-escalation form field layout</td>
+<td>Existing <code>request_de_escalation</code> view retained</td>
+</tr>
+<tr class="even">
+<td>SLA “escalation should not satisfy SLA” note from the business
+doc</td>
+<td>Not implemented in this package (configuration/process item outside
+this change set)</td>
+</tr>
+<tr class="odd">
+<td>Exclude Escalation from Require Update BR</td>
+<td>Separate update set; not in ALL CHANGES v1.0</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="high-level-architecture">3. High-level architecture</h2>
+<pre><code>Case (sn_customerservice_case)
+        │
+        │  UI Action: Escalate Case
+        ▼
+Escalation (sn_customerservice_escalation)
+  view = request_escalation
+  + 8 custom fields (u_*)
+  + Customer Justification (renamed OOB field)
+        │
+        │  After BR: Append escalation justifications to case
+        ▼
+Case Additional Comments (comments)
+  • &quot;Customer Justification: …&quot;   on escalate / first set
+  • &quot;De-escalation Justification: …&quot; on state → Closed Escalated (103)</code></pre>
+<p>OOB <strong>Escalation field change handler</strong> still writes
+<strong>internal Work notes</strong> via
+<code>EscalationUtils.appendNote()</code>. This package writes
+<strong>customer-visible Additional Comments</strong> only.</p>
+<hr />
+<h2 id="dictionary-fields-added">4. Dictionary fields added</h2>
+<p>All custom fields are on
+<strong><code>sn_customerservice_escalation</code></strong>, global
+scope, element names prefixed with <code>u_</code>.</p>
+<table>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 11%" />
+<col style="width: 15%" />
+<col style="width: 10%" />
+<col style="width: 13%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Label</th>
+<th>Element</th>
+<th>Type</th>
+<th>Choice</th>
+<th>Max length</th>
+<th>Multi-select</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Escalation Level / Tier</td>
+<td><code>u_escalation_level</code></td>
+<td>Integer</td>
+<td>Dropdown (choice=1)</td>
+<td>40</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>Escalation Reason / Justification</td>
+<td><code>u_escalation_reason</code></td>
+<td>String</td>
+<td>Dropdown with –None– (choice=3)</td>
+<td>255</td>
+<td>Yes (<code>list_collector=true</code>)</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>Documentation Accuracy Flag</td>
+<td><code>u_documentation_accuracy</code></td>
+<td>String</td>
+<td>Dropdown (choice=1)</td>
+<td>40</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>Escalation Category / Type</td>
+<td><code>u_escalation_category</code></td>
+<td>String</td>
+<td>Dropdown (choice=1)</td>
+<td>40</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>Owner</td>
+<td><code>u_escalation_owner</code></td>
+<td>String</td>
+<td>Dropdown (choice=1)</td>
+<td>40</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>Communication Channel Used for Escalation</td>
+<td><code>u_communication_channel</code></td>
+<td>String</td>
+<td>Dropdown with –None– (choice=3)</td>
+<td>255</td>
+<td>Yes (<code>list_collector=true</code>)</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td>Customer Impact Status</td>
+<td><code>u_customer_impact_status</code></td>
+<td>String</td>
+<td>Dropdown with –None– (choice=3)</td>
+<td>255</td>
+<td>Yes (<code>list_collector=true</code>)</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td>Additional Notes</td>
+<td><code>u_additional_notes</code></td>
+<td>String</td>
+<td>None (open text)</td>
+<td>1000</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Skipped:</strong> #2 Escalation Source — use existing
+<code>request_source</code>.</p>
+<h3 id="choice-values">4.1 Choice values</h3>
+<h4 id="escalation-level-tier-u_escalation_level">Escalation Level /
+Tier (<code>u_escalation_level</code>)</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>Level 1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Level 2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Level 3</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>Level 4</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="escalation-reason-justification-u_escalation_reason-multi-select">Escalation
+Reason / Justification (<code>u_escalation_reason</code>) —
+multi-select</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>SLO Breach</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Repeated Issue</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Recommended Fix Not Implemented</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>Carrier/Vendor Non-Responsive</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td>Technical Complexity</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td>Inactivity</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td>Business Critical</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="documentation-accuracy-flag-u_documentation_accuracy">Documentation
+Accuracy Flag (<code>u_documentation_accuracy</code>)</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>Case Notes Accurate</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Documentation Error Identified</td>
+</tr>
+</tbody>
+</table>
+<h4 id="escalation-category-type-u_escalation_category">Escalation
+Category / Type (<code>u_escalation_category</code>)</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>Technical Investigation</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Performance Optimization</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Service Restoration</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>Carrier/Vendor Coordination</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td>On-Site Dispatch</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td>Management Review &amp; Decision</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td>Account Management/Billing</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">7</td>
+<td>Architecture/Design Review</td>
+</tr>
+</tbody>
+</table>
+<h4 id="owner-u_escalation_owner">Owner
+(<code>u_escalation_owner</code>)</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>NOC</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Engineering Team</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Customer Success / Account Management</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>Finance / Billing</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td>Executive Management</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td>Platform Team</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="communication-channel-used-for-escalation-u_communication_channel-multi-select">Communication
+Channel Used for Escalation (<code>u_communication_channel</code>) —
+multi-select</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>Email</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Phone Call</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Slack Channel</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>Microsoft Teams</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td>Management Review Meeting</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="customer-impact-status-u_customer_impact_status-multi-select">Customer
+Impact Status (<code>u_customer_impact_status</code>) —
+multi-select</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td>Severity = Hard Down</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td>Intermittent Issues</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td>Degraded Performance</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td>No Current Impact – Preventive Escalation</td>
+</tr>
+</tbody>
+</table>
+<h4 id="additional-notes-u_additional_notes">Additional Notes
+(<code>u_additional_notes</code>)</h4>
+<p>Open text, max length <strong>1000</strong> (aligned with OOB
+<code>escalation_justification</code>).</p>
+<hr />
+<h2 id="form-layout-changes">5. Form layout changes</h2>
+<h3 id="view">View</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>View name</td>
+<td><code>request_escalation</code></td>
+</tr>
+<tr class="even">
+<td>View title</td>
+<td>Request Escalation</td>
+</tr>
+<tr class="odd">
+<td>View sys_id</td>
+<td><code>0359470ab3600300b85d6e5f26a8dc28</code></td>
+</tr>
+<tr class="even">
+<td>Form section sys_id</td>
+<td><code>4f590b0ab3600300b85d6e5f26a8dcab</code></td>
+</tr>
+<tr class="odd">
+<td>Table</td>
+<td><code>sn_customerservice_escalation</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-users-reach-the-form">How users reach the form</h3>
+<p>UI Action <strong>Escalate Case</strong> on
+<code>sn_customerservice_case</code> redirects to:</p>
+<p><code>sn_customerservice_escalation.do?sys_id=-1&amp;sysparm_view=request_escalation&amp;sysparm_view_forced=true&amp;…</code></p>
+<h3 id="field-order-on-request-escalation-custom-fields">Field order on
+Request Escalation (custom fields)</h3>
+<p>Custom fields were added after the existing OOB fields (for example
+<code>request_source</code>, <code>reason</code>,
+<code>escalation_justification</code>).</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Position</th>
+<th>Element</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">14</td>
+<td><code>u_escalation_level</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">15</td>
+<td><code>u_escalation_reason</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">16</td>
+<td><code>u_documentation_accuracy</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">17</td>
+<td><code>u_escalation_category</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">18</td>
+<td><code>u_escalation_owner</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">19</td>
+<td><code>u_communication_channel</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">20</td>
+<td><code>u_customer_impact_status</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">21</td>
+<td><code>u_additional_notes</code></td>
+</tr>
+</tbody>
+</table>
+<p>Existing OOB elements on the same section (unchanged):
+<code>number</code>, <code>source_record</code>,
+<code>request_source</code>, <code>reason</code>,
+<code>escalation_severity</code>, <code>type</code>,
+<code>watch_list</code>, <code>add_account_team_members</code>,
+<code>assignment_group</code>, <code>assigned_to</code>,
+<code>escalation_justification</code>, plus form splitters.</p>
+<hr />
+<h2 id="label-change-customer-justification">6. Label change — Customer
+Justification</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 32%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Element</td>
+<td><code>escalation_justification</code></td>
+<td><em>(unchanged)</em></td>
+</tr>
+<tr class="even">
+<td>Dictionary column label</td>
+<td>Escalation Justification</td>
+<td><strong>Customer Justification</strong></td>
+</tr>
+<tr class="odd">
+<td>Field label (<code>sys_documentation</code>, en)</td>
+<td>Escalation Justification</td>
+<td><strong>Customer Justification</strong></td>
+</tr>
+<tr class="even">
+<td>Plural</td>
+<td>Escalation Justifications</td>
+<td><strong>Customer Justifications</strong></td>
+</tr>
+<tr class="odd">
+<td>Table</td>
+<td><code>sn_customerservice_escalation</code></td>
+<td><em>(unchanged)</em></td>
+</tr>
+</tbody>
+</table>
+<p>Artifacts updated:</p>
+<ul>
+<li><code>sys_dictionary</code> —
+<code>sys_dictionary_sn_customerservice_escalation_escalation_justification</code></li>
+<li><code>sys_documentation</code> —
+<code>sys_documentation_sn_customerservice_escalation_escalation_justification_en</code></li>
+</ul>
+<hr />
+<h2 id="business-rules">7. Business rules</h2>
+<h3 id="new-append-escalation-justifications-to-case">7.1 New — Append
+escalation justifications to case</h3>
+<table>
+<colgroup>
+<col style="width: 58%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Name</strong></td>
+<td>Append escalation justifications to case</td>
+</tr>
+<tr class="even">
+<td><strong>sys_id</strong></td>
+<td><code>494966022bbfcb5007a3fa95b891bf10</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Table</strong></td>
+<td><code>sn_customerservice_escalation</code></td>
+</tr>
+<tr class="even">
+<td><strong>When</strong></td>
+<td>after</td>
+</tr>
+<tr class="odd">
+<td><strong>Order</strong></td>
+<td>200</td>
+</tr>
+<tr class="even">
+<td><strong>Insert</strong></td>
+<td>true</td>
+</tr>
+<tr class="odd">
+<td><strong>Update</strong></td>
+<td>true</td>
+</tr>
+<tr class="even">
+<td><strong>Active</strong></td>
+<td>true</td>
+</tr>
+<tr class="odd">
+<td><strong>Scope</strong></td>
+<td>global</td>
+</tr>
+<tr class="even">
+<td><strong>Update name</strong></td>
+<td><code>sys_script_494966022bbfcb5007a3fa95b891bf10</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Repo artifact</strong></td>
+<td><code>servicenow/business-rules/append-escalation-justifications-to-case-comments.js</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="behavior">Behavior</h4>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 32%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Event</th>
+<th>Condition</th>
+<th>Writes to case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Escalate</td>
+<td>Customer Justification first set (insert, or empty → value)</td>
+<td>Additional Comments:
+<code>Customer Justification: {text}</code></td>
+</tr>
+<tr class="even">
+<td>De-escalate</td>
+<td>State changes to <strong>103</strong> (Closed Escalated) and
+de-escalation justification is populated</td>
+<td>Additional Comments:
+<code>De-escalation Justification: {text}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Only source tables
+<strong><code>sn_customerservice_case</code></strong> and
+<strong><code>csm_order_case</code></strong> are updated. Notes go to
+<strong><code>comments</code></strong> (customer-visible), not
+<code>work_notes</code>.</p>
+<h4 id="duplicate-note-guard">Duplicate-note guard</h4>
+<p>OOB <strong>Escalation field change handler</strong> (order
+<strong>1000</strong>) calls <code>EscalationUtils.appendNote()</code>,
+which performs a nested <code>escalation.update()</code> for internal
+work notes. That nested update re-fired this business rule and posted
+Customer Justification twice.</p>
+<p><strong>Fix:</strong> before posting, query
+<code>sys_journal_field</code> for the same case <code>comments</code>
+entry containing the marker text; skip if already present.</p>
+<h3 id="oob-rules-that-interact-not-modified">7.2 OOB rules that
+interact (not modified)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Role in the flow</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Escalation field change handler</td>
+<td>After insert/update; calls <code>EscalationUtils.appendNote</code> /
+<code>notifyUsers</code> for state, severity, trend, work notes,
+comments</td>
+</tr>
+<tr class="even">
+<td>Append escalation approval comments</td>
+<td>Before; copies approval comments into escalation work notes</td>
+</tr>
+<tr class="odd">
+<td>Close escalation</td>
+<td>Before; sets <code>de_escalated_by</code></td>
+</tr>
+<tr class="even">
+<td>Escalation state management</td>
+<td>Before; case/escalation state coordination</td>
+</tr>
+</tbody>
+</table>
+<p><code>EscalationUtils</code> could not be customized (ACL: <em>ACL
+Exception Update Failed due to security constraints</em>).
+Customer-visible note behavior is therefore implemented in the global BR
+above.</p>
+<hr />
+<h2 id="update-sets-migration">8. Update sets / migration</h2>
+<h3 id="recommended-one-consolidated-set">Recommended: one consolidated
+set</h3>
+<table>
+<colgroup>
+<col style="width: 58%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Name</strong></td>
+<td>Escalation Enhancements - ALL CHANGES v1.0</td>
+</tr>
+<tr class="even">
+<td><strong>File</strong></td>
+<td><code>updatesets/Escalation_Enhancements_ALL_CHANGES_v1.0.xml</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Change count</strong></td>
+<td>27</td>
+</tr>
+<tr class="even">
+<td><strong>Contents</strong></td>
+<td>8 field dictionaries + labels + choices, form layout, Customer
+Justification rename, final business rule (deduped)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Target import steps</strong></p>
+<ol type="1">
+<li><strong>Retrieved Update Sets → Import Update Set from
+XML</strong></li>
+<li>Select
+<code>Escalation_Enhancements_ALL_CHANGES_v1.0.xml</code></li>
+<li><strong>Preview</strong></li>
+<li>Resolve any collisions if prompted</li>
+<li><strong>Commit</strong></li>
+</ol>
+<p>Prerequisite on target: Customer Service Management / Case Escalation
+(<code>sn_customerservice_escalation</code>) available.</p>
+<h3 id="historical-split-sets-only-if-not-using-all-changes">Historical
+split sets (only if not using ALL CHANGES)</h3>
+<p>Apply in this order:</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 35%" />
+<col style="width: 17%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Order</th>
+<th>Update set</th>
+<th>File</th>
+<th style="text-align: right;">Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td>Escalation Form Fields v1.0</td>
+<td><em>(on Dev; captured in ALL CHANGES)</em></td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td>Escalation Customer Notes v1.0</td>
+<td><code>updatesets/Escalation_Customer_Notes_v1.0.xml</code></td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td>Escalation Customer Notes Dedup v1.1</td>
+<td><code>updatesets/Escalation_Customer_Notes_Dedup_v1.1.xml</code></td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>Prefer <strong>ALL CHANGES v1.0</strong> so this sequence is
+unnecessary.</p>
+<h3 id="not-included-in-all-changes">Not included in ALL CHANGES</h3>
+<table>
+<colgroup>
+<col style="width: 63%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Update set</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Exclude Escalation from Require Update BR</td>
+<td>Separate; rebuild with
+<code>npm run consolidate:escalation -- --include-require-update</code>
+if needed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="repository-deliverables">9. Repository deliverables</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>scripts/deploy-escalation-fields.js</code></td>
+<td>Create/idempotent fields + choices on Dev</td>
+</tr>
+<tr class="even">
+<td><code>scripts/deploy-escalation-form.js</code></td>
+<td>Add fields to <code>request_escalation</code> form</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/deploy-escalation-customer-notes.js</code></td>
+<td>Label rename + BR deploy + XML export</td>
+</tr>
+<tr class="even">
+<td><code>scripts/consolidate-escalation-update-set.js</code></td>
+<td>Build ALL CHANGES XML</td>
+</tr>
+<tr class="odd">
+<td><code>servicenow/business-rules/append-escalation-justifications-to-case-comments.js</code></td>
+<td>BR source of truth</td>
+</tr>
+<tr class="even">
+<td><code>updatesets/Escalation_Enhancements_ALL_CHANGES_v1.0.xml</code></td>
+<td><strong>Migration package</strong></td>
+</tr>
+<tr class="odd">
+<td><code>updatesets/Escalation_Customer_Notes_v1.0.xml</code></td>
+<td>Historical split set</td>
+</tr>
+<tr class="even">
+<td><code>updatesets/Escalation_Customer_Notes_Dedup_v1.1.xml</code></td>
+<td>Historical split set</td>
+</tr>
+</tbody>
+</table>
+<h3 id="npm-scripts">npm scripts</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run deploy:escalation-fields</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run deploy:escalation-form</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run deploy:escalation-customer-notes</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run consolidate:escalation</span></code></pre></div>
+<hr />
+<h2 id="test-evidence-dev">10. Test evidence (Dev)</h2>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 46%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Case</th>
+<th>Escalation</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CS1703276</td>
+<td>ESC0004503 / ESC0004504</td>
+<td>Early tests; showed duplicate Customer Justification before dedup
+fix</td>
+</tr>
+<tr class="even">
+<td>CS1703308</td>
+<td>ESC0004505</td>
+<td>After dedup: <strong>1</strong> Customer Justification +
+<strong>1</strong> De-escalation Justification on Additional
+Comments</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-verify-on-a-case">How to verify on a case</h3>
+<ol type="1">
+<li>Open the case form.</li>
+<li>Review <strong>Additional Comments</strong> (external /
+customer-visible) — not <strong>Work notes</strong>.</li>
+<li>Expect:
+<ul>
+<li>After escalate: <code>Customer Justification: …</code></li>
+<li>After de-escalate (state 103):
+<code>De-escalation Justification: …</code></li>
+</ul></li>
+<li>Confirm Customer Justification appears <strong>once</strong>.</li>
+</ol>
+<hr />
+<h2 id="operational-notes">11. Operational notes</h2>
+<ul>
+<li>Multi-select fields use ServiceNow choice
+<code>list_collector</code> attribute; UI renders a multi-select control
+on the form.</li>
+<li>Creating escalations via REST still fires the after BR; UI Escalate
+Case is the primary intended path.</li>
+<li>Internal work-note messages from OOB
+(<code>Escalation … has been approved/closed</code>) remain
+unchanged.</li>
+<li>If Customer Justification is filled later on an existing escalation
+(empty → value), the BR posts once at that time.</li>
+</ul>
+<hr />
+<h2 id="change-log">12. Change log</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 25%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Version</th>
+<th>Date</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1.0</td>
+<td>2026-09-11</td>
+<td>Eight form fields + Request Escalation form layout</td>
+</tr>
+<tr class="even">
+<td>1.0</td>
+<td>2026-10-09</td>
+<td>Customer Justification rename + external notes BR</td>
+</tr>
+<tr class="odd">
+<td>1.1</td>
+<td>2026-10-13</td>
+<td>Dedup guard for duplicate Customer Justification notes</td>
+</tr>
+<tr class="even">
+<td>1.0 ALL</td>
+<td>2026-10-14</td>
+<td>Consolidated update set for migration</td>
+</tr>
+<tr class="odd">
+<td>Doc 1.0</td>
+<td>2026-10-14</td>
+<td>This technical design document</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2
+id="appendix-requirement-mapping-snow-escalation-widget-update-v2.1">13.
+Appendix — Requirement mapping (SNOW Escalation Widget update v2.1)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 33%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Req item</th>
+<th>Requirement</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Escalation Level / Tier dropdown</td>
+<td><code>u_escalation_level</code></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Escalation Source</td>
+<td>Skipped — OOB <code>request_source</code></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Escalation Reason / Justification multi-select</td>
+<td><code>u_escalation_reason</code></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Documentation Accuracy Flag</td>
+<td><code>u_documentation_accuracy</code></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Escalation Category / Type</td>
+<td><code>u_escalation_category</code></td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Owner</td>
+<td><code>u_escalation_owner</code></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Communication Channel multi-select</td>
+<td><code>u_communication_channel</code></td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Customer Impact Status multi-select</td>
+<td><code>u_customer_impact_status</code></td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Additional Notes open text</td>
+<td><code>u_additional_notes</code></td>
+</tr>
+<tr class="even">
+<td>—</td>
+<td>Rename Escalation Justification → Customer Justification</td>
+<td>Dictionary + documentation</td>
+</tr>
+<tr class="odd">
+<td>—</td>
+<td>Append escalation notes to external case notes</td>
+<td>BR → case <code>comments</code></td>
+</tr>
+<tr class="even">
+<td>—</td>
+<td>Append de-escalation notes to external case notes</td>
+<td>BR → case <code>comments</code> on state 103</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>End of document.</em></p>
+</body>
+</html>
