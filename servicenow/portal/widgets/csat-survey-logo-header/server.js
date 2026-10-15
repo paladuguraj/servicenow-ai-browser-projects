@@ -1,0 +1,101 @@
+(function() {
+  data.showLogo = false;
+  data.logoSrc = '';
+  data.logoAlt = 'Network Operations CSAT Survey';
+
+  function getDefaultAttachmentId() {
+    return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
+  }
+
+  function isWhitelabelPartner(partnerName) {
+    var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
+    if (!prop) return false;
+    try {
+      var map = JSON.parse(prop);
+      return map.hasOwnProperty(partnerName);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getBannerAttachmentId(companyId) {
+    var companyGr = new GlideRecord('core_company');
+    if (!companyGr.get(companyId))
+      return '';
+    var banner = companyGr.getValue('banner_image');
+    return banner ? banner.toString() : '';
+  }
+
+  function resolvePartnerCandidates(instanceGr) {
+    var candidates = [];
+    if (instanceGr.getValue('trigger_table') != 'u_x_csat_survey_request')
+      return candidates;
+
+    var requestGr = new GlideRecord('u_x_csat_survey_request');
+    if (!requestGr.get(instanceGr.getValue('trigger_id') + ''))
+      return candidates;
+
+    var companyId = requestGr.getValue('u_company');
+    if (!companyId) return candidates;
+
+    var accountGr = new GlideRecord('customer_account');
+    if (!accountGr.get(companyId))
+      return candidates;
+
+    var parentName = accountGr.account_parent.name + '';
+    if (parentName && parentName != 'null' && parentName != '')
+      candidates.push({ name: parentName, companyId: accountGr.getValue('account_parent') });
+
+    var accountName = accountGr.getValue('name') + '';
+    if (accountName && accountName != 'null' && accountName != '')
+      candidates.push({ name: accountName, companyId: companyId });
+
+    return candidates;
+  }
+
+  function attachmentToBase64(attachmentId) {
+    var attGr = new GlideRecord('sys_attachment');
+    if (!attGr.get(attachmentId)) return '';
+    var att = new GlideSysAttachment();
+    var bytes = att.getBytes(attGr);
+    if (!bytes || bytes.length === 0) return '';
+    var contentType = (attGr.getValue('content_type') || 'image/png').toString();
+    var base64 = Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
+    return 'data:' + contentType + ';base64,' + base64;
+  }
+
+  var instanceId = $sp.getParameter('instance_id');
+  if (!instanceId) return;
+
+  var instanceGr = new GlideRecord('asmt_assessment_instance');
+  if (!instanceGr.get(instanceId)) return;
+
+  var metricTypeName = instanceGr.metric_type.name.toString();
+  data.showLogo =
+    metricTypeName === 'Managed Network Services Survey - Manual' ||
+    metricTypeName === 'Managed Network Services Survey - Automatic';
+
+  if (!data.showLogo) return;
+
+  var candidates = resolvePartnerCandidates(instanceGr);
+  var attachmentId = '';
+  var partnerName = '';
+
+  for (var i = 0; i < candidates.length; i++) {
+    if (isWhitelabelPartner(candidates[i].name)) {
+      attachmentId = getBannerAttachmentId(candidates[i].companyId);
+      if (attachmentId) {
+        partnerName = candidates[i].name;
+        break;
+      }
+    }
+  }
+
+  if (!attachmentId)
+    attachmentId = getDefaultAttachmentId();
+
+  if (!attachmentId) return;
+
+  data.logoSrc = attachmentToBase64(attachmentId);
+  data.logoAlt = partnerName || 'Network Operations CSAT Survey';
+})();
