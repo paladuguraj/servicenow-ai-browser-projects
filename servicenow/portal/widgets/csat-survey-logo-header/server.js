@@ -7,17 +7,6 @@
     return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
   }
 
-  function getPropertyOverrideAttachmentId(partnerName) {
-    var prop = (gs.getProperty('csat.logo.whitelabel') || '').trim();
-    if (!prop) return '';
-    try {
-      var map = JSON.parse(prop);
-      return (map[partnerName] || '').trim();
-    } catch (e) {
-      return '';
-    }
-  }
-
   function isWhitelabelPartner(partnerName) {
     var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
     if (!prop) return false;
@@ -74,7 +63,9 @@
     var att = new GlideSysAttachment();
     var bytes = att.getBytes(attGr);
     if (!bytes || bytes.length === 0) return '';
-    return Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
+    var contentType = (attGr.getValue('content_type') || 'image/png').toString();
+    var base64 = Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
+    return 'data:' + contentType + ';base64,' + base64;
   }
 
   var instanceId = $sp.getParameter('instance_id');
@@ -94,9 +85,7 @@
   var attachmentId = '';
 
   if (partner.name && isWhitelabelPartner(partner.name)) {
-    attachmentId = getPropertyOverrideAttachmentId(partner.name);
-    if (!attachmentId)
-      attachmentId = getBannerAttachmentId(partner.companyId);
+    attachmentId = getBannerAttachmentId(partner.companyId);
   }
 
   if (!attachmentId)
@@ -104,6 +93,6 @@
 
   if (!attachmentId) return;
 
-  data.logoSrc = 'data:image/png;base64,' + attachmentToBase64(attachmentId);
+  data.logoSrc = attachmentToBase64(attachmentId);
   data.logoAlt = partner.name || 'Network Operations CSAT Survey';
 })();
