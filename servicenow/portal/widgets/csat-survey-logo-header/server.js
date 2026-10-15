@@ -26,35 +26,31 @@
     return banner ? banner.toString() : '';
   }
 
-  function resolvePartner(instanceGr) {
-    var result = { name: '', companyId: '' };
+  function resolvePartnerCandidates(instanceGr) {
+    var candidates = [];
     if (instanceGr.getValue('trigger_table') != 'u_x_csat_survey_request')
-      return result;
+      return candidates;
 
     var requestGr = new GlideRecord('u_x_csat_survey_request');
     if (!requestGr.get(instanceGr.getValue('trigger_id') + ''))
-      return result;
+      return candidates;
 
     var companyId = requestGr.getValue('u_company');
-    if (!companyId) return result;
+    if (!companyId) return candidates;
 
-    var accountGr = new GlideRecord('core_company');
+    var accountGr = new GlideRecord('customer_account');
     if (!accountGr.get(companyId))
-      return result;
+      return candidates;
 
-    var parentId = accountGr.getValue('parent');
-    if (parentId) {
-      var parentGr = new GlideRecord('core_company');
-      if (parentGr.get(parentId)) {
-        result.name = parentGr.getValue('name') + '';
-        result.companyId = parentId;
-        return result;
-      }
-    }
+    var parentName = accountGr.account_parent.name + '';
+    if (parentName && parentName != 'null' && parentName != '')
+      candidates.push({ name: parentName, companyId: accountGr.getValue('account_parent') });
 
-    result.name = accountGr.getValue('name') + '';
-    result.companyId = companyId;
-    return result;
+    var accountName = accountGr.getValue('name') + '';
+    if (accountName && accountName != 'null' && accountName != '')
+      candidates.push({ name: accountName, companyId: companyId });
+
+    return candidates;
   }
 
   function attachmentToBase64(attachmentId) {
@@ -81,11 +77,18 @@
 
   if (!data.showLogo) return;
 
-  var partner = resolvePartner(instanceGr);
+  var candidates = resolvePartnerCandidates(instanceGr);
   var attachmentId = '';
+  var partnerName = '';
 
-  if (partner.name && isWhitelabelPartner(partner.name)) {
-    attachmentId = getBannerAttachmentId(partner.companyId);
+  for (var i = 0; i < candidates.length; i++) {
+    if (isWhitelabelPartner(candidates[i].name)) {
+      attachmentId = getBannerAttachmentId(candidates[i].companyId);
+      if (attachmentId) {
+        partnerName = candidates[i].name;
+        break;
+      }
+    }
   }
 
   if (!attachmentId)
@@ -94,5 +97,5 @@
   if (!attachmentId) return;
 
   data.logoSrc = attachmentToBase64(attachmentId);
-  data.logoAlt = partner.name || 'Network Operations CSAT Survey';
+  data.logoAlt = partnerName || 'Network Operations CSAT Survey';
 })();

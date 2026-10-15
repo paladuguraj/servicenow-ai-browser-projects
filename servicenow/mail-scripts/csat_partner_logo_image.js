@@ -6,10 +6,14 @@
 
     // Prints the partner-branded or AppDirect logo for the CSAT email header.
     //
-    // For surveys raised from the CSAT portal, the customer's parent company is
+    // For surveys raised from the CSAT portal, the customer's parent account is
     // treated as the partner. If that partner is a white-label partner (listed in
     // survey.link.whitelabel) and has a banner_image on core_company, that banner
     // is used. Otherwise the AppDirect logo is shown.
+    //
+    // Partner resolution matches CSATSurveyService.getWhitelabelDomain:
+    // account_parent.name is tried first, then the account's own name, so an
+    // account that is itself a white-label partner still shows its own logo.
     //
     // The image is embedded as a base64 data URI so it renders without any
     // external URL that guests or email clients might not reach. The rendered
@@ -19,35 +23,31 @@
         return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
     }
 
-    function resolvePartner() {
-        var result = { name: '', companyId: '' };
+    function resolvePartnerCandidates() {
+        var candidates = [];
         if (current.getValue('trigger_table') != 'u_x_csat_survey_request')
-            return result;
+            return candidates;
 
         var requestGr = new GlideRecord('u_x_csat_survey_request');
         if (!requestGr.get(current.getValue('trigger_id') + ''))
-            return result;
+            return candidates;
 
         var companyId = requestGr.getValue('u_company');
-        if (!companyId) return result;
+        if (!companyId) return candidates;
 
-        var accountGr = new GlideRecord('core_company');
+        var accountGr = new GlideRecord('customer_account');
         if (!accountGr.get(companyId))
-            return result;
+            return candidates;
 
-        var parentId = accountGr.getValue('parent');
-        if (parentId) {
-            var parentGr = new GlideRecord('core_company');
-            if (parentGr.get(parentId)) {
-                result.name = parentGr.getValue('name') + '';
-                result.companyId = parentId;
-                return result;
-            }
-        }
+        var parentName = accountGr.account_parent.name + '';
+        if (parentName && parentName != 'null' && parentName != '')
+            candidates.push({ name: parentName, companyId: accountGr.getValue('account_parent') });
 
-        result.name = accountGr.getValue('name') + '';
-        result.companyId = companyId;
-        return result;
+        var accountName = accountGr.getValue('name') + '';
+        if (accountName && accountName != 'null' && accountName != '')
+            candidates.push({ name: accountName, companyId: companyId });
+
+        return candidates;
     }
 
     function isWhitelabelPartner(partnerName) {
@@ -87,11 +87,18 @@
     }
 
     try {
-        var partner = resolvePartner();
+        var candidates = resolvePartnerCandidates();
         var attachmentId = '';
+        var partnerName = '';
 
-        if (partner.name && isWhitelabelPartner(partner.name)) {
-            attachmentId = getBannerAttachmentId(partner.companyId);
+        for (var i = 0; i < candidates.length; i++) {
+            if (isWhitelabelPartner(candidates[i].name)) {
+                attachmentId = getBannerAttachmentId(candidates[i].companyId);
+                if (attachmentId) {
+                    partnerName = candidates[i].name;
+                    break;
+                }
+            }
         }
 
         if (!attachmentId)
@@ -108,7 +115,7 @@
 
         template.print(
             '<div class="csat-logo" style="text-align:left;margin-bottom:24px;">' +
-            '<img src="' + image.dataUri + '" alt="' + GlideStringUtil.escapeHTML(partner.name || 'Network Operations CSAT Survey') + '" ' +
+            '<img src="' + image.dataUri + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" ' +
             'style="width:180px;max-width:180px;height:auto;display:block;" />' +
             '</div>'
         );
