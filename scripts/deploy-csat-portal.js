@@ -20,6 +20,7 @@ const REPORT_PAGE_ID = 'csat_report';
 const LOGO_HEADER_WIDGET_ID = 'csat-survey-logo-header';
 const TAKE_SURVEY_PAGE_ID = 'csat_take_survey';
 const STOCK_SURVEY_WIDGET_ID = 'take_assessment';
+const SURVEY_VIEWERS_CRITERIA = 'Roles : snc_external,snc_internal';
 
 // The login page is inherited from the stock Service Portal ('/sp'), resolved
 // at deploy time because the sys_id differs between instances, unless
@@ -60,7 +61,7 @@ async function ensureWidget(widgetId, name, description, roles = 'snc_internal')
   return created.sys_id;
 }
 
-async function ensurePage(pageId, title) {
+async function ensurePage(pageId, title, roles) {
   const existing = await snGet('sp_page', `sysparm_query=id=${pageId}&sysparm_fields=sys_id`);
   const payload = {
     id: pageId,
@@ -69,6 +70,7 @@ async function ensurePage(pageId, title) {
     draft: false,
     use_seo_url: false,
   };
+  if (roles !== undefined) payload.roles = roles;
 
   if (existing.length) {
     await snPatch('sp_page', existing[0].sys_id, payload);
@@ -172,8 +174,22 @@ async function resolveStockWidget(widgetId) {
   return existing[0].sys_id;
 }
 
+// With glide.service_portal.user_criteria_enabled on, a page or non-public
+// widget that has no "Who can view" criteria is internal-only and its roles
+// field is ignored: customers get "Not Found" or the widget is left out. The
+// stock take_survey page uses the same criteria.
+async function ensureCanView(table, field, recordSysId, criteriaName) {
+  const criteria = (
+    await snGet('user_criteria', `sysparm_query=${encodeURIComponent(`name=${criteriaName}^active=true`)}&sysparm_fields=sys_id`)
+  )[0];
+  if (!criteria) throw new Error(`User criteria not found: ${criteriaName}`);
+  const linked = await snGet(table, `sysparm_query=${field}=${recordSysId}^user_criteria=${criteria.sys_id}&sysparm_fields=sys_id`);
+  if (!linked.length) await snPost(table, { [field]: recordSysId, user_criteria: criteria.sys_id });
+  console.log(`${field} ${recordSysId} can be viewed by: ${criteriaName}`);
+}
+
 async function ensureTakeSurveyPage(logoHeaderWidgetSysId, stockSurveyWidgetSysId) {
-  const pageSysId = await ensurePage(TAKE_SURVEY_PAGE_ID, 'CSAT Take Survey');
+  const pageSysId = await ensurePage(TAKE_SURVEY_PAGE_ID, 'CSAT Take Survey', 'snc_internal,snc_external');
   await placeWidgetsOnPage(
     pageSysId,
     [
@@ -182,6 +198,8 @@ async function ensureTakeSurveyPage(logoHeaderWidgetSysId, stockSurveyWidgetSysI
     ],
     'CSAT Take Survey'
   );
+  await ensureCanView('m2m_sp_page_uc_can_view', 'sp_page', pageSysId, SURVEY_VIEWERS_CRITERIA);
+  await ensureCanView('m2m_sp_widget_uc_can_view', 'sp_widget', logoHeaderWidgetSysId, SURVEY_VIEWERS_CRITERIA);
   return pageSysId;
 }
 

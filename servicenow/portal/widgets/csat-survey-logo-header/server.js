@@ -20,6 +20,7 @@
 
   function getBannerAttachmentId(companyId) {
     var companyGr = new GlideRecord('core_company');
+    companyGr.setWorkflow(false);
     if (!companyGr.get(companyId))
       return '';
     var banner = companyGr.getValue('banner_image');
@@ -38,13 +39,21 @@
     var companyId = requestGr.getValue('u_company');
     if (!companyId) return candidates;
 
+    // Customer contacts cannot see their parent (partner) account through the
+    // CSM account query rules, so the lookups skip business rules. Only the
+    // partner's logo leaves this script.
     var accountGr = new GlideRecord('customer_account');
+    accountGr.setWorkflow(false);
     if (!accountGr.get(companyId))
       return candidates;
 
-    var parentName = accountGr.account_parent.name + '';
-    if (parentName && parentName != 'null' && parentName != '')
-      candidates.push({ name: parentName, companyId: accountGr.getValue('account_parent') });
+    var parentId = accountGr.getValue('account_parent');
+    if (parentId) {
+      var parentGr = new GlideRecord('customer_account');
+      parentGr.setWorkflow(false);
+      if (parentGr.get(parentId) && parentGr.getValue('name'))
+        candidates.push({ name: parentGr.getValue('name'), companyId: parentId });
+    }
 
     var accountName = accountGr.getValue('name') + '';
     if (accountName && accountName != 'null' && accountName != '')

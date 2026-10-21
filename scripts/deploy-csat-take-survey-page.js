@@ -21,6 +21,7 @@ const LOGIN_PAGE_ID = 'csat_login';
 const PORTAL_SUFFIX = 'csat';
 const IDP_PROPERTY = 'csat.survey.login.idp_name';
 const DEFAULT_IDP_NAME = 'auth0';
+const SURVEY_VIEWERS_CRITERIA = 'Roles : snc_external,snc_internal';
 
 function readWidgetFile(widgetId, name) {
   return readArtifact(`portal/widgets/${widgetId}/${name}`);
@@ -54,7 +55,7 @@ async function ensureWidget(widgetId, name, description, access) {
   return created.sys_id;
 }
 
-async function ensurePage(pageId, title, isPublic = false) {
+async function ensurePage(pageId, title, isPublic = false, roles) {
   const existing = await snGet('sp_page', `sysparm_query=id=${pageId}&sysparm_fields=sys_id`);
   const payload = {
     id: pageId,
@@ -63,6 +64,7 @@ async function ensurePage(pageId, title, isPublic = false) {
     draft: false,
     use_seo_url: false,
   };
+  if (roles !== undefined) payload.roles = roles;
 
   if (existing.length) {
     await snPatch('sp_page', existing[0].sys_id, payload);
@@ -152,6 +154,20 @@ async function ensureIdpProperty() {
   console.log(`Created property ${IDP_PROPERTY} = ${DEFAULT_IDP_NAME}`);
 }
 
+// With glide.service_portal.user_criteria_enabled on, a page or non-public
+// widget that has no "Who can view" criteria is internal-only and its roles
+// field is ignored: customers get "Not Found" or the widget is left out. The
+// stock take_survey page uses the same criteria.
+async function ensureCanView(table, field, recordSysId, criteriaName) {
+  const criteria = (
+    await snGet('user_criteria', `sysparm_query=${encodeURIComponent(`name=${criteriaName}^active=true`)}&sysparm_fields=sys_id`)
+  )[0];
+  if (!criteria) throw new Error(`User criteria not found: ${criteriaName}`);
+  const linked = await snGet(table, `sysparm_query=${field}=${recordSysId}^user_criteria=${criteria.sys_id}&sysparm_fields=sys_id`);
+  if (!linked.length) await snPost(table, { [field]: recordSysId, user_criteria: criteria.sys_id });
+  console.log(`${field} ${recordSysId} can be viewed by: ${criteriaName}`);
+}
+
 async function setPortalLoginPage(loginPageSysId) {
   const portal = (await snGet('sp_portal', `sysparm_query=url_suffix=${PORTAL_SUFFIX}&sysparm_fields=sys_id`))[0];
   if (!portal) throw new Error(`Portal not found: /${PORTAL_SUFFIX}`);
@@ -169,7 +185,7 @@ async function main() {
     { public: false, roles: 'snc_internal,snc_external' }
   );
   const stockSurveyWidgetSysId = await resolveStockWidget(STOCK_SURVEY_WIDGET_ID);
-  const pageSysId = await ensurePage(TAKE_SURVEY_PAGE_ID, 'CSAT Take Survey');
+  const pageSysId = await ensurePage(TAKE_SURVEY_PAGE_ID, 'CSAT Take Survey', false, 'snc_internal,snc_external');
 
   await placeWidgetsOnPage(
     pageSysId,
@@ -179,6 +195,8 @@ async function main() {
     ],
     'CSAT Take Survey'
   );
+  await ensureCanView('m2m_sp_page_uc_can_view', 'sp_page', pageSysId, SURVEY_VIEWERS_CRITERIA);
+  await ensureCanView('m2m_sp_widget_uc_can_view', 'sp_widget', logoHeaderWidgetSysId, SURVEY_VIEWERS_CRITERIA);
 
   await ensureIdpProperty();
   const loginWidgetSysId = await ensureWidget(
