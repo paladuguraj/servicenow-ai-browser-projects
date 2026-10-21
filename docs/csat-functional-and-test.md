@@ -71,6 +71,14 @@ must confirm how many people will be emailed before anything is sent.
 locked out, not a system integration account) and an email address. Anyone who
 fails these is listed separately as ineligible with the reason.
 
+**Accounts that are never surveyed.** Accounts whose Support Group is TAOPod do
+not receive CSAT surveys. They cannot be found in the company search, a request
+cannot be raised for them, and any recurring request already raised for them is
+cancelled on its next run instead of sending. An account moved to TAOPod later
+is excluded from then on. The list of groups is held in the
+`csat.excluded_support_groups` property, so more can be added without a deploy.
+Case surveys are not affected.
+
 **How often.** Once per 90 days per person **per survey**. Somebody asked about
 a complex resolution can still receive the scheduled relationship survey, but
 not the same survey twice inside the window. Because of this, who can be
