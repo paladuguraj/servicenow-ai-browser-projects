@@ -37,6 +37,15 @@ CSATSurveyService.prototype = {
     // case-triggered survey invitation.
     WHITELABEL_PROPERTY: 'survey.link.whitelabel',
 
+    // Accounts supported by any of these groups never receive a CSAT survey:
+    // they are left out of the company search, cannot be given a new request,
+    // and any recurring request already raised for them is cancelled on its
+    // next run. Comma-separated sys_user_group names, so the list can change
+    // without a deploy. The check is made at the time of each action, so an
+    // account that is moved to one of these groups later is excluded from then on.
+    EXCLUDED_SUPPORT_GROUPS_PROPERTY: 'csat.excluded_support_groups',
+    SUPPORT_GROUP_FIELD: 'u_support_group',
+
     // Page the invitation email points a recipient at.
     SURVEY_PAGE: 'csat?id=csat_take_survey',
 
@@ -153,12 +162,64 @@ CSATSurveyService.prototype = {
         return this.getSurveyLink(instanceGr.getUniqueValue(), companyId);
     },
 
+    /**
+     * The excluded support groups as { sys_id: name }. Empty when the property
+     * is unset or the instance has no support group field on companies.
+     */
+    getExcludedSupportGroups: function() {
+        if (this._excludedGroups)
+            return this._excludedGroups;
+
+        this._excludedGroups = {};
+        var names = (gs.getProperty(this.EXCLUDED_SUPPORT_GROUPS_PROPERTY, '') + '').split(',').map(function(name) {
+            return name.trim();
+        }).filter(function(name) {
+            return name.length > 0;
+        });
+        if (!names.length || !this.hasField('core_company', this.SUPPORT_GROUP_FIELD))
+            return this._excludedGroups;
+
+        var group = new GlideRecord('sys_user_group');
+        group.addQuery('name', 'IN', names.join(','));
+        group.query();
+        while (group.next())
+            this._excludedGroups[group.getUniqueValue()] = group.getValue('name');
+        return this._excludedGroups;
+    },
+
+    /**
+     * Name of the excluded support group that covers this account, or an empty
+     * string when the account may be surveyed.
+     */
+    getExclusionGroup: function(companyId) {
+        var excluded = this.getExcludedSupportGroups();
+        if (!companyId || !Object.keys(excluded).length)
+            return '';
+
+        var company = new GlideRecord('core_company');
+        if (!company.get(companyId))
+            return '';
+
+        var groups = (company.getValue(this.SUPPORT_GROUP_FIELD) || '').split(',');
+        for (var i = 0; i < groups.length; i++) {
+            if (excluded.hasOwnProperty(groups[i]))
+                return excluded[groups[i]];
+        }
+        return '';
+    },
+
+    exclusionMessage: function(groupName) {
+        return 'Accounts supported by ' + groupName + ' do not receive CSAT surveys.';
+    },
+
     getCompanies: function(searchTerm, limit) {
         var companies = [];
         var gr = new GlideRecord('core_company');
         if (this.hasField('core_company', this.COMPANY_ACTIVE_FIELD))
             gr.addQuery(this.COMPANY_ACTIVE_FIELD, true);
         gr.addQuery('name', '!=', 'N/A');
+        for (var groupId in this.getExcludedSupportGroups())
+            gr.addEncodedQuery(this.SUPPORT_GROUP_FIELD + 'ISEMPTY^OR' + this.SUPPORT_GROUP_FIELD + 'NOT LIKE' + groupId);
         if (searchTerm)
             gr.addQuery('name', 'CONTAINS', searchTerm);
         gr.orderBy('name');
@@ -414,6 +475,10 @@ CSATSurveyService.prototype = {
         var F = this.F;
         var mode = payload.recipient_mode || 'primary_user';
 
+        var exclusionGroup = this.getExclusionGroup(payload.company);
+        if (exclusionGroup)
+            return { error: this.exclusionMessage(exclusionGroup) };
+
         if (!this.isPublished(payload.metric_type)) {
             var tplGr = new GlideRecord('asmt_metric_type');
             var tplName = tplGr.get(payload.metric_type) ? tplGr.getValue('name') : 'The selected survey';
@@ -583,6 +648,19 @@ CSATSurveyService.prototype = {
         var state = requestGr.getValue(F.state);
         if (state === 'cancelled' || state === 'completed')
             return { executed: 0, skipped: 0, failed: 0 };
+
+        var exclusionGroup = this.getExclusionGroup(requestGr.getValue(F.company));
+        if (exclusionGroup) {
+            var reason = this.exclusionMessage(exclusionGroup);
+            var notes = requestGr.getValue(F.notes) || '';
+            requestGr.setValue(F.state, 'cancelled');
+            requestGr.setValue(F.active, false);
+            requestGr.setValue(F.next_run, '');
+            requestGr.setValue(F.notes, (notes ? notes + '\n' : '') + 'Cancelled: ' + reason);
+            requestGr.update();
+            gs.info('CSAT: cancelled ' + requestGr.getValue(F.number) + '. ' + reason);
+            return { executed: 0, skipped: 0, failed: 0, cancelled: true, reason: reason };
+        }
 
         var recipients = this.getRecipients(requestGr);
         var metricTypeId = requestGr.getValue(F.metric_type);
