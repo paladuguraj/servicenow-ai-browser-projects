@@ -22,8 +22,9 @@ const TAKE_SURVEY_PAGE_ID = 'csat_take_survey';
 const STOCK_SURVEY_WIDGET_ID = 'take_assessment';
 
 // The login page is inherited from the stock Service Portal ('/sp'), resolved
-// at deploy time because the sys_id differs between instances. The theme is
-// this portal's own — see ensureTheme.
+// at deploy time because the sys_id differs between instances, unless
+// deploy-csat-take-survey-page.js has installed the survey login page. The
+// theme is this portal's own — see ensureTheme.
 let spTheme = '';
 let spLoginPage = '';
 
@@ -31,7 +32,7 @@ function readWidgetFile(widgetId, name) {
   return readArtifact(`portal/widgets/${widgetId}/${name}`);
 }
 
-async function ensureWidget(widgetId, name, description) {
+async function ensureWidget(widgetId, name, description, roles = 'snc_internal') {
   const existing = await snGet('sp_widget', `sysparm_query=id=${widgetId}&sysparm_fields=sys_id`);
   const payload = {
     name,
@@ -41,7 +42,7 @@ async function ensureWidget(widgetId, name, description) {
     script: readWidgetFile(widgetId, 'server.js'),
     css: readWidgetFile(widgetId, 'style.css'),
     public: false,
-    roles: 'snc_internal',
+    roles,
     controller_as: 'c',
     category: 'custom',
     active: true,
@@ -234,7 +235,8 @@ async function ensureMenu(portalSysId, homePageSysId, listPageSysId, reportPageS
 
 async function resolvePortalDefaults() {
   const stock = (await snGet('sp_portal', 'sysparm_query=url_suffix=sp&sysparm_fields=theme,login_page'))[0];
-  spLoginPage = stock && stock.login_page ? stock.login_page.value : '';
+  const surveyLogin = (await snGet('sp_page', 'sysparm_query=id=csat_login&sysparm_fields=sys_id'))[0];
+  spLoginPage = surveyLogin ? surveyLogin.sys_id : stock && stock.login_page ? stock.login_page.value : '';
   spTheme = await ensureTheme(stock && stock.theme ? stock.theme.value : '');
   console.log(`Theme: ${THEME_NAME} (${spTheme})${spLoginPage ? `, login page: ${spLoginPage}` : ' (no login page inherited)'}`);
 }
@@ -363,7 +365,8 @@ async function main() {
   const logoHeaderWidgetSysId = await ensureWidget(
     LOGO_HEADER_WIDGET_ID,
     'CSAT Survey Logo Header',
-    'Shows the CSAT logo above surveys raised from the CSAT portal'
+    'Shows the CSAT logo above surveys raised from the CSAT portal',
+    'snc_internal,snc_external'
   );
   const stockSurveyWidgetSysId = await resolveStockWidget(STOCK_SURVEY_WIDGET_ID);
   await ensureTakeSurveyPage(logoHeaderWidgetSysId, stockSurveyWidgetSysId);
