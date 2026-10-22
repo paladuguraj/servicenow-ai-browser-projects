@@ -12,12 +12,16 @@
  * Usage:
  *   node scripts/consolidate-update-set.js [--name "..."] [--dry-run]
  *                                          [--retire-sources] [--keep "A,B"]
- *                                          [--since YYYY-MM-DD]
+ *                                          [--since YYYY-MM-DD] [--include "A,B"]
  *
  * --since builds a delta from the sets captured on or after that date, for an
  * instance that already runs the solution and only needs recent work. A delta
  * carries exactly what changed, so the forced records and the source retiring
  * that the full set needs are both skipped.
+ *
+ * --include adds sets by exact name that do not carry the project prefix, such
+ * as a change made on the instance by someone else that the CSAT sets build on.
+ * Its entries are merged chronologically with the rest.
  *
  * --retire-sources marks the sets it consolidated as Ignore, so the migration
  * set is the obvious one to export. It is reversible: set them back to
@@ -38,6 +42,7 @@ const DEFAULT_TARGET = 'CSAT Survey Portal - ALL CHANGES v2.0';
 // only ever existed on this instance, so replaying the deletes on a target
 // achieves nothing.
 const LAYOUT_TYPES = ['Container', 'Row', 'Column', 'Instance'];
+const LAYOUT_TABLES = ['sp_container', 'sp_row', 'sp_column', 'sp_instance'];
 
 // Records that have to be pushed into the set deliberately.
 //
@@ -71,6 +76,11 @@ const since = sinceFlag !== -1 ? args[sinceFlag + 1] : '';
 
 const keepFlag = args.indexOf('--keep');
 const keepComplete = (keepFlag !== -1 ? args[keepFlag + 1] || '' : '')
+  .split(',')
+  .map((n) => n.trim())
+  .filter(Boolean);
+const includeFlag = args.indexOf('--include');
+const includeNames = (includeFlag !== -1 ? args[includeFlag + 1] || '' : '')
   .split(',')
   .map((n) => n.trim())
   .filter(Boolean);
@@ -185,6 +195,15 @@ async function findSourceSets() {
     `sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id,name,state,sys_created_on&sysparm_orderby=sys_created_on`
   );
 
+  for (const name of includeNames) {
+    const extra = await snGet(
+      'sys_update_set',
+      `sysparm_query=${encodeURIComponent(`name=${name}`)}&sysparm_fields=sys_id,name,state,sys_created_on`
+    );
+    if (!extra.length) throw new Error(`--include "${name}" matched no update set`);
+    extra.forEach((s) => sets.push(s));
+  }
+
   // Exclude the sets this script builds. That means the target and its
   // per-scope companions, which are named "<target> (<scope>)" — treating one
   // as a source would clear it and then try to read the rows it just deleted.
@@ -196,7 +215,7 @@ async function loadEntries(sets) {
   for (const set of sets) {
     const rows = await snGet(
       'sys_update_xml',
-      `sysparm_query=update_set=${set.sys_id}&sysparm_fields=sys_id,name,type,target_name,action,application,sys_created_on,sys_recorded_at&sysparm_limit=5000`
+      `sysparm_query=update_set=${set.sys_id}&sysparm_fields=sys_id,name,type,target_name,action,application,sys_created_on,sys_updated_on,sys_recorded_at&sysparm_limit=5000`
     );
     rows.forEach((row) => entries.push(row));
   }
@@ -210,7 +229,7 @@ async function loadEntries(sets) {
  * has. Entries keyed by table and element rather than sys_id (dictionary,
  * field labels, choice lists) cannot be looked up this way and are kept.
  */
-async function dropStale(entries) {
+async function dropStale(entries, refresh) {
   const byTable = {};
   const unchecked = [];
 
@@ -228,12 +247,20 @@ async function dropStale(entries) {
   const stale = [];
   for (const table of Object.keys(byTable)) {
     const ids = byTable[table].map((x) => x.sysId);
-    const found = new Set(
-      (await snGet(table, `sysparm_query=sys_idIN${ids.join(',')}&sysparm_fields=sys_id&sysparm_limit=5000`)).map(
-        (x) => x.sys_id
-      )
+    const updated = new Map(
+      (
+        await snGet(table, `sysparm_query=sys_idIN${ids.join(',')}&sysparm_fields=sys_id,sys_updated_on&sysparm_limit=5000`)
+      ).map((x) => [x.sys_id, x.sys_updated_on])
     );
-    byTable[table].forEach((x) => (found.has(x.sysId) ? live : stale).push(x.row));
+    byTable[table].forEach((x) => {
+      if (!updated.has(x.sysId)) {
+        stale.push(x.row);
+        return;
+      }
+      live.push(x.row);
+      if (updated.get(x.sysId) > x.row.sys_updated_on && LAYOUT_TABLES.indexOf(table) === -1)
+        refresh.push({ table, query: `sys_id=${x.sysId}`, label: `${x.row.type} "${x.row.target_name}" (changed outside these sets)` });
+    });
   }
 
   if (stale.length) {
@@ -451,7 +478,15 @@ async function main() {
   console.log(`${history.size} distinct record(s) after collapsing repeats.`);
   Object.keys(skipped).forEach((reason) => console.log(`  skipping ${skipped[reason]} — ${reason}`));
 
-  const live = await dropStale(candidates);
+  // A record edited while some other set (often Default) was current has a
+  // newer live state than any capture here, so it is re-captured from the
+  // instance instead.
+  const refresh = [];
+  const live = await dropStale(candidates, refresh);
+  if (refresh.length) {
+    console.log(`  refreshing ${refresh.length} — changed on this instance after it was last captured`);
+    refresh.forEach((r) => console.log(`      ${r.label}`));
+  }
   const keep = await dropRetiredQuestions(live);
   console.log(`${keep.length} entry(s) to carry across.\n`);
 
@@ -502,7 +537,7 @@ async function main() {
             fields: COPIED_FIELDS,
             // Forced records are all global, and a delta should carry only
             // what actually changed in its window.
-            force: isGlobal && !since ? FORCE_CAPTURE : [],
+            force: isGlobal ? (since ? refresh : FORCE_CAPTURE.concat(refresh)) : [],
             ids: rows.map((row) => row.sys_id),
           },
         }),
