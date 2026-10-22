@@ -1,0 +1,9 @@
+.csat-survey-logo-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.csat-survey-logo-header .csat-logo-wrap img {
+  max-width: 280px;
+  height: auto;
+}

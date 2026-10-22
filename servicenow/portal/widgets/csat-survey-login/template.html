@@ -1,0 +1,6 @@
+<div class="csat-survey-login">
+  <div ng-if="c.redirecting" class="csat-survey-login-redirect">
+    <p>${Redirecting you to sign in to your survey...}</p>
+  </div>
+  <sp-widget ng-if="!c.redirecting" widget="data.loginWidget"></sp-widget>
+</div>
