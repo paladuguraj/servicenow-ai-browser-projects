@@ -72,11 +72,14 @@ locked out, not a system integration account) and an email address. Anyone who
 fails these is listed separately as ineligible with the reason.
 
 **Accounts that are never surveyed.** Accounts whose Support Group is TAOPod do
-not receive CSAT surveys. They cannot be found in the company search, a request
+not receive CSAT surveys, and neither do ATT TAO Partner and its customers
+(accounts whose Parent (WLP Account) is ATT TAO Partner), whatever their
+Support Group. They cannot be found in the company search, a request
 cannot be raised for them, and any recurring request already raised for them is
 cancelled on its next run instead of sending. An account moved to TAOPod later
-is excluded from then on. The list of groups is held in the
-`csat.excluded_support_groups` property, so more can be added without a deploy.
+is excluded from then on, as is a new customer of ATT TAO Partner. The groups
+and partners are held in the `csat.excluded_support_groups` and
+`csat.excluded_partners` properties, so more can be added without a deploy.
 Case surveys are not affected.
 
 **How often.** Once per 90 days per person **per survey**. Somebody asked about

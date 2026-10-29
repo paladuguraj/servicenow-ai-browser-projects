@@ -46,6 +46,14 @@ CSATSurveyService.prototype = {
     EXCLUDED_SUPPORT_GROUPS_PROPERTY: 'csat.excluded_support_groups',
     SUPPORT_GROUP_FIELD: 'u_support_group',
 
+    // Partner accounts whose customers never receive a CSAT survey, whatever
+    // their support group. Comma-separated customer_account names; an account
+    // is a partner's customer when its Parent (WLP Account) is that partner.
+    // The partner account itself is excluded too. Handled the same way as the
+    // excluded support groups.
+    EXCLUDED_PARTNERS_PROPERTY: 'csat.excluded_partners',
+    PARTNER_FIELD: 'account_parent',
+
     // Page the invitation email points a recipient at.
     SURVEY_PAGE: 'csat?id=csat_take_survey',
 
@@ -212,6 +220,90 @@ CSATSurveyService.prototype = {
         return 'Accounts supported by ' + groupName + ' do not receive CSAT surveys.';
     },
 
+    /**
+     * The excluded partners as { sys_id: name }. Empty when the property is
+     * unset or customer accounts have no parent field.
+     *
+     * Customer contacts cannot see partner accounts through the CSM query
+     * rules, so lookups bypass them.
+     */
+    getExcludedPartners: function() {
+        if (this._excludedPartners)
+            return this._excludedPartners;
+
+        this._excludedPartners = {};
+        var names = (gs.getProperty(this.EXCLUDED_PARTNERS_PROPERTY, '') + '').split(',').map(function(name) {
+            return name.trim();
+        }).filter(function(name) {
+            return name.length > 0;
+        });
+        if (!names.length || !this.hasField('customer_account', this.PARTNER_FIELD))
+            return this._excludedPartners;
+
+        var partner = new GlideRecord('customer_account');
+        partner.setWorkflow(false);
+        partner.addQuery('name', 'IN', names.join(','));
+        partner.query();
+        while (partner.next())
+            this._excludedPartners[partner.getUniqueValue()] = partner.getValue('name');
+        return this._excludedPartners;
+    },
+
+    /**
+     * sys_ids of every account the excluded partners cover: the partners and
+     * their customers.
+     */
+    getExcludedPartnerAccounts: function() {
+        if (this._excludedPartnerAccounts)
+            return this._excludedPartnerAccounts;
+
+        var partnerIds = Object.keys(this.getExcludedPartners());
+        this._excludedPartnerAccounts = partnerIds.slice();
+        if (!partnerIds.length)
+            return this._excludedPartnerAccounts;
+
+        var account = new GlideRecord('customer_account');
+        account.setWorkflow(false);
+        account.addQuery(this.PARTNER_FIELD, 'IN', partnerIds.join(','));
+        account.query();
+        while (account.next())
+            this._excludedPartnerAccounts.push(account.getUniqueValue());
+        return this._excludedPartnerAccounts;
+    },
+
+    /**
+     * Name of the excluded partner that covers this account, or an empty
+     * string when the account may be surveyed.
+     */
+    getExclusionPartner: function(companyId) {
+        var partners = this.getExcludedPartners();
+        if (!companyId || !Object.keys(partners).length)
+            return '';
+        if (partners.hasOwnProperty(companyId))
+            return partners[companyId];
+
+        var account = new GlideRecord('customer_account');
+        account.setWorkflow(false);
+        if (!account.get(companyId))
+            return '';
+        var parentId = account.getValue(this.PARTNER_FIELD);
+        return partners.hasOwnProperty(parentId) ? partners[parentId] : '';
+    },
+
+    /**
+     * Why this account never receives a CSAT survey, or an empty string when
+     * it may be surveyed.
+     */
+    getExclusionReason: function(companyId) {
+        var group = this.getExclusionGroup(companyId);
+        if (group)
+            return this.exclusionMessage(group);
+        var partner = this.getExclusionPartner(companyId);
+        if (partner)
+            return partner + ' and its customers do not receive CSAT surveys.';
+        return '';
+    },
+
     getCompanies: function(searchTerm, limit) {
         var companies = [];
         var gr = new GlideRecord('core_company');
@@ -220,6 +312,9 @@ CSATSurveyService.prototype = {
         gr.addQuery('name', '!=', 'N/A');
         for (var groupId in this.getExcludedSupportGroups())
             gr.addEncodedQuery(this.SUPPORT_GROUP_FIELD + 'ISEMPTY^OR' + this.SUPPORT_GROUP_FIELD + 'NOT LIKE' + groupId);
+        var partnerAccounts = this.getExcludedPartnerAccounts();
+        if (partnerAccounts.length)
+            gr.addQuery('sys_id', 'NOT IN', partnerAccounts.join(','));
         if (searchTerm)
             gr.addQuery('name', 'CONTAINS', searchTerm);
         gr.orderBy('name');
@@ -475,9 +570,9 @@ CSATSurveyService.prototype = {
         var F = this.F;
         var mode = payload.recipient_mode || 'primary_user';
 
-        var exclusionGroup = this.getExclusionGroup(payload.company);
-        if (exclusionGroup)
-            return { error: this.exclusionMessage(exclusionGroup) };
+        var exclusionReason = this.getExclusionReason(payload.company);
+        if (exclusionReason)
+            return { error: exclusionReason };
 
         if (!this.isPublished(payload.metric_type)) {
             var tplGr = new GlideRecord('asmt_metric_type');
@@ -649,9 +744,8 @@ CSATSurveyService.prototype = {
         if (state === 'cancelled' || state === 'completed')
             return { executed: 0, skipped: 0, failed: 0 };
 
-        var exclusionGroup = this.getExclusionGroup(requestGr.getValue(F.company));
-        if (exclusionGroup) {
-            var reason = this.exclusionMessage(exclusionGroup);
+        var reason = this.getExclusionReason(requestGr.getValue(F.company));
+        if (reason) {
             var notes = requestGr.getValue(F.notes) || '';
             requestGr.setValue(F.state, 'cancelled');
             requestGr.setValue(F.active, false);
