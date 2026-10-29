@@ -19,9 +19,12 @@
     // The parent account is tried first, then the account itself, so an account
     // that is itself a white-label partner still shows its own logo.
     //
-    // The image is embedded as a base64 data URI so it renders without any
-    // external URL that guests or email clients might not reach. The rendered
-    // width is fixed at 180 px and left-aligned so all logos look consistent.
+    // The image is sent as an inline (cid:) attachment, which the "CSAT Email -
+    // Attach Inline Logo" business rule adds to the outgoing email. Outlook and
+    // Gmail block base64 data: images, and instance URLs need a login. The cid
+    // does not resolve in ServiceNow's own email preview, only in the delivered
+    // email. The rendered width is fixed at 180 px and left-aligned so all logos
+    // look consistent.
 
     function getDefaultAttachmentId() {
         return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
@@ -71,21 +74,23 @@
         return banner ? banner.toString() : '';
     }
 
-    function attachmentToBase64(attachmentId) {
+    // Content-ID of the inline part; the business rule matches this exact form.
+    // File names must not contain spaces for cid references to resolve.
+    function inlineFileName(attachmentId) {
         var attGr = new GlideRecord('sys_attachment');
         if (!attGr.get(attachmentId)) {
             gs.warn('CSAT logo attachment not found: ' + attachmentId);
-            return { dataUri: '', alt: '' };
+            return '';
         }
-        var att = new GlideSysAttachment();
-        var bytes = att.getBytes(attGr);
-        if (!bytes || bytes.length === 0) {
-            gs.warn('CSAT logo attachment has no data: ' + attachmentId);
-            return { dataUri: '', alt: '' };
+        var contentType = (attGr.getValue('content_type') || '').toLowerCase();
+        var ext = contentType.indexOf('png') > -1 ? 'png' :
+            contentType.indexOf('gif') > -1 ? 'gif' :
+            contentType.indexOf('jpeg') > -1 || contentType.indexOf('jpg') > -1 ? 'jpg' : '';
+        if (!ext) {
+            gs.warn('CSAT logo attachment is not a png, jpeg or gif: ' + attachmentId);
+            return '';
         }
-        var contentType = (attGr.getValue('content_type') || 'image/png').toString();
-        var base64 = Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
-        return { dataUri: 'data:' + contentType + ';base64,' + base64, alt: attGr.getValue('file_name') + '' };
+        return 'csat-logo-' + attachmentId + '.' + ext;
     }
 
     try {
@@ -115,13 +120,13 @@
             return;
         }
 
-        var image = attachmentToBase64(attachmentId);
-        if (!image.dataUri)
+        var fileName = inlineFileName(attachmentId);
+        if (!fileName)
             return;
 
         template.print(
             '<div class="csat-logo" style="text-align:left;margin-bottom:24px;">' +
-            '<img src="' + image.dataUri + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" ' +
+            '<img src="cid:' + fileName + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" ' +
             'style="width:180px;max-width:180px;height:auto;display:block;" />' +
             '</div>'
         );
