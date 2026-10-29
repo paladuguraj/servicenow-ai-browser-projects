@@ -7,13 +7,16 @@
     // Prints the partner-branded or AppDirect logo for the CSAT email header.
     //
     // For surveys raised from the CSAT portal, the customer's parent account is
-    // treated as the partner. If that partner is a white-label partner (listed in
-    // survey.link.whitelabel) and has a banner_image on core_company, that banner
+    // treated as the partner. If that partner is a white-label partner ("Is White
+    // Label Partner" ticked on the account) and has a banner_image, that banner
     // is used. Otherwise the AppDirect logo is shown.
     //
-    // Partner resolution matches CSATSurveyService.getWhitelabelDomain:
-    // account_parent.name is tried first, then the account's own name, so an
-    // account that is itself a white-label partner still shows its own logo.
+    // survey.link.whitelabel is not used here: it also lists partners that are
+    // not white-label (such as Direct and Fiserv), and only decides the survey
+    // link domain.
+    //
+    // The parent account is tried first, then the account itself, so an account
+    // that is itself a white-label partner still shows its own logo.
     //
     // The image is embedded as a base64 data URI so it renders without any
     // external URL that guests or email clients might not reach. The rendered
@@ -50,15 +53,13 @@
         return candidates;
     }
 
-    function isWhitelabelPartner(partnerName) {
-        var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
-        if (!prop) return false;
-        try {
-            var map = JSON.parse(prop);
-            return map.hasOwnProperty(partnerName);
-        } catch (e) {
+    function isWhitelabelPartner(companyId) {
+        var accountGr = new GlideRecord('customer_account');
+        accountGr.setWorkflow(false);
+        if (!accountGr.get(companyId))
             return false;
-        }
+        var flag = accountGr.getValue('u_is_white_label_partner');
+        return flag == '1' || flag == 'true';
     }
 
     function getBannerAttachmentId(companyId) {
@@ -92,7 +93,7 @@
         var partnerName = '';
 
         for (var i = 0; i < candidates.length; i++) {
-            if (isWhitelabelPartner(candidates[i].name)) {
+            if (isWhitelabelPartner(candidates[i].companyId)) {
                 attachmentId = getBannerAttachmentId(candidates[i].companyId);
                 if (attachmentId) {
                     partnerName = candidates[i].name;

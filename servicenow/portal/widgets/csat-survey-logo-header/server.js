@@ -7,15 +7,16 @@
     return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
   }
 
-  function isWhitelabelPartner(partnerName) {
-    var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
-    if (!prop) return false;
-    try {
-      var map = JSON.parse(prop);
-      return map.hasOwnProperty(partnerName);
-    } catch (e) {
+  // White-label means "Is White Label Partner" is ticked on the account.
+  // survey.link.whitelabel also lists partners that are not white-label (such
+  // as Direct and Fiserv) and only decides the survey link domain.
+  function isWhitelabelPartner(companyId) {
+    var accountGr = new GlideRecord('customer_account');
+    accountGr.setWorkflow(false);
+    if (!accountGr.get(companyId))
       return false;
-    }
+    var flag = accountGr.getValue('u_is_white_label_partner');
+    return flag == '1' || flag == 'true';
   }
 
   function getBannerAttachmentId(companyId) {
@@ -91,7 +92,7 @@
   var partnerName = '';
 
   for (var i = 0; i < candidates.length; i++) {
-    if (isWhitelabelPartner(candidates[i].name)) {
+    if (isWhitelabelPartner(candidates[i].companyId)) {
       attachmentId = getBannerAttachmentId(candidates[i].companyId);
       if (attachmentId) {
         partnerName = candidates[i].name;
