@@ -7,15 +7,16 @@
     return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
   }
 
-  function isWhitelabelPartner(partnerName) {
-    var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
-    if (!prop) return false;
-    try {
-      var map = JSON.parse(prop);
-      return map.hasOwnProperty(partnerName);
-    } catch (e) {
+  // White-label means "Is White Label Partner" is ticked on the account.
+  // survey.link.whitelabel also lists partners that are not white-label (such
+  // as Direct and Fiserv) and only decides the survey link domain.
+  function isWhitelabelPartner(companyId) {
+    var accountGr = new GlideRecord('customer_account');
+    accountGr.setWorkflow(false);
+    if (!accountGr.get(companyId))
       return false;
-    }
+    var flag = accountGr.getValue('u_is_white_label_partner');
+    return flag == '1' || flag == 'true';
   }
 
   function getBannerAttachmentId(companyId) {
@@ -90,20 +91,26 @@
   var attachmentId = '';
   var partnerName = '';
 
+  var whitelabel = null;
   for (var i = 0; i < candidates.length; i++) {
-    if (isWhitelabelPartner(candidates[i].name)) {
-      attachmentId = getBannerAttachmentId(candidates[i].companyId);
-      if (attachmentId) {
-        partnerName = candidates[i].name;
-        break;
-      }
+    if (isWhitelabelPartner(candidates[i].companyId)) {
+      whitelabel = candidates[i];
+      break;
     }
   }
 
-  if (!attachmentId)
+  // A white-label partner without a banner gets no logo rather than AppDirect's.
+  if (whitelabel) {
+    attachmentId = getBannerAttachmentId(whitelabel.companyId);
+    partnerName = whitelabel.name;
+  } else {
     attachmentId = getDefaultAttachmentId();
+  }
 
-  if (!attachmentId) return;
+  if (!attachmentId) {
+    data.showLogo = false;
+    return;
+  }
 
   data.logoSrc = attachmentToBase64(attachmentId);
   data.logoAlt = partnerName || 'Network Operations CSAT Survey';

@@ -154,6 +154,7 @@ recorded a successful send that never happened.
 | Primary user eligibility | `getPrimaryContact` must return `eligible` |
 | 90-day cooldown | `_sendSurveyToUser` re-checks per recipient at send time |
 | Excluded support groups | Accounts whose `core_company.u_support_group` includes a group named in `csat.excluded_support_groups` (default `TAOPod`) are left out of `getCompanies`, refused by `createSurveyRequest`, and cancelled by `executeRequest` with no survey sent. Checked at each step, so accounts that join the group later are excluded too. Case surveys are not affected |
+| Excluded partners | Partner accounts named in `csat.excluded_partners` (default `ATT TAO Partner`) and every `customer_account` whose `account_parent` is one of them are excluded the same way, whatever their support group. Lookups bypass the CSM query rules |
 
 The UI applies the same rules for feedback, but the server is authoritative —
 the scheduled job and any API caller pass through the same checks.

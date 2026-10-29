@@ -7,17 +7,24 @@
     // Prints the partner-branded or AppDirect logo for the CSAT email header.
     //
     // For surveys raised from the CSAT portal, the customer's parent account is
-    // treated as the partner. If that partner is a white-label partner (listed in
-    // survey.link.whitelabel) and has a banner_image on core_company, that banner
-    // is used. Otherwise the AppDirect logo is shown.
+    // treated as the partner. If that partner is a white-label partner ("Is White
+    // Label Partner" ticked on the account), its banner_image is used, and when
+    // it has no banner no logo is shown at all, so a white-label customer never
+    // sees AppDirect branding. Every other customer gets the AppDirect logo.
     //
-    // Partner resolution matches CSATSurveyService.getWhitelabelDomain:
-    // account_parent.name is tried first, then the account's own name, so an
-    // account that is itself a white-label partner still shows its own logo.
+    // survey.link.whitelabel is not used here: it also lists partners that are
+    // not white-label (such as Direct and Fiserv), and only decides the survey
+    // link domain.
     //
-    // The image is embedded as a base64 data URI so it renders without any
-    // external URL that guests or email clients might not reach. The rendered
-    // width is fixed at 180 px and left-aligned so all logos look consistent.
+    // The parent account is tried first, then the account itself, so an account
+    // that is itself a white-label partner still shows its own logo.
+    //
+    // The image is linked from the public "CSAT Email Logo" Scripted REST API,
+    // which serves only approved logos. Gmail and Outlook do not display base64
+    // data: images, and attachment URLs need a login. The rendered width is fixed
+    // at 180 px and left-aligned so all logos look consistent.
+
+    var LOGO_SERVICE_ID = 'csat_email_logo';
 
     function getDefaultAttachmentId() {
         return (gs.getProperty('csat.logo.default_attachment_sys_id') || '').trim();
@@ -50,15 +57,13 @@
         return candidates;
     }
 
-    function isWhitelabelPartner(partnerName) {
-        var prop = (gs.getProperty('survey.link.whitelabel') || '').trim();
-        if (!prop) return false;
-        try {
-            var map = JSON.parse(prop);
-            return map.hasOwnProperty(partnerName);
-        } catch (e) {
+    function isWhitelabelPartner(companyId) {
+        var accountGr = new GlideRecord('customer_account');
+        accountGr.setWorkflow(false);
+        if (!accountGr.get(companyId))
             return false;
-        }
+        var flag = accountGr.getValue('u_is_white_label_partner');
+        return flag == '1' || flag == 'true';
     }
 
     function getBannerAttachmentId(companyId) {
@@ -69,21 +74,40 @@
         return banner ? banner.toString() : '';
     }
 
-    function attachmentToBase64(attachmentId) {
+    // The API namespace differs per instance, so the base path is read from its
+    // definition rather than hardcoded.
+    function logoUrl(attachmentId) {
+        var api = new GlideRecord('sys_ws_definition');
+        api.addQuery('service_id', LOGO_SERVICE_ID);
+        api.addActiveQuery();
+        api.query();
+        if (!api.next() || !api.getValue('base_uri')) {
+            gs.warn('CSAT logo API ' + LOGO_SERVICE_ID + ' not found');
+            return '';
+        }
+        var fileName = logoFileName(attachmentId);
+        if (!fileName)
+            return '';
+        return gs.getProperty('glide.servlet.uri').replace(/\/$/, '') + api.getValue('base_uri') + '/' + fileName;
+    }
+
+    function logoFileName(attachmentId) {
         var attGr = new GlideRecord('sys_attachment');
         if (!attGr.get(attachmentId)) {
             gs.warn('CSAT logo attachment not found: ' + attachmentId);
-            return { dataUri: '', alt: '' };
+            return '';
         }
-        var att = new GlideSysAttachment();
-        var bytes = att.getBytes(attGr);
-        if (!bytes || bytes.length === 0) {
-            gs.warn('CSAT logo attachment has no data: ' + attachmentId);
-            return { dataUri: '', alt: '' };
+        var contentType = (attGr.getValue('content_type') || '').toLowerCase();
+        var ext = contentType.indexOf('png') > -1 ? 'png' :
+            contentType.indexOf('gif') > -1 ? 'gif' :
+            contentType.indexOf('jpeg') > -1 || contentType.indexOf('jpg') > -1 ? 'jpg' : '';
+        if (!ext) {
+            gs.warn('CSAT logo attachment is not a png, jpeg or gif: ' + attachmentId);
+            return '';
         }
-        var contentType = (attGr.getValue('content_type') || 'image/png').toString();
-        var base64 = Packages.org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
-        return { dataUri: 'data:' + contentType + ';base64,' + base64, alt: attGr.getValue('file_name') + '' };
+        // No extension in the URL: the platform does not route /api paths ending
+        // in .png or .jpg to the Scripted REST API.
+        return attachmentId;
     }
 
     try {
@@ -91,31 +115,35 @@
         var attachmentId = '';
         var partnerName = '';
 
+        var whitelabel = null;
         for (var i = 0; i < candidates.length; i++) {
-            if (isWhitelabelPartner(candidates[i].name)) {
-                attachmentId = getBannerAttachmentId(candidates[i].companyId);
-                if (attachmentId) {
-                    partnerName = candidates[i].name;
-                    break;
-                }
+            if (isWhitelabelPartner(candidates[i].companyId)) {
+                whitelabel = candidates[i];
+                break;
             }
         }
 
-        if (!attachmentId)
+        if (whitelabel) {
+            attachmentId = getBannerAttachmentId(whitelabel.companyId);
+            partnerName = whitelabel.name;
+            if (!attachmentId)
+                return;
+        } else {
             attachmentId = getDefaultAttachmentId();
+        }
 
         if (!attachmentId) {
             gs.warn('No CSAT logo attachment configured. Set csat.logo.default_attachment_sys_id.');
             return;
         }
 
-        var image = attachmentToBase64(attachmentId);
-        if (!image.dataUri)
+        var src = logoUrl(attachmentId);
+        if (!src)
             return;
 
         template.print(
             '<div class="csat-logo" style="text-align:left;margin-bottom:24px;">' +
-            '<img src="' + image.dataUri + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" ' +
+            '<img src="' + src + '" alt="' + GlideStringUtil.escapeHTML(partnerName || 'Network Operations CSAT Survey') + '" ' +
             'style="width:180px;max-width:180px;height:auto;display:block;" />' +
             '</div>'
         );
