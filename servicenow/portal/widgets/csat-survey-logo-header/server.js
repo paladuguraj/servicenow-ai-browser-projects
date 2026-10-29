@@ -91,20 +91,26 @@
   var attachmentId = '';
   var partnerName = '';
 
+  var whitelabel = null;
   for (var i = 0; i < candidates.length; i++) {
     if (isWhitelabelPartner(candidates[i].companyId)) {
-      attachmentId = getBannerAttachmentId(candidates[i].companyId);
-      if (attachmentId) {
-        partnerName = candidates[i].name;
-        break;
-      }
+      whitelabel = candidates[i];
+      break;
     }
   }
 
-  if (!attachmentId)
+  // A white-label partner without a banner gets no logo rather than AppDirect's.
+  if (whitelabel) {
+    attachmentId = getBannerAttachmentId(whitelabel.companyId);
+    partnerName = whitelabel.name;
+  } else {
     attachmentId = getDefaultAttachmentId();
+  }
 
-  if (!attachmentId) return;
+  if (!attachmentId) {
+    data.showLogo = false;
+    return;
+  }
 
   data.logoSrc = attachmentToBase64(attachmentId);
   data.logoAlt = partnerName || 'Network Operations CSAT Survey';

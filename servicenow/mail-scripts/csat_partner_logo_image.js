@@ -8,8 +8,9 @@
     //
     // For surveys raised from the CSAT portal, the customer's parent account is
     // treated as the partner. If that partner is a white-label partner ("Is White
-    // Label Partner" ticked on the account) and has a banner_image, that banner
-    // is used. Otherwise the AppDirect logo is shown.
+    // Label Partner" ticked on the account), its banner_image is used, and when
+    // it has no banner no logo is shown at all, so a white-label customer never
+    // sees AppDirect branding. Every other customer gets the AppDirect logo.
     //
     // survey.link.whitelabel is not used here: it also lists partners that are
     // not white-label (such as Direct and Fiserv), and only decides the survey
@@ -92,18 +93,22 @@
         var attachmentId = '';
         var partnerName = '';
 
+        var whitelabel = null;
         for (var i = 0; i < candidates.length; i++) {
             if (isWhitelabelPartner(candidates[i].companyId)) {
-                attachmentId = getBannerAttachmentId(candidates[i].companyId);
-                if (attachmentId) {
-                    partnerName = candidates[i].name;
-                    break;
-                }
+                whitelabel = candidates[i];
+                break;
             }
         }
 
-        if (!attachmentId)
+        if (whitelabel) {
+            attachmentId = getBannerAttachmentId(whitelabel.companyId);
+            partnerName = whitelabel.name;
+            if (!attachmentId)
+                return;
+        } else {
             attachmentId = getDefaultAttachmentId();
+        }
 
         if (!attachmentId) {
             gs.warn('No CSAT logo attachment configured. Set csat.logo.default_attachment_sys_id.');
