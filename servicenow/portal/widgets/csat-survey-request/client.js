@@ -23,6 +23,8 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
     c.userFilter = '';
     c.showCompanyList = false;
     var searchTimer = null;
+    // Stale responses are dropped when the search term changes mid-flight.
+    var companyRequest = 0;
 
     /* ---------- company lookup ---------- */
 
@@ -32,11 +34,37 @@ api.controller = function($scope, $timeout, $window, spModal, spUtil) {
         // Debounced so typing does not fire a request per keystroke.
         searchTimer = $timeout(function() {
             c.searching = true;
+            var request = ++companyRequest;
             c.server.get({ action: 'searchCompanies', term: c.companySearch }).then(function(r) {
+                if (request !== companyRequest) return;
                 c.data.companies = r.data.companies || [];
+                c.data.companiesHasMore = !!r.data.companiesHasMore;
                 c.searching = false;
             });
         }, 300);
+    };
+
+    // Called by the link function when the list is scrolled near its end.
+    c.loadMoreCompanies = function() {
+        if (!c.data.companiesHasMore || c.loadingMoreCompanies || c.searching) return;
+        c.loadingMoreCompanies = true;
+        var request = companyRequest;
+        c.server.get({
+            action: 'searchCompanies',
+            term: c.companySearch,
+            offset: c.data.companies.length
+        }).then(function(r) {
+            c.loadingMoreCompanies = false;
+            if (request !== companyRequest) return;
+            var seen = {};
+            c.data.companies.forEach(function(company) { seen[company.sys_id] = true; });
+            (r.data.companies || []).forEach(function(company) {
+                if (!seen[company.sys_id]) c.data.companies.push(company);
+            });
+            c.data.companiesHasMore = !!r.data.companiesHasMore;
+        }, function() {
+            c.loadingMoreCompanies = false;
+        });
     };
 
     c.selectCompany = function(company) {

@@ -83,6 +83,12 @@
   background: #f0f6ff;
 }
 
+.csat-survey-request .csat-typeahead li.csat-typeahead-more {
+  color: #5f6b7a;
+  font-style: italic;
+  text-align: center;
+}
+
 /* Keeps the select-all visually attached to the list it controls. */
 .csat-survey-request .csat-select-all {
   margin-bottom: 6px;

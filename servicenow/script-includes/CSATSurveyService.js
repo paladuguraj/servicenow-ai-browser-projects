@@ -304,7 +304,7 @@ CSATSurveyService.prototype = {
         return '';
     },
 
-    getCompanies: function(searchTerm, limit) {
+    getCompanies: function(searchTerm, limit, offset) {
         var companies = [];
         var gr = new GlideRecord('core_company');
         if (this.hasField('core_company', this.COMPANY_ACTIVE_FIELD))
@@ -318,7 +318,14 @@ CSATSurveyService.prototype = {
         if (searchTerm)
             gr.addQuery('name', 'CONTAINS', searchTerm);
         gr.orderBy('name');
-        gr.setLimit(limit ? parseInt(limit, 10) : 100);
+        // Several accounts share a name, so paging needs a tie-breaker.
+        gr.orderBy('sys_id');
+        var size = limit ? parseInt(limit, 10) : 100;
+        var start = offset ? parseInt(offset, 10) : 0;
+        if (start > 0)
+            gr.chooseWindow(start, start + size);
+        else
+            gr.setLimit(size);
         gr.query();
         while (gr.next()) {
             companies.push({
