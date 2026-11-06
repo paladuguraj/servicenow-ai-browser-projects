@@ -66,7 +66,7 @@ function ensureWidget() {
     controller_as: 'c',
     category: 'custom',
     active: true,
-    description: 'Case Survey and CSAT surveys sent, responses and answers with charts',
+    description: 'Case Auto CSAT and CSAT Manual Tool surveys sent, responses and answers with charts',
   };
   const linkPath = path.join(__dirname, '..', 'servicenow', 'portal', 'widgets', WIDGET_ID, 'link.js');
   if (fs.existsSync(linkPath)) payload.link = fs.readFileSync(linkPath, 'utf8');
@@ -145,7 +145,7 @@ async function ensureCaseSurveysProperty() {
     name: CASE_SURVEYS_PROPERTY,
     value: 'Closed Case Survey',
     type: 'string',
-    description: 'Comma-separated survey names offered in the Survey filter of the Case Survey tab on the CSAT Survey Management Dashboard',
+    description: 'Comma-separated survey names offered in the Survey filter of the Case Auto CSAT tab on the CSAT Survey Management Dashboard',
   });
   console.log(`Created property ${CASE_SURVEYS_PROPERTY}`);
 }

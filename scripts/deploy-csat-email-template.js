@@ -22,7 +22,7 @@ const NOTIFICATION_NAME = 'CSAT Survey Invitation';
 
 // What the customer is told the survey is called. Deliberately not
 // ${metric_type}: the definitions are named for internal use ("Managed Network
-// Services Survey - Manual" and "- Automatic") and that distinction means
+// Services Survey - Manual" and "- Schedule") and that distinction means
 // nothing to a recipient.
 const CUSTOMER_FACING_LABEL = 'How did we do?';
 

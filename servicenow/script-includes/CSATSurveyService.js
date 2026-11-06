@@ -60,7 +60,7 @@ CSATSurveyService.prototype = {
     // Surveys offered in the portal. Override without a deploy by setting the
     // csat.portal.survey_names property to a comma-separated list, or to an
     // empty string to offer every active survey.
-    PORTAL_SURVEYS: ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'],
+    PORTAL_SURVEYS: ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Schedule'],
 
     // A recipient may not be surveyed again with the same survey until this
     // many days have passed since their last successful send of it. The window

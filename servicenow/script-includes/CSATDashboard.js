@@ -4,17 +4,17 @@ CSATDashboard.prototype = {
 
     // Each option is a fixed slice of asmt_assessment_instance, told apart by
     // what raised the survey: closed cases, or CSAT Survey Requests (which
-    // covers both the Manual and the Automatic survey). A program with a
+    // covers both the Manual and the Schedule survey). A program with a
     // surveysProperty offers only the surveys named there in its Survey filter.
     PROGRAMS: [
         {
             id: 'case',
-            label: 'Case Survey',
+            label: 'Case Auto CSAT',
             triggerTable: 'sn_customerservice_case',
             surveysProperty: 'csat.dashboard.case_surveys',
             defaultSurveys: 'Closed Case Survey'
         },
-        { id: 'csat', label: 'CSAT (Manual + Automatic)', triggerTable: 'u_x_csat_survey_request' }
+        { id: 'csat', label: 'CSAT Manual Tool', triggerTable: 'u_x_csat_survey_request' }
     ],
 
     RANGES: [
@@ -491,7 +491,7 @@ CSATDashboard.prototype = {
     /**
      * One row per survey sent, newest first, with each answer in a column
      * named after its question. Questions that share a name (the Manual and
-     * Automatic surveys both ask "Overall Service Quality") share a column.
+     * Schedule surveys both ask "Overall Service Quality") share a column.
      */
     getExportRows: function(params, respondedOnly, limit) {
         var ctx = this._context(params);

@@ -83,7 +83,7 @@
   var metricTypeName = instanceGr.metric_type.name.toString();
   data.showLogo =
     metricTypeName === 'Managed Network Services Survey - Manual' ||
-    metricTypeName === 'Managed Network Services Survey - Automatic';
+    metricTypeName === 'Managed Network Services Survey - Schedule';
 
   if (!data.showLogo) return;
 

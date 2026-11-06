@@ -63,7 +63,7 @@ Choose the survey **before** picking recipients, because who can be contacted
 depends on it. Two are available:
 
 - **Managed Network Services Survey - Manual** — after a significant or complex incident.
-- **Managed Network Services Survey - Automatic** — for regular, ongoing feedback.
+- **Managed Network Services Survey - Schedule** — for regular, ongoing feedback.
 
 Above this field is a reminder:
 
@@ -168,7 +168,7 @@ through.
 
 Customers only ever see the survey called **How did we do?**. The template
 names you pick from — *Managed Network Services Survey - Manual* and
-*- Automatic* — are internal, and the Manual/Automatic distinction is not
+*- Schedule* — are internal, and the Manual/Schedule distinction is not
 something a customer needs to know about.
 
 The survey has two questions:

@@ -40,8 +40,8 @@
     ]
   },
   {
-    "survey": "Managed Network Services Survey - Automatic",
-    "category": "Managed Network Services Survey - Automatic",
+    "survey": "Managed Network Services Survey - Schedule",
+    "category": "Managed Network Services Survey - Schedule",
     "questions": [
       {
         "question": "Overall, how satisfied are you with our service this quarter?",

@@ -146,7 +146,7 @@ async function main() {
 
   // The respondent is a customer, so this uses the customer-facing label
   // rather than ${metric_type}. The definitions are named for internal use
-  // ("... - Manual" and "... - Automatic") and that split means nothing to a
+  // ("... - Manual" and "... - Schedule") and that split means nothing to a
   // recipient. The requestor notification below is internal and keeps the real
   // name, which is what makes a response identifiable.
   await ensureNotification({

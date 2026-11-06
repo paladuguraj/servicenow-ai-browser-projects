@@ -239,7 +239,7 @@ cannot reliably land inside a two-hour window.
 ## 5.0 Customer-facing survey label
 
 The survey definitions are named for internal use — **Managed Network Services
-Survey - Manual** and **- Automatic** — and that split describes how the survey
+Survey - Manual** and **- Schedule** — and that split describes how the survey
 was raised, which means nothing to a recipient. Customer-facing email therefore
 uses a fixed label, **How did we do?**, instead of `${metric_type}`:
 
@@ -398,13 +398,13 @@ Two tabs, each a fixed slice of `asmt_assessment_instance`:
 
 | Tab | Condition |
 |---|---|
-| Case Survey | `trigger_table=sn_customerservice_case` |
-| CSAT (Manual + Automatic) | `trigger_table=u_x_csat_survey_request` |
+| Case Auto CSAT | `trigger_table=sn_customerservice_case` |
+| CSAT Manual Tool (Manual and Schedule surveys) | `trigger_table=u_x_csat_survey_request` |
 
 The date range filters on when the survey was sent (`sys_created_on`), in
 the viewer's time zone. It is charted by month, or by year for "All time" and
 ranges over two years. The survey filter narrows the tab to one survey
-(`metric_type`). On the Case Survey tab it offers only the surveys named in
+(`metric_type`). On the Case Auto CSAT tab it offers only the surveys named in
 `csat.dashboard.case_surveys` (default `Closed Case Survey`). Every number
 on the tab, including "All surveys", the exports and the platform links,
 counts only those surveys. A survey ID outside the list is ignored, and an
