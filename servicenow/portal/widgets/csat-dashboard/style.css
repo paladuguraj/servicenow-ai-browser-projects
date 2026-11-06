@@ -58,6 +58,19 @@
   opacity: 0.5;
 }
 
+.csat-dash .csat-dash-exports {
+  margin-bottom: 10px;
+}
+
+.csat-dash .csat-dash-export-label {
+  display: inline-block;
+  font-size: 12px;
+  color: #6b7580;
+  margin-right: 6px;
+  line-height: 30px;
+  vertical-align: middle;
+}
+
 .csat-dash .csat-dash-links {
   font-size: 13px;
   margin-bottom: 16px;

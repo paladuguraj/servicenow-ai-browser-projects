@@ -404,7 +404,24 @@ Two tabs, each a fixed slice of `asmt_assessment_instance`:
 The date range filters on when the survey was sent (`sys_created_on`), in
 the viewer's time zone. It is charted by month, or by year for "All time" and
 ranges over two years. The survey filter narrows the tab to one survey
-(`metric_type`).
+(`metric_type`). On the Case Survey tab it offers only the surveys named in
+`csat.dashboard.case_surveys` (default `Closed Case Survey`). "All surveys"
+still covers every survey raised from a case, and a survey ID outside the list
+is ignored.
+
+Exports follow the filters last applied:
+
+| Format | Produced by | Contents |
+|---|---|---|
+| CSV | Browser, from the `export` action | One row per survey sent: number, survey, account, case number or requester, recipient, status, sent, due and taken dates, and one column per question |
+| Excel | Browser, as a real `.xlsx` (a minimal workbook in an uncompressed zip) | A Summary sheet (tiles, trend, by survey, answer distributions) and a Surveys sheet with the CSV rows |
+| PDF | `sn_pdfgeneratorutils.PDFGenerationAPI`, attached to the requesting user and replacing their previous one | The dashboard with bar charts, and the latest 500 responses with their answers |
+
+CSV and Excel are capped at 10,000 surveys; the page says so when the cap is
+hit. Excel is built in the browser because the platform exporter only exports
+fields of one table, so it couldn't include the account or the answers.
+Questions with the same name share a column. A skipped question
+(`actual_value` -1) is left blank.
 
 | Section | Source |
 |---|---|

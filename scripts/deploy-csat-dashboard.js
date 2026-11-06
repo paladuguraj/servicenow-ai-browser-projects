@@ -21,6 +21,7 @@ const MENU_LABEL = 'Dashboard';
 const MENU_ORDER = 260;
 // The same audience as the Results page.
 const VIEWERS_CRITERIA = 'CSAT Survey Admins';
+const CASE_SURVEYS_PROPERTY = 'csat.dashboard.case_surveys';
 
 async function upsert(table, query, payload, label) {
   const existing = await snGet(table, `sysparm_query=${encodeURIComponent(query)}&sysparm_fields=sys_id`);
@@ -133,9 +134,26 @@ async function ensureMenuItem(pageSysId) {
   );
 }
 
+// Created only if missing so a value changed on the instance is kept.
+async function ensureCaseSurveysProperty() {
+  const existing = await snGet('sys_properties', `sysparm_query=name=${CASE_SURVEYS_PROPERTY}&sysparm_fields=sys_id,value`);
+  if (existing.length) {
+    console.log(`Property ${CASE_SURVEYS_PROPERTY} already set: ${existing[0].value}`);
+    return;
+  }
+  await snPost('sys_properties', {
+    name: CASE_SURVEYS_PROPERTY,
+    value: 'Closed Case Survey',
+    type: 'string',
+    description: 'Comma-separated survey names offered in the Survey filter of the Case Survey tab on the CSAT Survey Management Dashboard',
+  });
+  console.log(`Created property ${CASE_SURVEYS_PROPERTY}`);
+}
+
 async function main() {
   announceTarget('Deploy CSAT Survey Management Dashboard');
 
+  await ensureCaseSurveysProperty();
   await ensureScriptInclude();
   const widgetSysId = await ensureWidget();
   const pageSysId = await ensurePage();

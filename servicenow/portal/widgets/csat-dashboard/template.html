@@ -58,6 +58,16 @@
         </div>
       </div>
 
+      <div class="alert alert-info" ng-if="c.notice">{{c.notice}}</div>
+
+      <div class="csat-dash-exports">
+        <span class="csat-dash-export-label">Export</span>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportPdf()" ng-disabled="c.exporting">PDF</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportExcel()" ng-disabled="c.exporting">Excel</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="c.exportCsv()" ng-disabled="c.exporting">CSV</button>
+        <span class="text-muted csat-dash-export-label" ng-if="c.exporting">Preparing file...</span>
+      </div>
+
       <div class="csat-dash-links">
         Open in the platform:
         <a ng-href="{{c.data.dashboard.links.sent}}" target="_blank">Surveys sent</a> &middot;
