@@ -1,0 +1,198 @@
+<div class="csat-dash">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">Survey Management Dashboard</h2>
+      <p class="text-muted m-t-xs m-b-none">Every survey sent and every response received, in one place.</p>
+    </div>
+    <div class="panel-body">
+
+      <ul class="nav nav-tabs csat-dash-tabs" role="tablist">
+        <li ng-repeat="p in c.data.options.programs track by p.id" ng-class="{active: c.filters.program === p.id}" role="presentation">
+          <a href="" role="tab" ng-click="c.selectProgram(p.id)">{{p.label}}</a>
+        </li>
+      </ul>
+
+      <div class="alert alert-danger m-t" ng-if="c.error">{{c.error}}</div>
+
+      <div class="row csat-dash-filters">
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="dash-range">Surveys sent</label>
+          <select id="dash-range" class="form-control" ng-model="c.filters.range" ng-change="c.onRangeChange()">
+            <option ng-repeat="r in c.data.options.ranges track by r.id" value="{{r.id}}">{{r.label}}</option>
+          </select>
+        </div>
+        <div class="form-group col-sm-6 col-md-2" ng-if="c.filters.range === 'custom'">
+          <label for="dash-from">From</label>
+          <input id="dash-from" type="date" class="form-control" ng-model="c.filters.from"/>
+        </div>
+        <div class="form-group col-sm-6 col-md-2" ng-if="c.filters.range === 'custom'">
+          <label for="dash-to">To</label>
+          <input id="dash-to" type="date" class="form-control" ng-model="c.filters.to"/>
+        </div>
+        <div class="form-group col-sm-6 col-md-3">
+          <label for="dash-survey">Survey</label>
+          <select id="dash-survey" class="form-control" ng-model="c.filters.survey" ng-change="c.load()">
+            <option value="">All surveys</option>
+            <option ng-repeat="s in c.data.dashboard.surveys track by s.sys_id" value="{{s.sys_id}}">{{s.name}}</option>
+          </select>
+        </div>
+        <div class="form-group col-sm-6 col-md-2 csat-dash-apply">
+          <button type="button" class="btn btn-primary" ng-click="c.load()" ng-disabled="c.loading">
+            {{c.loading ? 'Loading...' : 'Refresh'}}
+          </button>
+        </div>
+      </div>
+
+      <p class="text-muted csat-dash-scope">
+        {{c.data.dashboard.program.label}} &middot;
+        <span ng-if="c.data.dashboard.range.from">sent {{c.data.dashboard.range.from}} to {{c.data.dashboard.range.to}}</span>
+        <span ng-if="!c.data.dashboard.range.from">all surveys ever sent</span>
+      </p>
+
+      <div class="row csat-dash-tiles" ng-class="{'csat-dash-busy': c.loading}">
+        <div class="csat-dash-tile-col" ng-repeat="t in c.tiles track by $index">
+          <div class="csat-dash-tile">
+            <div class="csat-dash-tile-value">{{t.value}}</div>
+            <div class="csat-dash-tile-label">{{t.label}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="csat-dash-links">
+        Open in the platform:
+        <a ng-href="{{c.data.dashboard.links.sent}}" target="_blank">Surveys sent</a> &middot;
+        <a ng-href="{{c.data.dashboard.links.responses}}" target="_blank">Responses</a> &middot;
+        <a ng-href="{{c.data.dashboard.links.results}}" target="_blank">Answers (asmt_metric_result)</a>
+      </div>
+
+      <div class="row">
+        <div class="col-md-8">
+          <div class="csat-dash-card">
+            <h3>Sent vs responses by {{c.data.dashboard.trend.bucket === 'Year' ? 'year' : 'month'}}</h3>
+            <div class="csat-dash-legend">
+              <span><i class="csat-dash-swatch csat-dash-sent"></i>Surveys sent</span>
+              <span><i class="csat-dash-swatch csat-dash-responded"></i>Responses received</span>
+            </div>
+            <div class="csat-dash-columns" ng-if="c.data.dashboard.trend.buckets.length">
+              <div class="csat-dash-col" ng-repeat="b in c.data.dashboard.trend.buckets track by $index"
+                   title="{{b.label}}: {{b.sent}} sent, {{b.responded}} responses">
+                <div class="csat-dash-col-bars">
+                  <div class="csat-dash-bar csat-dash-sent" ng-style="{height: c.height(b.sent)}">
+                    <span ng-if="b.sent">{{b.sent}}</span>
+                  </div>
+                  <div class="csat-dash-bar csat-dash-responded" ng-style="{height: c.height(b.responded)}">
+                    <span ng-if="b.responded">{{b.responded}}</span>
+                  </div>
+                </div>
+                <div class="csat-dash-col-label">{{b.label}}</div>
+              </div>
+            </div>
+            <p class="text-muted" ng-if="!c.data.dashboard.trend.buckets.length">No surveys in this period.</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="csat-dash-card">
+            <h3>Survey status</h3>
+            <div class="csat-dash-hbar" ng-repeat="s in c.data.dashboard.states track by s.id">
+              <div class="csat-dash-hbar-label">{{s.label}}</div>
+              <div class="csat-dash-hbar-track">
+                <div class="csat-dash-hbar-fill" ng-class="'csat-dash-state-' + (s.id || 'none')" ng-style="{width: c.width(s.count, c.stateMax)}"></div>
+              </div>
+              <div class="csat-dash-hbar-count">{{s.count}}</div>
+            </div>
+            <p class="text-muted" ng-if="!c.data.dashboard.states.length">No surveys in this period.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="csat-dash-card">
+        <h3>By survey</h3>
+        <table class="table table-condensed csat-dash-table" ng-if="c.data.dashboard.bySurvey.length">
+          <thead>
+            <tr><th>Survey</th><th class="csat-dash-wide">Sent / responded</th><th class="text-right">Sent</th><th class="text-right">Responses</th><th class="text-right">Rate</th></tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="s in c.data.dashboard.bySurvey track by $index">
+              <td>{{s.name}}</td>
+              <td>
+                <div class="csat-dash-hbar-track">
+                  <div class="csat-dash-hbar-fill csat-dash-sent" ng-style="{width: c.width(s.sent, c.surveyMax)}"></div>
+                </div>
+                <div class="csat-dash-hbar-track csat-dash-thin">
+                  <div class="csat-dash-hbar-fill csat-dash-responded" ng-style="{width: c.width(s.responded, c.surveyMax)}"></div>
+                </div>
+              </td>
+              <td class="text-right">{{s.sent}}</td>
+              <td class="text-right">{{s.responded}}</td>
+              <td class="text-right">{{s.responseRate}}%</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-muted" ng-if="!c.data.dashboard.bySurvey.length">No surveys in this period.</p>
+      </div>
+
+      <div class="csat-dash-card">
+        <h3>How people answered</h3>
+        <p class="text-muted" ng-if="!c.data.dashboard.questions.length">No answers in this period.</p>
+        <div class="row">
+          <div class="col-md-6" ng-repeat="q in c.data.dashboard.questions track by $index">
+            <div class="csat-dash-question">
+              <div class="csat-dash-question-head">
+                <strong>{{q.name}}</strong>
+                <span class="text-muted">{{q.survey}}</span>
+                <span class="csat-dash-avg" ng-if="q.average !== null">Average {{q.average}}<span ng-if="q.maxValue"> / {{q.maxValue}}</span> &middot; {{q.total}} answers</span>
+              </div>
+              <div class="csat-dash-hbar" ng-repeat="o in q.options track by $index">
+                <div class="csat-dash-hbar-label">{{o.label}}</div>
+                <div class="csat-dash-hbar-track">
+                  <div class="csat-dash-hbar-fill csat-dash-responded" ng-style="{width: c.width(o.count, c.optionMax(q))}"></div>
+                </div>
+                <div class="csat-dash-hbar-count">{{o.count}} <span class="text-muted">({{o.percent}}%)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-7">
+          <div class="csat-dash-card">
+            <h3>Latest responses</h3>
+            <div class="csat-dash-scroll" ng-if="c.data.dashboard.recent.length">
+              <table class="table table-condensed table-striped csat-dash-table">
+                <thead>
+                  <tr><th>Survey</th><th>Taken</th><th>By</th><th>Account</th><th>From</th><th>Rating</th></tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="r in c.data.dashboard.recent track by r.sys_id">
+                    <td><a ng-href="{{c.instanceUrl(r.sys_id)}}" target="_blank">{{r.number}}</a><div class="text-muted small">{{r.survey}}</div></td>
+                    <td>{{r.taken_on}}</td>
+                    <td>{{r.user}}</td>
+                    <td>{{r.account}}</td>
+                    <td>{{r.source}}</td>
+                    <td>{{r.rating}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted" ng-if="!c.data.dashboard.recent.length">No responses in this period.</p>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="csat-dash-card">
+            <h3>Latest comments</h3>
+            <div class="csat-dash-scroll">
+              <div class="csat-dash-comment" ng-repeat="m in c.data.dashboard.comments track by $index">
+                <div>&ldquo;{{m.text}}&rdquo;</div>
+                <div class="text-muted small">{{m.user}} &middot; {{m.on}} &middot; {{m.survey}}</div>
+              </div>
+            </div>
+            <p class="text-muted" ng-if="!c.data.dashboard.comments.length">No comments in this period.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

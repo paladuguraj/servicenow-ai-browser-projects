@@ -1,0 +1,235 @@
+.csat-dash h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.csat-dash .csat-dash-tabs {
+  margin-bottom: 16px;
+}
+
+.csat-dash .csat-dash-tabs > li > a {
+  font-weight: 600;
+}
+
+.csat-dash .csat-dash-apply {
+  padding-top: 25px;
+}
+
+.csat-dash .csat-dash-scope {
+  font-size: 12px;
+  margin: -4px 0 12px;
+}
+
+.csat-dash .csat-dash-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -6px 8px;
+}
+
+.csat-dash .csat-dash-tile-col {
+  flex: 1 1 160px;
+  padding: 0 6px;
+}
+
+.csat-dash .csat-dash-tile {
+  border: 1px solid #e4e9ee;
+  border-radius: 4px;
+  padding: 14px;
+  text-align: center;
+  margin-bottom: 12px;
+  background: #f8fafc;
+}
+
+.csat-dash .csat-dash-tile-value {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #0b5cab;
+}
+
+.csat-dash .csat-dash-tile-label {
+  font-size: 12px;
+  color: #6b7580;
+  margin-top: 4px;
+}
+
+.csat-dash .csat-dash-busy {
+  opacity: 0.5;
+}
+
+.csat-dash .csat-dash-links {
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.csat-dash .csat-dash-card {
+  border: 1px solid #e4e9ee;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.csat-dash .csat-dash-legend {
+  font-size: 12px;
+  color: #6b7580;
+  margin-bottom: 8px;
+}
+
+.csat-dash .csat-dash-legend span {
+  margin-right: 16px;
+}
+
+.csat-dash .csat-dash-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.csat-dash .csat-dash-sent {
+  background: #9fb8d4;
+}
+
+.csat-dash .csat-dash-responded {
+  background: #0b5cab;
+}
+
+.csat-dash .csat-dash-columns {
+  display: flex;
+  align-items: flex-end;
+  height: 260px;
+  overflow-x: auto;
+  padding-top: 18px;
+}
+
+.csat-dash .csat-dash-col {
+  flex: 1 0 44px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 3px;
+}
+
+.csat-dash .csat-dash-col-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-bottom: 1px solid #c9d2db;
+}
+
+.csat-dash .csat-dash-bar {
+  width: 45%;
+  max-width: 22px;
+  margin: 0 1px;
+  position: relative;
+  border-radius: 2px 2px 0 0;
+}
+
+.csat-dash .csat-dash-bar span {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.csat-dash .csat-dash-col-label {
+  font-size: 11px;
+  color: #6b7580;
+  text-align: center;
+  padding-top: 4px;
+  white-space: nowrap;
+}
+
+.csat-dash .csat-dash-hbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.csat-dash .csat-dash-hbar-label {
+  flex: 0 0 120px;
+  padding-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.csat-dash .csat-dash-hbar-track {
+  flex: 1;
+  height: 14px;
+  background: #eef2f6;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.csat-dash .csat-dash-hbar-track.csat-dash-thin {
+  height: 8px;
+  margin-top: 3px;
+}
+
+.csat-dash .csat-dash-hbar-fill {
+  height: 100%;
+  background: #0b5cab;
+}
+
+.csat-dash .csat-dash-hbar-count {
+  flex: 0 0 90px;
+  text-align: right;
+  padding-left: 8px;
+  white-space: nowrap;
+}
+
+.csat-dash .csat-dash-state-complete { background: #2e8540; }
+.csat-dash .csat-dash-state-ready { background: #0b5cab; }
+.csat-dash .csat-dash-state-wip { background: #5b9bd5; }
+.csat-dash .csat-dash-state-canceled { background: #a0a8b0; }
+.csat-dash .csat-dash-state-expired { background: #d08c2c; }
+.csat-dash .csat-dash-state-none { background: #c9d2db; }
+
+.csat-dash .csat-dash-table td {
+  vertical-align: middle;
+}
+
+.csat-dash .csat-dash-wide {
+  width: 40%;
+}
+
+.csat-dash .csat-dash-question {
+  border-top: 1px solid #eef2f6;
+  padding: 12px 0 4px;
+}
+
+.csat-dash .csat-dash-question-head {
+  margin-bottom: 10px;
+}
+
+.csat-dash .csat-dash-question-head .text-muted {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.csat-dash .csat-dash-avg {
+  display: block;
+  font-size: 12px;
+  color: #0b5cab;
+  margin-top: 2px;
+}
+
+.csat-dash .csat-dash-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.csat-dash .csat-dash-comment {
+  border-left: 3px solid #9fb8d4;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
