@@ -29,6 +29,8 @@
         <ul class="csat-typeahead" ng-if="c.showCompanyList &amp;&amp; c.data.companies.length">
           <li ng-repeat="company in c.data.companies track by company.sys_id"
               ng-click="c.selectCompany(company)">{{company.name}}</li>
+          <li class="csat-typeahead-more" ng-if="c.data.companiesHasMore"
+              ng-click="c.loadMoreCompanies()">{{c.loadingMoreCompanies ? 'Loading more companies...' : 'Show more companies'}}</li>
         </ul>
         <p class="help-block" ng-if="c.searching">Searching...</p>
         <p class="help-block" ng-if="!c.searching &amp;&amp; c.showCompanyList &amp;&amp; !c.data.companies.length">

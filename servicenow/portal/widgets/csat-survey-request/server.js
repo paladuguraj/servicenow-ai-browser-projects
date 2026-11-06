@@ -1,9 +1,17 @@
 (function() {
     var service = new CSATSurveyService();
+    var COMPANY_PAGE = 50;
+
+    // One extra row is fetched to tell whether another page exists.
+    function companyPage(term, offset) {
+        var rows = service.getCompanies(term || '', COMPANY_PAGE + 1, offset || 0);
+        data.companiesHasMore = rows.length > COMPANY_PAGE;
+        data.companies = rows.slice(0, COMPANY_PAGE);
+    }
 
     if (input && input.action) {
         if (input.action === 'searchCompanies') {
-            data.companies = service.getCompanies(input.term, 50);
+            companyPage(input.term, input.offset);
             return;
         }
 
@@ -38,7 +46,7 @@
         }
     }
 
-    data.companies = service.getCompanies('', 50);
+    companyPage('', 0);
     data.templates = service.getSurveyTemplates();
     data.scheduleOptions = [
         { value: 'immediate', label: 'Send immediately' },

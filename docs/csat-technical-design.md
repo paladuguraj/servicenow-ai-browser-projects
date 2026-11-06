@@ -154,6 +154,7 @@ recorded a successful send that never happened.
 | Primary user eligibility | `getPrimaryContact` must return `eligible` |
 | 90-day cooldown | `_sendSurveyToUser` re-checks per recipient at send time |
 | Excluded support groups | Accounts whose `core_company.u_support_group` includes a group named in `csat.excluded_support_groups` (default `TAOPod`) are left out of `getCompanies`, refused by `createSurveyRequest`, and cancelled by `executeRequest` with no survey sent. Checked at each step, so accounts that join the group later are excluded too. Case surveys are not affected |
+| Excluded partners | Partner accounts named in `csat.excluded_partners` (default `ATT TAO Partner`) and every `customer_account` whose `account_parent` is one of them are excluded the same way, whatever their support group. Lookups bypass the CSM query rules |
 
 The UI applies the same rules for feedback, but the server is authoritative —
 the scheduled job and any API caller pass through the same checks.
@@ -238,7 +239,7 @@ cannot reliably land inside a two-hour window.
 ## 5.0 Customer-facing survey label
 
 The survey definitions are named for internal use — **Managed Network Services
-Survey - Manual** and **- Automatic** — and that split describes how the survey
+Survey - Manual** and **- Schedule** — and that split describes how the survey
 was raised, which means nothing to a recipient. Customer-facing email therefore
 uses a fixed label, **How did we do?**, instead of `${metric_type}`:
 
@@ -385,6 +386,55 @@ breakdowns, and the Excel export URL for the filters just used.
 Filter options are limited to surveys the portal is configured to send, read
 from the same `csat.portal.survey_names` property as the request form, so the
 report never offers a survey the portal cannot raise.
+
+### `csat-dashboard`
+
+The Survey Management Dashboard (`/csat?id=csat_dashboard`, menu item
+**Dashboard**), shown to the same "CSAT Survey Admins" audience as the
+Results page. Deployed by `scripts/deploy-csat-dashboard.js`; all numbers
+come from `CSATDashboard`.
+
+Two tabs, each a fixed slice of `asmt_assessment_instance`:
+
+| Tab | Condition |
+|---|---|
+| Case Auto CSAT | `trigger_table=sn_customerservice_case` |
+| CSAT Manual Tool (Manual and Schedule surveys) | `trigger_table=u_x_csat_survey_request` |
+
+The date range filters on when the survey was sent (`sys_created_on`), in
+the viewer's time zone. It is charted by month, or by year for "All time" and
+ranges over two years. The survey filter narrows the tab to one survey
+(`metric_type`). On the Case Auto CSAT tab it offers only the surveys named in
+`csat.dashboard.case_surveys` (default `Closed Case Survey`). Every number
+on the tab, including "All surveys", the exports and the platform links,
+counts only those surveys. A survey ID outside the list is ignored, and an
+empty list shows nothing.
+
+Exports follow the filters last applied:
+
+| Format | Produced by | Contents |
+|---|---|---|
+| CSV | Browser, from the `export` action | One row per survey sent: number, survey, account, case number or requester, recipient, status, sent, due and taken dates, and one column per question |
+| Excel | Browser, as a real `.xlsx` (a minimal workbook in an uncompressed zip) | A Summary sheet (tiles, trend, by survey, answer distributions) and a Surveys sheet with the CSV rows |
+| PDF | `sn_pdfgeneratorutils.PDFGenerationAPI`, attached to the requesting user and replacing their previous one | The dashboard with bar charts, and the latest 500 responses with their answers |
+
+CSV and Excel are capped at 10,000 surveys; the page says so when the cap is
+hit. Excel is built in the browser because the platform exporter only exports
+fields of one table, so it couldn't include the account or the answers.
+Questions with the same name share a column. A skipped question
+(`actual_value` -1) is left blank.
+
+| Section | Source |
+|---|---|
+| Tiles and status chart | instances counted by `state`: complete = responded, ready/wip = awaiting, canceled/expired |
+| Sent vs responses | instances by sent month beside completed instances by `taken_on` month |
+| By survey | instances by `metric_type` and `state` |
+| How people answered | `asmt_metric_result` for rating questions (scale, numericscale, boolean, choice), counted per `metric_definition`; the average uses each option's value |
+| Latest comments | `asmt_metric_result.string_value` for string questions |
+| Latest responses | the 25 most recent completed instances, with the case account or CSAT request company |
+
+The "Open in the platform" links open the same filters as
+`asmt_assessment_instance` and `asmt_metric_result` lists.
 
 ---
 

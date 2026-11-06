@@ -72,11 +72,14 @@ locked out, not a system integration account) and an email address. Anyone who
 fails these is listed separately as ineligible with the reason.
 
 **Accounts that are never surveyed.** Accounts whose Support Group is TAOPod do
-not receive CSAT surveys. They cannot be found in the company search, a request
+not receive CSAT surveys, and neither do ATT TAO Partner and its customers
+(accounts whose Parent (WLP Account) is ATT TAO Partner), whatever their
+Support Group. They cannot be found in the company search, a request
 cannot be raised for them, and any recurring request already raised for them is
 cancelled on its next run instead of sending. An account moved to TAOPod later
-is excluded from then on. The list of groups is held in the
-`csat.excluded_support_groups` property, so more can be added without a deploy.
+is excluded from then on, as is a new customer of ATT TAO Partner. The groups
+and partners are held in the `csat.excluded_support_groups` and
+`csat.excluded_partners` properties, so more can be added without a deploy.
 Case surveys are not affected.
 
 **How often.** Once per 90 days per person **per survey**. Somebody asked about
@@ -137,7 +140,7 @@ Run: `npm run test:csat:rules` against adcomsolutionsdev
 | 2 | Search filters the company list | FR-02 | Pass — "Bank" returned 116 matches |
 | 3 | Closed Case Survey is immediate-only | FR-08 | Pass |
 | 4 | Managed Network Services Survey - Manual is immediate-only | FR-08 | Pass |
-| 5 | Managed Network Services Survey - Automatic allows scheduling | FR-09 | Pass |
+| 5 | Managed Network Services Survey - Schedule allows scheduling | FR-09 | Pass |
 | 6 | Cooldown window is 90 days | FR-10 | Pass |
 | 7 | Primary Billing Contact resolves to a user | FR-03, FR-04 | Pass — resolved to a named, eligible user |
 | 8 | Account without a contact explains why | FR-03 | Pass — "This company has no Primary Billing Contact set." |
@@ -168,7 +171,7 @@ of the run).
 
 | Check | Covers | Observed |
 |---|---|---|
-| Survey filter offers portal surveys only | FR-19 | Managed Network Services Survey - Manual, Managed Network Services Survey - Automatic |
+| Survey filter offers portal surveys only | FR-19 | Managed Network Services Survey - Manual, Managed Network Services Survey - Schedule |
 | Account filter | FR-18 | 12 accounts drawn from the audit trail |
 | Report run, unfiltered | FR-18 | 48 rows, 12 account groups |
 | Report run, awaiting reply only | FR-18 | 48 rows |
@@ -212,12 +215,12 @@ Case-triggered surveys were re-checked and are unchanged.
 | Other portals unaffected | FR-26 | `/sp`, `/kb`, `/tao`, `/sp_config` still on the Stock theme, none resolving to `#011B58` |
 | No Get Started page | FR-25 | Loading a real survey as its recipient returns `not_show_intro_note = true`, so the widget opens on the first question |
 | Other surveys unaffected | FR-26 | Closed Case Survey still shows its landing page |
-| Survey rename applied everywhere | — | Definition, description, category and the `csat.portal.survey_names` allow-list all read *Managed Network Services Survey - Automatic*; the request form and report filter both offer it |
+| Survey rename applied everywhere | — | Definition, description, category and the `csat.portal.survey_names` allow-list all read *Managed Network Services Survey - Schedule*; the request form and report filter both offer it |
 
 ### 4.2d Customer-facing email label — passed
 
 The survey definitions are named for internal use — *Managed Network Services
-Survey - Manual* and *- Automatic* — and that Manual/Automatic split means
+Survey - Manual* and *- Schedule* — and that Manual/Schedule split means
 nothing to a recipient. Customers see **How did we do?** instead.
 
 | Email | Audience | Shows |
@@ -255,8 +258,8 @@ invitation body at the same time.
 | Check | Covers | Observed |
 |---|---|---|
 | Both recipient types at once | FR-30 | `primary_user` -> contact only; `selected_users` -> the two chosen; `both` -> all three, deduplicated |
-| Window is per survey | FR-31 | A recipient just sent the Automatic survey is blocked for it and still eligible for the Manual one |
-| Eligible list follows the survey | FR-32 | Same account returned 69 eligible / 8 blocked for Manual and 68 / 9 for Automatic |
+| Window is per survey | FR-31 | A recipient just sent the Schedule survey is blocked for it and still eligible for the Manual one |
+| Eligible list follows the survey | FR-32 | Same account returned 69 eligible / 8 blocked for Manual and 68 / 9 for Schedule |
 | All checkbox | FR-33 | Selects the eligible users currently listed, and respects the filter |
 | Send window | FR-34 | Mon, Fri, Sat, Sun held; Tue/Wed/Thu 09:00-11:00 local allowed; 07:00 and 12:00 held |
 | Deferral | FR-34 | Monday to Tue 09:00; Friday to the following Tue 09:00; Wednesday evening to Thu 09:00 |
@@ -321,7 +324,7 @@ are created and visible to recipients in **My Surveys**, but no email arrives.
 |---|---|---|
 | Closed Case Survey | Yes | 1 |
 | Managed Network Services Survey - Manual | **No** | **0** |
-| Managed Network Services Survey - Automatic | **No** | **0** |
+| Managed Network Services Survey - Schedule | **No** | **0** |
 
 Two of the three surveys cannot be sent. They need questions adding and then
 publishing in Survey Designer. Only Closed Case Survey is usable today, and with

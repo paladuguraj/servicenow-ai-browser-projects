@@ -159,7 +159,7 @@ two invitations. It cannot simply be dropped, and it cannot be made global: it
 edits a record the store app owns.
 
 > It also cannot be avoided by turning off the platform invitation on these
-> surveys. Both Managed Network Services Survey - Manual and Managed Network Services Survey - Automatic have
+> surveys. Both Managed Network Services Survey - Manual and Managed Network Services Survey - Schedule have
 > active trigger conditions on `sn_customerservice_case`, so they are raised by
 > the case flow as well as by the portal; suppressing their platform
 > notification would stop the case-triggered invitations too. Filtering on
@@ -193,7 +193,7 @@ One other set is deliberately left in Complete state:
 
 > ### CSAT Survey Portal - Rebrand and survey intro
 > 6 changes · the portal rename and `#011B58` header, its dedicated theme, the
-> Managed Network Services Survey - Automatic rename and the two surveys skipping their Get Started
+> Managed Network Services Survey - Schedule rename and the two surveys skipping their Get Started
 > page
 
 That is a delta, for an instance that already runs the solution and only needs
@@ -298,3 +298,24 @@ drift:
 - The latest `CSATSurveyService` — containing the Draft guard and the fix for
   falsely reported sends — had at one point been captured only into **Default**,
   so migrating the named sets alone would have shipped older core logic.
+
+## Feature update sets
+
+For an instance that already runs the solution, a single feature can be moved
+on its own. `scripts/package-update-set.js <bundle>` builds a set that holds
+the final state of that feature's records, captured with
+`GlideUpdateManager2`, and marks it Complete:
+
+| Bundle | Update set | Records |
+|---|---|---|
+| `company-list` | CSAT Survey Portal - Company list shows all companies | `CSATSurveyService`, the CSAT Survey Request widget, `csat.excluded_partners` |
+| `dashboard` | CSAT Survey Portal - Survey Management Dashboard | `CSATDashboard`, the dashboard widget, page, layout and menu item, `csat.dashboard.case_surveys` |
+| `survey-schedule-rename` | CSAT Survey Portal - Rename Automatic survey to Schedule | the survey and its category, `csat.portal.survey_names`, `CSATSurveyService`, the survey logo header widget |
+
+`company-list` and `survey-schedule-rename` both carry the same, current
+`CSATSurveyService`, so they can be committed in either order.
+
+The dashboard set leaves out "Who can view". The "CSAT Survey Admins" user
+criteria was created by hand on each instance, so its sys_id differs. After
+committing the set, add "CSAT Survey Admins" under "Who can view" on the
+`csat_dashboard` page and on the Survey Management Dashboard widget.

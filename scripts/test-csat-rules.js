@@ -42,7 +42,7 @@ const PROBE_SCRIPT = `(function process(request, response) {
     out.result = {
       closed_case: svc.isImmediateOnly('Closed Case Survey'),
       manual: svc.isImmediateOnly('Managed Network Services Survey - Manual'),
-      automatic: svc.isImmediateOnly('Managed Network Services Survey - Automatic')
+      automatic: svc.isImmediateOnly('Managed Network Services Survey - Schedule')
     };
   } else if (action === 'cooldown_days') {
     out.result = { days: svc.COOLDOWN_DAYS };
@@ -51,7 +51,7 @@ const PROBE_SCRIPT = `(function process(request, response) {
     manual.addQuery('name', 'Managed Network Services Survey - Manual');
     manual.query(); manual.next();
     var auto = new GlideRecord('asmt_metric_type');
-    auto.addQuery('name', 'Managed Network Services Survey - Automatic');
+    auto.addQuery('name', 'Managed Network Services Survey - Schedule');
     auto.query(); auto.next();
 
     var ex = new GlideRecord('u_x_csat_survey_execution');
@@ -136,7 +136,7 @@ async function main() {
     const imm = await probe({ probe: 'immediate' });
     check('Closed Case Survey is immediate-only', imm.closed_case === true);
     check('Managed Network Services Survey - Manual is immediate-only', imm.manual === true);
-    check('Managed Network Services Survey - Automatic allows scheduling', imm.automatic === false);
+    check('Managed Network Services Survey - Schedule allows scheduling', imm.automatic === false);
 
     console.log('\nRule 5 — 90-day cooldown');
     const cd = await probe({ probe: 'cooldown_days' });
@@ -175,7 +175,7 @@ async function main() {
     const offered = await probe({ probe: 'templates' });
     check(
       'portal offers only the approved surveys',
-      offered.every((t) => ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Automatic'].indexOf(t.name) !== -1),
+      offered.every((t) => ['Managed Network Services Survey - Manual', 'Managed Network Services Survey - Schedule'].indexOf(t.name) !== -1),
       offered.map((t) => t.name).join(', ') || 'none'
     );
 

@@ -4,6 +4,8 @@
  * Reuses backend tables and CSATSurveyService from deploy-csat-app.js.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { base, headers, snGet, snPost, snPatch, readArtifact, announceTarget } = require('./lib/sn-client');
 
 const PORTAL_SUFFIX = 'csat';
@@ -49,6 +51,8 @@ async function ensureWidget(widgetId, name, description, roles = 'snc_internal')
     active: true,
     description,
   };
+  const linkPath = path.join(__dirname, '..', 'servicenow', 'portal', 'widgets', widgetId, 'link.js');
+  if (fs.existsSync(linkPath)) payload.link = fs.readFileSync(linkPath, 'utf8');
 
   if (existing.length) {
     await snPatch('sp_widget', existing[0].sys_id, payload);
