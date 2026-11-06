@@ -405,9 +405,10 @@ The date range filters on when the survey was sent (`sys_created_on`), in
 the viewer's time zone. It is charted by month, or by year for "All time" and
 ranges over two years. The survey filter narrows the tab to one survey
 (`metric_type`). On the Case Survey tab it offers only the surveys named in
-`csat.dashboard.case_surveys` (default `Closed Case Survey`). "All surveys"
-still covers every survey raised from a case, and a survey ID outside the list
-is ignored.
+`csat.dashboard.case_surveys` (default `Closed Case Survey`). Every number
+on the tab, including "All surveys", the exports and the platform links,
+counts only those surveys. A survey ID outside the list is ignored, and an
+empty list shows nothing.
 
 Exports follow the filters last applied:
 

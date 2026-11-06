@@ -49,7 +49,12 @@ CSATDashboard.prototype = {
             if (surveys[i].sys_id == params.survey)
                 survey = params.survey;
         }
-        var conditions = this._conditions(program, range, survey);
+        // A program limited to named surveys counts only those, even under
+        // "All surveys".
+        var surveyIds = survey ? [survey] : [];
+        if (!survey && program.surveysProperty)
+            surveyIds = surveys.length ? surveys.map(function(s) { return s.sys_id; }) : ['-1'];
+        var conditions = this._conditions(program, range, surveyIds);
         return {
             program: program,
             range: range,
@@ -134,14 +139,16 @@ CSATDashboard.prototype = {
         return range;
     },
 
-    _conditions: function(program, range, survey) {
+    _conditions: function(program, range, surveyIds) {
         var parts = ['trigger_table=' + program.triggerTable];
         if (range.from)
             parts.push("sys_created_on>=javascript:gs.dateGenerate('" + range.from + "','start')");
         if (range.to)
             parts.push("sys_created_on<=javascript:gs.dateGenerate('" + range.to + "','end')");
-        if (survey && /^[0-9a-f]{32}$/.test(survey))
-            parts.push('metric_type=' + survey);
+        if (surveyIds.length == 1)
+            parts.push('metric_type=' + surveyIds[0]);
+        else if (surveyIds.length)
+            parts.push('metric_typeIN' + surveyIds.join(','));
         return parts;
     },
 
